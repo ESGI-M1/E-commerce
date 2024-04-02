@@ -4,8 +4,8 @@
       <h2>Confirmation</h2>
       <p>{{ confirmationMessage }}</p>
       <div class="modal-buttons">
-        <button @click="confirm">Confirmer</button>
-        <button @click="cancelAction">Annuler</button>
+        <Button color="primary" @click="confirm">Confirmer</Button>
+        <Button color="warning" @click="cancelAction">Annuler</Button>
       </div>
     </div>
   </div>
@@ -13,7 +13,9 @@
 </template>
 
 <script>
+import Button from './button/Button.vue';
 export default {
+  components: {Button},
   props: {
     buttonText: {
       type: String,
@@ -67,8 +69,12 @@ export default {
   border-radius: 8px;
 }
 
+.modal-content p {
+  padding: 20px;
+}
+
 .modal-buttons {
-  text-align: right;
+  text-align: center;
 }
 
 button {

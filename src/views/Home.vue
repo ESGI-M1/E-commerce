@@ -1,14 +1,24 @@
 <template>
   <div class="home">
+    <Form :fields="fields" class="form">
+    </Form>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
+import Form from "../layout/form/Form.vue";
 
 export default {
-  name: 'Home',
   components: {
+    Form
+  },
+  data() {
+    return {
+      fields: [
+        { label: 'Email', type: 'email', id: 'email', name: 'email' },
+        { label: 'Password', type: 'password', id: 'password', name: 'password' },
+      ]
+    };
   }
-}
+};
 </script>

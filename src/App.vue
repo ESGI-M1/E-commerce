@@ -1,4 +1,4 @@
-<!--<script setup lang="ts">-->
+<!--<script setup lang="ts">-->;
 <script>
 import Sidebar from './components/sidebar/Sidebar.vue'
 import { sidebarWidth } from './components/sidebar/state'
@@ -11,6 +11,7 @@ export default {
 </script>
 <template>
   <Sidebar />
+
   <div :style="{ 'margin-left': sidebarWidth }">
     <router-view />
   </div>

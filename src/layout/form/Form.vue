@@ -4,36 +4,33 @@
       <label :for="field.id">{{ field.label }}:</label>
       <input :type="field.type" :id="field.id" :name="field.name" v-model="form[field.name]">
     </div>
-    <Button color="primary" type="submit">Sauvegarder</Button>
+    <Button v-if="submit" color="primary" :type="submit.type" @click="submit.click" >{{ submit.label }}</Button>
+    <Button v-else color="primary" type="submit">Sauvegarder</Button>
   </form>
+  {{ submit }}
 </template>
 
-<script>
+<script setup>
 import Button from '../../components/button/Button.vue';
 import useForm from './useForm.js';
 
-export default {
-  components: {
-    Button
+const props = defineProps({
+  fields: {
+    type: Array,
+    required: true
   },
-  props: {
-    fields: Array
+  submit: {
+    type: Object,
+    required: false
   },
-  setup(props) {
-    const { form, handleChange, handleSubmit } = useForm({});
+});
 
-    function submitForm(formData) {
-      console.log('Form submitted:', formData);
-    }
+const { form, handleChange, handleSubmit } = useForm({});
 
-    return {
-      form,
-      handleChange,
-      handleSubmit,
-      fields: props.fields
-    };
-  }
-};
+function submitForm(formData) {
+  console.log('Form submitted:', formData);
+}
+
 </script>
 
 <style scoped>

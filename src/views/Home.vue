@@ -15,8 +15,8 @@ export default {
   data() {
     return {
       fields: [
-        { label: 'Email', type: 'email', id: 'email', name: 'email' },
-        { label: 'Password', type: 'password', id: 'password', name: 'password' },
+        { label: 'Email', type: 'email', id: 'email', name: 'email' , required: 'required'},
+        { label: 'Password', type: 'password', id: 'password', name: 'password', required: 'required' }
       ]
     };
   }

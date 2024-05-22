@@ -1,18 +1,18 @@
 const { Router } = require("express");
-const User = require("../models/user");
+const Product = require("../models/product");
 const router = new Router();
 
-router.get("/", async (req, res, next) => {
-  const users = await User.findAll({
+router.get("/", async (req, res) => {
+  const products = await Product.findAll({
     where: req.query,
   });
-  res.json(users);
+  res.json(products);
 });
 
 router.post("/", async (req, res, next) => {
   try {
-    const user = await User.create(req.body);
-    res.status(201).json(user);
+    const product = await Product.create(req.body);
+    res.status(201).json(product);
   } catch (e) {
     next(e);
   }
@@ -20,9 +20,9 @@ router.post("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const user = await User.findByPk(parseInt(req.params.id));
-    if (user) {
-      res.json(user);
+    const product = await Product.findByPk(parseInt(req.params.id));
+    if (Product) {
+      res.json(product);
     } else {
       res.sendStatus(404);
     }
@@ -33,14 +33,14 @@ router.get("/:id", async (req, res, next) => {
 
 router.patch("/:id", async (req, res, next) => {
   try {
-    const [nbUpdated, users] = await User.update(req.body, {
+    const [nbUpdated, products] = await Product.update(req.body, {
       where: {
         id: parseInt(req.params.id),
       },
       returning: true,
     });
     if (nbUpdated === 1) {
-      res.json(users[0]);
+      res.json(products[0]);
     } else {
       res.sendStatus(404);
     }
@@ -51,7 +51,7 @@ router.patch("/:id", async (req, res, next) => {
 
 router.delete("/:id", async (req, res, next) => {
   try {
-    const nbDeleted = await User.destroy({
+    const nbDeleted = await Product.destroy({
       where: {
         id: parseInt(req.params.id),
       },
@@ -68,13 +68,13 @@ router.delete("/:id", async (req, res, next) => {
 
 router.put("/:id", async (req, res, next) => {
   try {
-    const nbDeleted = await User.destroy({
+    const nbDeleted = await Product.destroy({
       where: {
         id: parseInt(req.params.id),
       },
     });
-    const user = await User.create(req.body);
-    res.status(nbDeleted ? 200 : 201).json(user);
+    const product = await Product.create(req.body);
+    res.status(nbDeleted ? 200 : 201).json(product);
   } catch (e) {
     next(e);
   }

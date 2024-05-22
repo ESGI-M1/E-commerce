@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue'
+import Dashboard from '../views/Dashboard.vue';
+import About from '../views/About.vue';
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
+import Products from '../views/Products.vue'
 
 const routes = [
   {
@@ -12,12 +15,12 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('../views/Dashboard.vue')
+    component: Dashboard
   },
   {
     path: '/about',
     name: 'About',
-    component: () => import('../views/About.vue')
+    component: About
   },
   {
     path: '/login',
@@ -28,7 +31,12 @@ const routes = [
     path: '/signup',
     name: 'Signup',
     component: Signup
-  }
+  },
+  {
+    path: '/products',
+    name: 'Products',
+    component: Products
+  },
 ]
 
 // const router = createRouter({

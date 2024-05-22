@@ -3,7 +3,7 @@ const User = require("../models/user");
 const checkAuth = require("../middlewares/checkAuth");
 const router = new Router();
 
-router.get("/", checkAuth, async (req, res, next) => {
+router.get("/", checkAuth, async (req, res) => {
   const users = await User.findAll({
     where: req.query,
   });

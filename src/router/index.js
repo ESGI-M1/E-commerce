@@ -5,12 +5,13 @@ import About from '../views/About.vue';
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
 import Products from '../views/Products.vue'
+import Cart from '../views/Cart.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'Accueil',
+    component: Products
   },
   {
     path: '/dashboard',
@@ -29,13 +30,18 @@ const routes = [
   },
   {
     path: '/signup',
-    name: 'Signup',
+    name: 'Inscription',
     component: Signup
   },
   {
     path: '/products',
     name: 'Products',
     component: Products
+  },
+  {
+    path: '/cart',
+    name: 'Panier',
+    component: Cart
   },
 ]
 

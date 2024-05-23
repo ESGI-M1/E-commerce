@@ -1,17 +1,22 @@
 <!--<script setup lang="ts">-->
 <script>
-import Sidebar from './components/sidebar/Sidebar.vue'
-import { sidebarWidth } from './components/sidebar/state'
+//import Sidebar from './components/sidebar/Sidebar.vue'
+//import { sidebarWidth } from './components/sidebar/state'
+import Navbar from './components/navbar/Navbar.vue'
+
 export default {
-  components: { Sidebar },
-  setup() {
+  //components: { Sidebar, Navbar},
+  components: { Navbar},
+  /*setup() {
     return { sidebarWidth }
-  }
+  }*/
 }
 </script>
 <template>
-  <Sidebar />
-  <div :style="{ 'margin-left': sidebarWidth }">
+  <Navbar />
+  <!--<Sidebar />-->
+  <!--<div :style="{ 'margin-left': sidebarWidth }">-->
+    <div>
     <router-view />
   </div>
 </template>

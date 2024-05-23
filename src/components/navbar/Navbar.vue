@@ -1,0 +1,179 @@
+<!-- src/components/Navbar.vue -->
+<template>
+    <nav class="navbar">
+      <div class="navbar-section logo">
+        <a href="/" class="nav-link">Accueil</a>
+
+        <!-- Logo -->
+      </div>
+  
+      <div class="navbar-section links">
+      <!-- Navigation Links -->
+      <div class="nav-item">
+        <a href="#" class="nav-link">Homme</a>
+        <div class="dropdown">
+          <a href="#" class="dropdown-item">Vêtements</a>
+          <a href="#" class="dropdown-item">Chaussures</a>
+          <a href="#" class="dropdown-item">Accessoires</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="nav-link">Femme</a>
+        <div class="dropdown">
+          <a href="#" class="dropdown-item">Vêtements</a>
+          <a href="#" class="dropdown-item">Chaussures</a>
+          <a href="#" class="dropdown-item">Accessoires</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="nav-link">Enfant</a>
+        <div class="dropdown">
+          <a href="#" class="dropdown-item">Vêtements</a>
+          <a href="#" class="dropdown-item">Chaussures</a>
+          <a href="#" class="dropdown-item">Accessoires</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="nav-link">Nouveauté</a>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="nav-link">Promotion</a>
+        <div class="dropdown">
+          <a href="#" class="dropdown-item">Offres Spéciales</a>
+          <a href="#" class="dropdown-item">Soldes</a>
+        </div>
+      </div>
+    </div>
+  
+      <div class="navbar-section actions">
+        <!-- Shopping Cart Icon -->
+        <a class="icon" href="/cart">
+            <i class="fas fa-shopping-cart"></i>
+        </a>
+        &nbsp;
+        <!-- Search Bar -->
+        <input
+          type="text"
+          placeholder="Rechercher"
+          class="search-bar"
+        >
+  
+        <!-- Login Button -->
+        <button onclick="location.href='/signup'" class="login-button">S'identifier</button>
+      </div>
+    </nav>
+  </template>
+  
+  <script setup lang="ts">
+  </script>
+  
+  <style scoped>
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: white;
+  color: black;
+  width: 100%;
+  box-sizing: border-box;
+  border-bottom: 1px solid #ddd;
+}
+
+.navbar-section {
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  height: 40px;
+}
+
+.links {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  margin: 0 15px;
+  color: black;
+  text-decoration: none;
+  position: relative;
+}
+
+.nav-link:hover {
+  color: #42b983;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: -40px;
+  background-color: white;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 1;
+  min-width: 160px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  padding: 10px 20px;
+  color: black;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+.nav-item:hover .dropdown {
+  display: block;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.cart-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.search-bar {
+  padding: 5px 10px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  outline: none;
+}
+
+.login-button {
+  padding: 10px 20px;
+  background-color: #42b983;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background-color: #36a67d;
+}
+
+@media (max-width: 909px) {
+
+.navbar {
+  flex-direction: column;
+}
+}
+</style>

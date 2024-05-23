@@ -1,7 +1,13 @@
 const connection = require("./models/db");
+
+// User
 require("./models/user");
-require("./models/product");
-require("./models/category");
+
+// Product
+require("./models/product/product");
+require("./models/product/category");
+require("./models/product/image");
+require("./models/product/productRelation");
 
 connection
   .sync({ alter: true })

@@ -1,19 +1,17 @@
-const { Model, DataTypes, Sequelize } = require("sequelize");
+const { Model, DataTypes } = require("sequelize");
 
-const connection = require("./db");
-const Product = require("./product");
+const connection = require("../db");
 
-class Category extends Model {}
+class Image extends Model {}
 
-
-Category.init(
+Image.init(
     {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
-        name: {
+        url: {
             type: DataTypes.STRING,
             allowNull: false,
             validate: {
@@ -25,13 +23,9 @@ Category.init(
         },
     },
     {
-        timestamps: true,
-        createdAt: true,
-        updatedAt: 'updateTimestamp',
+        timestamps: false,
         sequelize: connection
     }
 );
 
-Category.belongsToMany(Product, { through: "ProductCategory" });
-
-module.exports = Category;
+module.exports = Image;

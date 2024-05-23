@@ -1,10 +1,13 @@
 const { Router } = require("express");
-const Product = require("../models/product");
+const Product = require("../models/product/product");
+const Category = require("../models/product/category");
+const Image = require("../models/product/image");
 const router = new Router();
 
 router.get("/", async (req, res) => {
   const products = await Product.findAll({
     where: req.query,
+    include: [Category, Image],
   });
   res.json(products);
 });

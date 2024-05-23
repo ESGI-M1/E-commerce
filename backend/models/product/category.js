@@ -1,10 +1,10 @@
 const { Model, DataTypes } = require("sequelize");
 
-const connection = require("./db");
+const connection = require("../db");
 
-class Product extends Model {}
+class Category extends Model {}
 
-Product.init(
+Category.init(
     {
         id: {
             type: DataTypes.INTEGER,
@@ -18,28 +18,9 @@ Product.init(
                 notEmpty: true,
             },
         },
-        reference: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            validate: {
-                notEmpty: true,
-            },
-        },
-        price: {
-            type: DataTypes.DECIMAL,
-            allowNull: false,
-            validate: {
-                notEmpty: true,
-            },
-        },
-        active: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false,
-        },
         description: {
             type: DataTypes.TEXT,
         },
-
     },
     {
         timestamps: true,
@@ -49,4 +30,4 @@ Product.init(
     }
 );
 
-module.exports = Product;
+module.exports = Category;

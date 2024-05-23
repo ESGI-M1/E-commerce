@@ -1,5 +1,7 @@
 const connection = require("./models/db");
 require("./models/user");
+require("./models/product");
+require("./models/category");
 
 connection
   .sync({ alter: true })

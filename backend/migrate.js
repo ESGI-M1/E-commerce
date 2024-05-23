@@ -1,15 +1,32 @@
-const connection = require("./models/db");
+const connection = require("./models");
 
-// User
-require("./models/user");
+const options = {
+  "--type": {
+    value: true,
+    default: "alter",
+  },
+  "--force": {},
+  "--dir": {
+    default: "up",
+  },
+};
 
-// Product
-require("./models/product/product");
-require("./models/product/category");
-require("./models/product/image");
-require("./models/product/productRelation");
+const args = process.argv.slice(2);
+
+do {
+  const arg = args.shift();
+  if (arg in options) {
+    if (options[arg].value) {
+      options[arg] = args.shift();
+    } else {
+      options[arg] = options[arg].default ?? true;
+    }
+  }
+} while (args.length);
 
 connection
-  .sync({ alter: true })
-  .then(() => console.log("Database synced"))
-  //.then(() => connection.close());
+  .sync({
+    [options["--type"]]: true,
+  })
+  .then(() => connection.close())
+  .then(() => console.log("Database synced"));

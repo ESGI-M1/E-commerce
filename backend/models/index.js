@@ -3,25 +3,22 @@ const path = require('path');
 
 const connection = require("./db");
 
-const results = { connection };
+const db = { connection };
 const files = fs.readdirSync(__dirname);
 files.forEach((file) => {
   if (["db.js","index.js"].includes(file)) return;
   const model = require(path.join(__dirname, file))(connection);
-  results[model.name] = model;
+  db[model.name] = model;
 });
 
-for (const model in results) {
-
-  if (results[model] === connection) continue;
-
-  if (results[model].associate) {
-    results[model].associate(results);
+for (const model in db) {
+  if (model === connection) continue;
+  if (db[model].associate) {
+    db[model].associate(db);
   }
-
-  if (results[model].addHooks) {
-    results[model].addHooks(results)
+  if (db[model].addHooks) {
+    db[model].addHooks(db);
   }
 }
 
-module.exports = results
+module.exports = db;

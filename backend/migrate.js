@@ -1,4 +1,4 @@
-const connection = require("./models");
+const connection = require("./models/db");
 
 const options = {
   "--type": {
@@ -28,5 +28,5 @@ connection
   .sync({
     [options["--type"]]: true,
   })
-  .then(() => connection.close())
+  //.then(() => connection.close())
   .then(() => console.log("Database synced"));

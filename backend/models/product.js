@@ -3,9 +3,11 @@ const { Model, DataTypes } = require("sequelize");
 module.exports = function(connection){
 
     class Product extends Model {
-        static associate(models) {
-            Product.hasMany(models.Image);
-            Product.hasMany(models.Category);
+        static associate(db) {
+            Product.hasMany(db.Image);
+            db.Image.belongsTo(Product);
+            Product.hasMany(db.Category);
+            db.Category.belongsTo(Product);
         }
     }
 

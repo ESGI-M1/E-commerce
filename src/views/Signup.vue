@@ -41,20 +41,20 @@ const fields = [
     { label: 'Password', type: 'password', id: 'password', name: 'password', required: 'required' }
 ];
 
-const submit = { label: 'Signup', type: 'button', 'click': signup };
+const submit = { label: 'S\'inscrire', type: 'button', 'click': signup };
 
 </script>
 
 <template>
     <div class="signup">
-      <h1>Signup</h1>
+      <h1>Inscription</h1>
       <Form :fields="fields" :submit="submit"/>
         <form>
             <input type="text" placeholder="firstname" v-model="firstname" required />
             <input type="text" placeholder="lastname" v-model="lastname" required />
             <input type="email" placeholder="email" v-model="email" required />
             <input type="password" placeholder="Password" v-model="password" required pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,32}$" title="Le mot de passe doit contenir au moins une lettre minuscule, une lettre majuscule, un chiffre, un caractère spécial et être compris entre 8 et 32 caractères." />
-            <button type="button" @click="signup">Signup</button>
+            <button type="button" @click="signup">s'inscrire</button>
         </form>
     </div>
 </template>

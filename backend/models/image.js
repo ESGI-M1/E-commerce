@@ -1,17 +1,17 @@
 const { Model, DataTypes } = require("sequelize");
 
-module.exports = function (connection) {
+module.exports = function(connection) {
 
-    class Category extends Model {}
+    class Image extends Model {}
 
-    Category.init(
+    Image.init(
         {
             id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
                 autoIncrement: true,
             },
-            name: {
+            url: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 validate: {
@@ -23,11 +23,10 @@ module.exports = function (connection) {
             },
         },
         {
-            timestamps: true,
-            createdAt: true,
-            updatedAt: 'updateTimestamp',
+            timestamps: false,
             sequelize: connection
         }
     );
-    return Category;
-};
+    return Image;
+}
+

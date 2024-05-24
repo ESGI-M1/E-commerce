@@ -3,6 +3,8 @@ const cookieParser = require("cookie-parser");
 
 const UserRouter = require("./routes/user");
 const ProductRouter = require("./routes/product");
+const CategoryRouter = require("./routes/category");
+const ImageRouter = require("./routes/image");
 const SecurityRouter = require("./routes/security");
 
 const app = express();
@@ -19,6 +21,8 @@ app.use(cors(options))
 
 app.use("/users", UserRouter);
 app.use("/products", ProductRouter);
+app.use('/categories', CategoryRouter);
+app.use('/images', ImageRouter);
 
 app.use(SecurityRouter);
 app.listen(process.env.PORT, () => {

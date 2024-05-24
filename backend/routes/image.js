@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const Category = require("../models/category");
+const Image = require("../models/image");
 const router = new Router();
 
 module.exports = router;

@@ -2,7 +2,12 @@ const { Model, DataTypes } = require("sequelize");
 
 module.exports = function (connection) {
 
-    class Category extends Model {}
+    class Category extends Model {
+
+        static associate(db) {
+            Category.belongsTo(db.Category, { as: 'parent' });
+        }
+    }
 
     Category.init(
         {
@@ -12,6 +17,13 @@ module.exports = function (connection) {
                 autoIncrement: true,
             },
             name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: true,
+                },
+            },
+            slug: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 validate: {

@@ -7,12 +7,14 @@ import { z } from 'zod';
 const categorySchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required"),
   description: z.string().optional()
 });
 
 const categories = ref([]);
 const newCategory = ref({
   name: '',
+  slug: '',
   description: ''
 });
 
@@ -34,6 +36,7 @@ const addCategory = async () => {
     categories.value.push(response.data);
     newCategory.value = {
       name: '',
+      slug: '',
       description: ''
     };
   } catch (error) {
@@ -199,12 +202,14 @@ onMounted(() => {
         <thead>
           <tr>
             <th>Name</th>
+            <th>Slug</th>
             <th>Description</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="category in categories" :key="category.id">
             <td>{{ category.name }}</td>
+            <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
           </tr>
         </tbody>
@@ -216,6 +221,9 @@ onMounted(() => {
       <form @submit.prevent="addCategory">
         <label for="name">Name</label>
         <input v-model="newCategory.name" type="text" id="name" name="name" required>
+
+        <label for="slug">Slug</label>
+        <input v-model="newCategory.slug" type="text" id="slug" name="slug" required>
 
         <label for="description">Description</label>
         <textarea v-model="newCategory.description" id="description" name="description"></textarea>

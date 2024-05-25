@@ -3,7 +3,19 @@ const bcrypt = require("bcryptjs");
 
 module.exports = function (connection) {
 
-class User extends Model {}
+  class User extends Model {
+    static addHooks(db) {
+      User.addHook("beforeCreate", async (user) => {
+        user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
+      });
+    
+      User.addHook("beforeUpdate", async (user, options) => {
+        if (options.fields.includes("password")) {
+          user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
+        }
+      });
+    }
+  }
 
   User.init(
     {
@@ -37,15 +49,7 @@ class User extends Model {}
     { sequelize: connection }
   );
 
-  User.addHook("beforeCreate", async (user) => {
-    user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
-  });
 
-  User.addHook("beforeUpdate", async (user, options) => {
-    if (options.fields.includes("password")) {
-      user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
-    }
-  });
   
   return User;
 }

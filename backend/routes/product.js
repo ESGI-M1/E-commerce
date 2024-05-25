@@ -1,7 +1,5 @@
 const { Router } = require("express");
-const Product = require("../models/product");
-const Category = require("../models/category");
-const Image = require("../models/image");
+const { Product, Category, Image } = require("../models");
 const router = new Router();
 
 router.get("/", async (req, res) => {

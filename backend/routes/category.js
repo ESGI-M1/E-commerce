@@ -32,6 +32,21 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
+router.get('/:slug', async (req, res, next) => {
+    try {
+        const category = await Category.findOne({
+            where: { slug: req.params.slug },
+        });
+        if (category) {
+            res.json(category);
+        } else {
+            res.sendStatus(404);
+        }
+    } catch (e) {
+        next(e);
+    }
+});
+
 router.patch("/:id", async (req, res, next) => {
     try {
         const [nbUpdated, categories] = await Category.update(req.body, {

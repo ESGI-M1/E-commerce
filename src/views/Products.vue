@@ -11,12 +11,14 @@ const router = useRouter();
 const categorySchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required"),
   description: z.string().optional()
 });
 
 const categories = ref([]);
 const newCategory = ref({
   name: '',
+  slug: '',
   description: ''
 });
 
@@ -38,6 +40,7 @@ const addCategory = async () => {
     categories.value.push(response.data);
     newCategory.value = {
       name: '',
+      slug: '',
       description: ''
     };
   } catch (error) {
@@ -53,7 +56,11 @@ const productSchema = z.object({
   reference: z.string().min(1, "Reference is required"),
   price: z.number().min(0, "Price must be a positive number"),
   active: z.boolean(),
-  description: z.string().optional()
+  description: z.string().optional(),
+  Categories: z.array(z.number()).optional(),
+  Images: z.array(z.number()).optional(),
+  createdAt: z.string().time().optional(),
+  updateTimestamp: z.string().time().optional()
 });
 
 const products = ref([]);
@@ -62,7 +69,8 @@ const newProduct = ref({
   reference: '',
   price: 0,
   active: false,
-  description: ''
+  description: '',
+  Categories: [],
 });
 
 // Function to fetch products
@@ -83,6 +91,7 @@ const fetchProducts = async () => {
 const addProduct = async () => {
   try {
     const parsedProduct = productSchema.parse(newProduct.value);
+    console.log(parsedProduct);
     const response = await axios.post('http://localhost:3000/products', parsedProduct);
     products.value.push(response.data);
     newProduct.value = {
@@ -90,12 +99,35 @@ const addProduct = async () => {
       reference: '',
       price: 0,
       active: false,
-      description: ''
+      description: '',
+      Categories: [],
     };
   } catch (error) {
     console.error('Error adding product:', error);
   }
 };
+
+//; Function to modify a product
+const modifyProduct = async (product) => {
+  try {
+    console.log(product);
+    //const parsedProduct = productSchema.parse(product);
+    await axios.put(`http://localhost:3000/products/${product.id}`, product);
+  } catch (error) {
+    console.error('Error modifying product:', error);
+  }
+};
+
+// Function to delete a product
+const deleteProduct = async (product) => {
+  try {
+    await axios.delete(`http://localhost:3000/products/${product.id}`);
+    products.value = products.value.filter((p) => p.id !== product.id);
+  } catch (error) {
+    console.error('Error deleting product:', error);
+  }
+};
+
 
 // Function to generate dummy data
 const generateDummyData = () => {
@@ -152,7 +184,7 @@ onMounted(() => {
         <input v-model="newProduct.reference" type="text" id="reference" name="reference" required>
 
         <label for="price">Price</label>
-        <input v-model="newProduct.price" type="number" id="price" name="price" required>
+        <input v-model="newProduct.price" type="number" id="price" name="price" min="0" required>
 
         <label for="active">Active</label>
         <input v-model="newProduct.active" type="checkbox" id="active" name="active">
@@ -160,10 +192,48 @@ onMounted(() => {
         <label for="description">Description</label>
         <textarea v-model="newProduct.description" id="description" name="description"></textarea>
 
+        <label for="categories">Categories</label>
+        <select id="categories" name="categories" v-model="newProduct.Categories" multiple>
+          <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+        </select>
+
         <button type="submit">Add Product</button>
       </form>
     </div>
-    
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Reference</th>
+            <th>Price</th>
+            <th>Active</th>
+            <th>Description</th>
+            <th>Categories</th>
+            <th>RAW DATA</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="product in products" :key="product.id">
+            <td> <input v-model="product.name" type="text" required> </td>
+            <td> <input v-model="product.reference" type="text" required> </td>
+            <td> <input v-model.number="product.price" type="number" required min="0"> </td>
+            <td> <input v-model="product.active" type="checkbox"> </td>
+            <td> <input v-model="product.description" type="text"> </td>
+            <td>
+              <select v-model="product.Categories" multiple>
+                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+              </select>
+            </td>
+            <td> {{ product}} </td>
+            <td>
+              <button @click="modifyProduct(product)">Modify</button>
+              <button @click="deleteProduct(product)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
   <div class="categories">
     <div>
       <h1>Categories</h1>
@@ -171,12 +241,14 @@ onMounted(() => {
         <thead>
           <tr>
             <th>Name</th>
+            <th>Slug</th>
             <th>Description</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="category in categories" :key="category.id">
             <td>{{ category.name }}</td>
+            <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
           </tr>
         </tbody>
@@ -189,6 +261,9 @@ onMounted(() => {
         <label for="name">Name</label>
         <input v-model="newCategory.name" type="text" id="name" name="name" required>
 
+        <label for="slug">Slug</label>
+        <input v-model="newCategory.slug" type="text" id="slug" name="slug" required>
+
         <label for="description">Description</label>
         <textarea v-model="newCategory.description" id="description" name="description"></textarea>
 
@@ -198,6 +273,15 @@ onMounted(() => {
 </template>
 
 <style scoped>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border: 1px solid black;
+    padding: 4px;
+  }
 .products {
   padding: 20px;
 }

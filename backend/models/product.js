@@ -4,10 +4,11 @@ module.exports = function(connection){
 
     class Product extends Model {
         static associate(db) {
+            Product.belongsToMany(db.Category, { through: 'ProductCategories' });
+            db.Category.belongsToMany(Product, { through: 'ProductCategories' });
+
             Product.hasMany(db.Image);
             db.Image.belongsTo(Product);
-            Product.hasMany(db.Category);
-            db.Category.belongsTo(Product);
         }
     }
 

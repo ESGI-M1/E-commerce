@@ -19,7 +19,7 @@ router.post("/", async (req, res, next) => {
     }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id(\\d+)", async (req, res, next) => {
     try {
         const category = await Category.findByPk(parseInt(req.params.id));
         if (category) {
@@ -32,10 +32,11 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
-router.get('/:slug', async (req, res, next) => {
+router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
     try {
         const category = await Category.findOne({
             where: { slug: req.params.slug },
+            include: [Product],
         });
         if (category) {
             res.json(category);

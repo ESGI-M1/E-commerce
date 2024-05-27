@@ -76,8 +76,10 @@ const newProduct = ref({
 // Function to fetch products
 const fetchProducts = async () => {
   try {
+    console.log('Fetching products');
     const response = await axios.get('http://localhost:3000/products');
     products.value = response.data;
+    console.log(products.value);
     if (products.value.length === 0) {
       generateDummyData();
     }
@@ -159,7 +161,7 @@ onMounted(() => {
     <h1>Products</h1>
     <div class="product-grid">
       <div 
-        v-for="product in products" 
+        v-for="product in products"
         :key="product.id" 
         class="product-card"
         @click="showProductDetails(product.id)"
@@ -168,7 +170,7 @@ onMounted(() => {
         <div class="product-info">
           <h2>{{ product.name }}</h2>
           <p>{{ product.description }}</p>
-          <p class="product-price">${{ product.price.toFixed(2) }}</p>
+          <p class="product-price" >${{ parseInt(product.price).toFixed(2) }}</p>
         </div>
       </div>
     </div>

@@ -1,9 +1,13 @@
 <script lang="ts" setup>
+import ProductList from './ProductList.vue';
+
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
 import { z } from 'zod';
 import { useRoute, useRouter } from 'vue-router';
+import { useProductsStore } from '@/store/products';
 
+const productsStore = useProductsStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -63,7 +67,6 @@ const productSchema = z.object({
   updateTimestamp: z.string().time().optional()
 });
 
-const products = ref([]);
 const newProduct = ref({
   name: '',
   reference: '',
@@ -78,9 +81,8 @@ const fetchProducts = async () => {
   try {
     console.log('Fetching products');
     const response = await axios.get('http://localhost:3000/products');
-    products.value = response.data;
-    console.log(products.value);
-    if (products.value.length === 0) {
+    productsStore.setProducts(response.data);
+    if (productsStore.count === 0) {
       generateDummyData();
     }
   } catch (error) {
@@ -95,7 +97,7 @@ const addProduct = async () => {
     const parsedProduct = productSchema.parse(newProduct.value);
     console.log(parsedProduct);
     const response = await axios.post('http://localhost:3000/products', parsedProduct);
-    products.value.push(response.data);
+    productsStore.addProduct(response.data);
     newProduct.value = {
       name: '',
       reference: '',
@@ -124,7 +126,7 @@ const modifyProduct = async (product) => {
 const deleteProduct = async (product) => {
   try {
     await axios.delete(`http://localhost:3000/products/${product.id}`);
-    products.value = products.value.filter((p) => p.id !== product.id);
+    productsStore.removeProduct(product);
   } catch (error) {
     console.error('Error deleting product:', error);
   }
@@ -132,20 +134,21 @@ const deleteProduct = async (product) => {
 
 
 // Function to generate dummy data
+const dummyNumber = ref(3);
 const generateDummyData = () => {
-  const dummyProducts = [
-    { id: 1, name: 'Product 1', reference: 'REF001', price: 10, active: true, description: 'Description of Product 1' },
-    { id: 2, name: 'Product 2', reference: 'REF002', price: 20, active: false, description: 'Description of Product 2' },
-    { id: 3, name: 'Product 3', reference: 'REF003', price: 30, active: true, description: 'Description of Product 3' }
-  ];
-  
-  for (const product of dummyProducts) {
-    products.value.push(product);
-  }
-};
 
-const showProductDetails = (id) => {
-  router.push({ name: 'ProductDetail', params: { id } });
+  for (let i = 0; i < dummyNumber.value; i++) {
+    const product = {
+      id: productsStore.count + i + 1,
+      name: `Product ${i + 1}`,
+      reference: `REF00${i + 1}`,
+      price: Math.random() * 100,
+      active: i % 2 === 0,
+      description: `Description of Product ${i + 1}`,
+    };
+      productsStore.addProduct(product);
+  }
+ 
 };
 
 // Fetch products and categories when the component is mounted
@@ -160,21 +163,17 @@ onMounted(() => {
 <div class="products">
     <h1>Products</h1>
     <div class="product-grid">
-      <div 
-        v-for="product in products"
-        :key="product.id" 
-        class="product-card"
-        @click="showProductDetails(product.id)"
-      >
-        <img :src="product.image" alt="Product Image" class="product-image" />
-        <div class="product-info">
-          <h2>{{ product.name }}</h2>
-          <p>{{ product.description }}</p>
-          <p class="product-price" >${{ parseInt(product.price).toFixed(2) }}</p>
-        </div>
-      </div>
+      <ProductList />
     </div>
   </div>
+
+    <div class="generateProducts">
+      <form @submit.prevent="generateDummyData()">
+        <label for="dummyNumber">Number of Products</label>
+        <input type="number" v-model="dummyNumber" min="1" max="100">
+        <button type="submit">Generate Products</button>
+      </form>
+    </div>
 
     <div class="addProducts">
       <h2>Add Products</h2>
@@ -217,7 +216,7 @@ onMounted(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="product in products" :key="product.id">
+          <tr v-for="product in productsStore.products" :key="product.id">
             <td> <input v-model="product.name" type="text" required> </td>
             <td> <input v-model="product.reference" type="text" required> </td>
             <td> <input v-model.number="product.price" type="number" required min="0"> </td>
@@ -284,86 +283,14 @@ onMounted(() => {
     border: 1px solid black;
     padding: 4px;
   }
-.products {
-  padding: 20px;
-}
 
-.product-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
+  .products {
+    padding: 20px;
+  }
 
-.product-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  width: calc(33.333% - 20px);
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.product-card:hover {
-  transform: scale(1.05);
-}
-
-.product-image {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-}
-
-.product-info {
-  padding: 15px;
-}
-
-.product-price {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-.product-details {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.details-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.details-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  z-index: 1;
-  max-width: 600px;
-  width: 100%;
-}
-
-.details-content img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 15px;
-}
-
-.details-content button {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-}
+  .product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
 </style>

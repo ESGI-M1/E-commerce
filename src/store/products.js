@@ -5,6 +5,7 @@ export const useProductsStore = defineStore('products',{
         return {
             products: [],
             filter: [],
+            count: 0
         }
     },
     getters: {

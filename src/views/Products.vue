@@ -23,7 +23,8 @@ const categories = ref([]);
 const newCategory = ref({
   name: '',
   slug: '',
-  description: ''
+  description: '',
+  parentCategoryId: null
 });
 
 // Function to fetch categories
@@ -45,7 +46,8 @@ const addCategory = async () => {
     newCategory.value = {
       name: '',
       slug: '',
-      description: ''
+      description: '',
+      parentCategoryId: null
     };
   } catch (error) {
     console.error('Error adding category:', error);
@@ -138,6 +140,7 @@ const dummyNumber = ref(3);
 const generateDummyData = () => {
 
   for (let i = 0; i < dummyNumber.value; i++) {
+    console.log('Generating dummy data');
     const product = {
       id: productsStore.count + i + 1,
       name: `Product ${i + 1}`,
@@ -146,7 +149,7 @@ const generateDummyData = () => {
       active: i % 2 === 0,
       description: `Description of Product ${i + 1}`,
     };
-      productsStore.addProduct(product);
+    productsStore.addProduct(product);
   }
  
 };
@@ -244,6 +247,7 @@ onMounted(() => {
             <th>Name</th>
             <th>Slug</th>
             <th>Description</th>
+            <th>parentId</th>
           </tr>
         </thead>
         <tbody>
@@ -251,6 +255,7 @@ onMounted(() => {
             <td>{{ category.name }}</td>
             <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
+            <td>{{ category.parentCategoryId }}</td>
           </tr>
         </tbody>
       </table>
@@ -267,6 +272,12 @@ onMounted(() => {
 
         <label for="description">Description</label>
         <textarea v-model="newCategory.description" id="description" name="description"></textarea>
+
+        <label for="parentId">Parent Category</label>
+        <select id="parentId" name="parentId" v-model="newCategory.parentCategoryId">
+          <option value="">None</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+        </select>
 
         <button type="submit">Add Category</button>
       </form>

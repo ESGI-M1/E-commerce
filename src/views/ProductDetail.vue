@@ -1,85 +1,78 @@
 <template>
-    <div class="product-page">
-      <!-- Affichage des détails du produit -->
-      <div class="product-details">
-        <h2>{{ product.name }}</h2>
-        <img :src="product.image" alt="Product Image" class="product-image" />
-        <p class="product-description">{{ product.description }}</p>
-        <p class="product-price">Price: ${{ product.price.toFixed(2) }}</p>
-        <button @click="addToCart" class="add-to-cart">Add to Cart</button>
-        <button @click="toggleFavorite" class="favorite-button" :class="{ 'favorited': isFavorite }">
-          {{ isFavorite ? 'Remove from Favorites' : 'Add to Favorites' }}
-        </button>
-      </div>
-  
-      <!-- Section des commentaires -->
-      <div class="comments-section">
-        <div class="comments-header" @click="toggleComments">
-          <h3>Avis</h3>
-          <span class="toggle-icon">{{ showComments ? '▲' : '▼' }}</span>
-        </div>
-        <ul class="comment-list" v-show="showComments">
-          <li v-for="comment in product.comments" :key="comment.id" class="comment">
-            <span class="comment-author">{{ comment.author }}</span>
-            <p class="comment-text">{{ comment.text }}</p>
-          </li>
-        </ul>
-        <form @submit.prevent="addComment" class="comment-form" v-show="showComments">
-          <input v-model="newComment.author" type="text" placeholder="Your Name" required />
-          <textarea v-model="newComment.text" placeholder="Your Comment" required></textarea>
-          <button type="submit">Add Comment</button>
-        </form>
-      </div>
+  <div class="product-page">
+    <div class="product-details">
+      <h2>{{ product.name }}</h2>
+      <img :src="product.image" alt="Product Image" class="product-image" />
+      <p class="product-description">{{ product.description }}</p>
+      <p class="product-price">Price: ${{ product.price.toFixed(2) }}</p>
+      <button @click="addToCart" class="add-to-cart">Ajouter au panier</button>
+      <button @click="toggleFavorite" class="favorite-button" :class="{ 'favorited': isFavorite }">
+        {{ isFavorite ? 'Remove from Favorites' : 'Add to Favorites' }}
+      </button>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed, onMounted } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
-  import axios from 'axios';
-  
-  const route = useRoute();
-  const router = useRouter();
-  
-  const productId = ref(route.params.id);
- // const product = ref(null);
 
-  const product = ref({
-  id: 1,
-  name: 'Product Name',
-  image: '/path/to/product/image.jpg',
-  description: 'Product Description',
-  price: 19.99,
-  comments: [
-    { id: 1, author: 'User 1', text: 'Comment 1' },
-    { id: 2, author: 'User 2', text: 'Comment 2' }
-  ]
+    <div class="comments-section">
+      <div class="comments-header" @click="toggleComments">
+        <h3>Avis</h3>
+        <span class="toggle-icon">{{ showComments ? '▲' : '▼' }}</span>
+      </div>
+      <ul class="comment-list" v-show="showComments">
+    
+      </ul>
+   
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
+
+const route = useRoute();
+const router = useRouter();
+
+const productId = ref(route.params.id);
+
+const product = ref({
+  name: '',
+  image: '',
+  description: '',
+  price: 0,
+  comments: []
 });
 
-// Nouveau commentaire
-const newComment = ref({
-  author: '',
-  text: ''
-});
-  
-  // Fonction pour récupérer un produit par son ID depuis l'API
-  const fetchProductById = async (id) => {
-    try {
-      const response = await axios.get(`http://localhost:3000/products/${id}`);
-      product.value = response.data;
-    } catch (error) {
-      console.error('Error fetching product:', error);
-    }
-  };
-  
-  // Appeler fetchProductById lorsque le composant est monté pour récupérer le produit
-  onMounted(() => {
-    fetchProductById(productId.value);
-  });
-  </script>
-  
-  <style scoped>
-/* Styles */
+
+const fetchProductById = async (id) => {
+  try {
+    const response = await axios.get(`http://localhost:3000/api/products/${id}`);
+    console.log('Product data:', response.data);
+    product.value = response.data;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+  }
+};
+
+fetchProductById(productId.value);
+
+const addToCart = async () => {
+  try {
+    const response = await axios.post('http://localhost:5173/cart', {
+      productId: product.value.id,
+      quantity: 1
+    }, {
+      headers: {
+        Authorization: 'Bearer YOUR_TOKEN_HERE'
+      }
+    });
+    console.log('Product added to cart:', response.data);
+  } catch (error) {
+    console.error('Error adding product to cart:', error);
+  }
+};
+</script>
+
+<style scoped>
 .product-page {
   display: flex;
   justify-content: space-between;
@@ -133,7 +126,6 @@ const newComment = ref({
   list-style: none;
   padding: 0;
   margin-top: 10px;
-  display: none;
 }
 
 .comment {

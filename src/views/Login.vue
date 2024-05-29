@@ -1,46 +1,35 @@
-<script setup>
-
-import axios from 'axios';
-import { ref } from 'vue';
-import Form from "../layout/form/Form.vue";
-
-const email = ref('');
-const password = ref('');
-
-const login = () => {
-
-    if (!email.value || !password.value) {
-        return;
-    }
-
-    axios.post('http://localhost:3000/login', {
-        email: email.value,
-        password: password.value
-    })
-    .then(response => {
-        console.log(response);
-    })
-    .catch(error => {
-        console.log(error);
-    });
-}
-
-</script>
-
 <template>
     <div class="login">
-      <h1>Login</h1>
-        <form>
-            <input type="email" placeholder="email" v-model="email" required autocomplete="email" />
-            <input type="password" placeholder="Password" v-model="password" required autocomplete="current-password" />
-            <button type="button" @click="login">Login</button>
-        </form>
+      <h1>Connexion</h1>
+      <form>
+        <!-- Vos champs de connexion -->
+      </form>
     </div>
-</template>
+  </template>
   
-
-<style scoped>
-    .login{
-        color: white ;
-    }
-</style>
+  <script setup>
+  // Logique du composant de connexion
+  </script>
+  
+  <style scoped>
+  .login {
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px; /* Réduire la largeur */
+    margin: 0 auto; /* Centrer horizontalement */
+    transition: transform 0.3s ease;
+    transform-origin: right;
+    transform: translateX(100%);
+  }
+  .login.show {
+    transform: translateX(0);
+  }
+  .login h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  </style>
+  

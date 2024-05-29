@@ -59,7 +59,7 @@
         >
   
         <!-- Login Button -->
-        <button onclick="location.href='/signup'" class="login-button">S'identifier</button>
+        <button onclick="location.href='/identifier'" class="login-button">S'identifier</button>
       </div>
     </nav>
   </template>

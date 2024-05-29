@@ -7,10 +7,10 @@
 
     <div class="cart-items" v-if="cartItems.length > 0">
       <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
-        <img :src="item.image" :alt="item.name">
+        <img :src="item.product.image" :alt="item.product.name">
         <div class="item-details">
-          <h3>{{ item.name }}</h3>
-          <p>Prix: {{ item.price }} €</p>
+          <h3>{{ item.product.name }}</h3>
+          <p>Prix: {{ item.product.price }} €</p>
           <p>Quantité: {{ item.quantity }}</p>
         </div>
       </div>
@@ -44,28 +44,42 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
-      cartItems: [
-        { name: 'Produit 1', price: 10.99, quantity: 2, image: 'https://via.placeholder.com/150' },
-        // Ajoutez d'autres éléments du panier ici
-      ]
+      cartItems: []
     };
   },
   computed: {
     subtotal() {
-      return this.cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0).toFixed(2);
+      return this.cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0).toFixed(2);
     },
     total() {
       return (parseFloat(this.subtotal) + 0).toFixed(2); // Ajustez si nécessaire
     }
   },
   methods: {
-    checkout() {
+    async fetchCartItems() {
+      try {
+        const response = await axios.get('http://localhost:5173/cart', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}` // Assurez-vous que le token est stocké après connexion
+          }
+        });
+        this.cartItems = response.data;
+      } catch (error) {
+        console.error('Error fetching cart items:', error);
+      }
+    },
+    async checkout() {
       // Logique pour passer la commande
       alert('Paiement effectué via PayPal.');
     }
+  },
+  created() {
+    this.fetchCartItems();
   }
 };
 </script>

@@ -1,14 +1,35 @@
 <template>
-  <div class="product-page">
-    <div class="product-details">
-      <h2>{{ product.name }}</h2>
-      <img :src="product.image" alt="Product Image" class="product-image" />
-      <p class="product-description">{{ product.description }}</p>
-      <p class="product-price">Price: ${{ product.price.toFixed(2) }}</p>
-      <button @click="addToCart" class="add-to-cart">Ajouter au panier</button>
-      <button @click="toggleFavorite" class="favorite-button" :class="{ 'favorited': isFavorite }">
-        {{ isFavorite ? 'Remove from Favorites' : 'Add to Favorites' }}
-      </button>
+    <div class="product-page">
+      <!-- Affichage des détails du produit -->
+      <div class="product-details">
+        <h2>{{ product.name }}</h2>
+        <img :src="product.image" alt="Product Image" class="product-image" />
+        <p class="product-description">{{ product.description }}</p>
+        <p class="product-price">Price: ${{ parseInt(product.price) }}</p>
+        <button @click="addToCart" class="add-to-cart">Add to Cart</button>
+        <button @click="toggleFavorite" class="favorite-button" :class="{ 'favorited': isFavorite }">
+          {{ isFavorite ? 'Remove from Favorites' : 'Add to Favorites' }}
+        </button>
+      </div>
+  
+      <!-- Section des commentaires -->
+      <div class="comments-section">
+        <div class="comments-header" @click="toggleComments">
+          <h3>Avis</h3>
+          <span class="toggle-icon">{{ showComments ? '▲' : '▼' }}</span>
+        </div>
+        <ul class="comment-list" v-show="showComments">
+          <li v-for="comment in product.comments" :key="comment.id" class="comment">
+            <span class="comment-author">{{ comment.author }}</span>
+            <p class="comment-text">{{ comment.text }}</p>
+          </li>
+        </ul>
+        <form @submit.prevent="addComment" class="comment-form" v-show="showComments">
+          <input v-model="newComment.author" type="text" placeholder="Your Name" required />
+          <textarea v-model="newComment.text" placeholder="Your Comment" required></textarea>
+          <button type="submit">Add Comment</button>
+        </form>
+      </div>
     </div>
 
     <div class="comments-section">
@@ -21,7 +42,6 @@
       </ul>
    
     </div>
-  </div>
 </template>
 
 <script setup>

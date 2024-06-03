@@ -5,7 +5,7 @@ module.exports = function (connection) {
     class Category extends Model {
 
         static associate(db) {
-            Category.belongsTo(db.Category, { as: 'parent' });
+            Category.belongsTo(db.Category, { as: 'parentCategory' });
         }
     }
 

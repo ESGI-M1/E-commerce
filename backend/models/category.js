@@ -26,6 +26,7 @@ module.exports = function (connection) {
             slug: {
                 type: DataTypes.STRING,
                 allowNull: false,
+                unique: true,
                 validate: {
                     notEmpty: true,
                 },

@@ -2,7 +2,7 @@
   <div class="cart">
     <header>
       <h1>Mon Panier</h1>
-      <p><router-link to="/login">Rejoins-nous</router-link> ou <router-link to="/login">S'identifier</router-link></p>
+      <p><router-link to="/login">Rejoins-nous</router-link> ou <router-link to="/signup">S'identifier</router-link></p>
     </header>
 
     <div class="cart-items" v-if="cartItems.length > 0">

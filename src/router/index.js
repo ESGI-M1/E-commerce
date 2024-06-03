@@ -32,6 +32,11 @@ const routes = [
     component: Login
   },
   {
+    path: '/signup',
+    name: 'Sign up',
+    component: Signup
+  },
+  {
     path: '/identifier',
     name: 'S\'identifier',
     component: Identifier

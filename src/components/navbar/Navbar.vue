@@ -1,13 +1,11 @@
-<!-- src/components/Navbar.vue -->
 <template>
-    <nav class="navbar">
-      <div class="navbar-section logo">
-        <a href="/" class="nav-link">Accueil</a>
+  <nav class="navbar">
+    <div class="navbar-section logo">
+      <a href="/" class="nav-link">Accueil</a>
+      <!-- Logo -->
+    </div>
 
-        <!-- Logo -->
-      </div>
-  
-      <div class="navbar-section links">
+    <div class="navbar-section links">
       <!-- Navigation Links -->
       <div class="nav-item">
         <a href="#" class="nav-link">Homme</a>
@@ -44,30 +42,61 @@
         </div>
       </div>
     </div>
-  
-      <div class="navbar-section actions">
-        <!-- Shopping Cart Icon -->
-        <a class="icon" href="/cart">
-            <i class="fas fa-shopping-cart"></i>
-        </a>
-        &nbsp;
-        <!-- Search Bar -->
-        <input
-          type="text"
-          placeholder="Rechercher"
-          class="search-bar"
-        >
-  
-        <!-- Login Button -->
-        <button onclick="location.href='/identifier'" class="login-button">S'identifier</button>
+
+    <div class="navbar-section actions">
+      <!-- Shopping Cart Icon -->
+      <a class="icon" href="/cart">
+        <i class="fas fa-shopping-cart"></i>
+      </a>
+      &nbsp;
+      <!-- Search Bar -->
+      <input
+        type="text"
+        placeholder="Rechercher"
+        class="search-bar"
+      >
+
+      <!-- Login Button or User Icon -->
+      <div v-if="isAuthenticated" class="user-menu">
+        <i class="fas fa-user"></i>
+        <div class="dropdown">
+          <a href="/profile" class="dropdown-item">Mon Profil</a>
+          <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
+        </div>
       </div>
-    </nav>
-  </template>
-  
-  <script setup lang="ts">
-  </script>
-  
-  <style scoped>
+      <button v-else @click="redirectToLogin" class="login-button">S'identifier</button>
+    </div>
+  </nav>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+const isAuthenticated = ref(false);
+const router = useRouter();
+
+const checkAuthStatus = () => {
+  // Remplacer par une vérification réelle de l'état de connexion
+  isAuthenticated.value = !!localStorage.getItem('authToken');
+};
+
+const redirectToLogin = () => {
+  router.push('/identifier');
+};
+
+const logout = () => {
+  // Logique de déconnexion
+  localStorage.removeItem('authToken');
+  isAuthenticated.value = false;
+  router.push('/');
+};
+
+// Vérifier l'état de connexion au montage du composant
+checkAuthStatus();
+</script>
+
+<style scoped>
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -135,7 +164,7 @@
   background-color: #f1f1f1;
 }
 
-.nav-item:hover .dropdown {
+.nav-item:hover .dropdown, .user-menu:hover .dropdown {
   display: block;
 }
 
@@ -170,10 +199,12 @@
   background-color: #36a67d;
 }
 
-@media (max-width: 909px) {
-
-.navbar {
-  flex-direction: column;
+.user-menu {
+  position: relative;
 }
+
+.user-menu i {
+  font-size: 24px;
+  cursor: pointer;
 }
 </style>

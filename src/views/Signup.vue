@@ -14,13 +14,15 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const firstname = ref('');
 const lastname = ref('');
 const email = ref('');
 const password = ref('');
+const router = useRouter();
 
-const signup = () => {
+const signup = async () => {
     if (!firstname.value || !lastname.value || !email.value || !password.value) {
         return;
     }
@@ -29,27 +31,19 @@ const signup = () => {
         alert("Le mot de passe doit contenir au moins une lettre minuscule, une lettre majuscule, un chiffre, un caractère spécial et être compris entre 8 et 32 caractères.");
         return;
     }
-    axios.post('http://localhost:3000/users', {
-        firstname: firstname.value,
-        lastname: lastname.value,
-        email: email.value,
-        password: password.value
-    })
-    .then(response => {
-        console.log(response);
-    })
-    .catch(error => {
+    try {
+        const response = await axios.post('http://localhost:5173/users', {
+            firstname: firstname.value,
+            lastname: lastname.value,
+            email: email.value,
+            password: password.value
+        });
+        router.push('/login');
+    } catch (error) {
         console.log(error);
-    });
-}
-
-const fields = [
-    { label: 'Firstname', type: 'text', id: 'firstname', name: 'firstname' , required: 'required'},
-    { label: 'Lastname', type: 'text', id: 'lastname', name: 'lastname' , required: 'required'},
-    { label: 'Email', type: 'email', id: 'email', name: 'email' , required: 'required'},
-    { label: 'Password', type: 'password', id: 'password', name: 'password', required: 'required' }
-];
-const submit = { label: 'Signup', type: 'button', 'click': signup };
+        alert('Échec de l\'inscription');
+    }
+};
 </script>
 
 <style scoped>

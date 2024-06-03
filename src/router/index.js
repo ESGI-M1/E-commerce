@@ -8,12 +8,18 @@ import Category from '../views/Category.vue';
 import Cart from '../views/Cart.vue';
 import ProductDetail from '../views/ProductDetail.vue';
 import Identifier from '../views/Identify.vue';
+import Users from '../views/Users.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Accueil',
     component: Products
+  },
+  {
+    path: '/users',
+    name: 'Users',
+    component: Users
   },
   {
     path: '/dashboard',

@@ -12,24 +12,30 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const email = ref('');
 const password = ref('');
+const router = useRouter();
 
 const login = () => {
-    if (!email.value || !password.value) {
-        return;
-    }
-    axios.post('http://localhost:3000/login', {
-        email: email.value,
-        password: password.value
-    })
-    .then(response => {
-        console.log(response);
-    })
-    .catch(error => {
-        console.log(error);
-    });
+  if (!email.value || !password.value) {
+    return;
+  }
+  axios.post('http://localhost:3000/login', {
+    email: email.value,
+    password: password.value
+  })
+  .then(response => {
+    // Enregistrer le token d'authentification
+    localStorage.setItem('authToken', response.data.token);
+    // Rediriger l'utilisateur vers la page d'accueil
+    router.push('/');
+  })
+  .catch(error => {
+    console.log(error);
+    alert('Échec de la connexion');
+  });
 }
 </script>
 

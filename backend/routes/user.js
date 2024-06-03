@@ -15,6 +15,9 @@ router.post("/", async (req, res, next) => {
     const user = await User.create(req.body);
     res.status(201).json(user);
   } catch (e) {
+    if (e.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
+    }
     next(e);
   }
 });

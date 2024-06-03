@@ -1,19 +1,25 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Home from '../views/Home.vue'
 import Dashboard from '../views/Dashboard.vue';
 import About from '../views/About.vue';
-import Login from '../views/Login.vue'
-import Signup from '../views/Signup.vue'
-import Products from '../views/Products.vue'
-import Category from '../views/Category.vue'
-import Cart from '../views/Cart.vue'
-import ProductDetail from '../views/ProductDetail.vue'
+import Login from '../views/Login.vue';
+import Signup from '../views/Signup.vue';
+import Products from '../views/Products.vue';
+import Category from '../views/Category.vue';
+import Cart from '../views/Cart.vue';
+import ProductDetail from '../views/ProductDetail.vue';
+import Identifier from '../views/Identify.vue';
+import Users from '../views/Users.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Accueil',
     component: Products
+  },
+  {
+    path: '/users',
+    name: 'Users',
+    component: Users
   },
   {
     path: '/dashboard',
@@ -32,8 +38,13 @@ const routes = [
   },
   {
     path: '/signup',
-    name: 'Inscription',
+    name: 'Sign up',
     component: Signup
+  },
+  {
+    path: '/identifier',
+    name: 'S\'identifier',
+    component: Identifier
   },
   {
     path: '/products',
@@ -56,16 +67,11 @@ const routes = [
     name: 'Panier',
     component: Cart
   },
-]
-
-// const router = createRouter({
-//   history: createWebHistory(process.env.BASE_URL),
-//   routes
-// });
+];
 
 const router = createRouter({
   history: createWebHistory('/'),
   routes
 });
 
-export default router
+export default router;

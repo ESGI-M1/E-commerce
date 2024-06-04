@@ -49,8 +49,6 @@ module.exports = function (connection) {
     { sequelize: connection }
   );
 
-
-  
   return User;
 }
 

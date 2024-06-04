@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/product'); // Assurez-vous que le chemin est correct
 
-// Route pour obtenir un produit par ID
 router.get('/products/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);

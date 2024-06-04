@@ -67,12 +67,6 @@ const passwordError = computed(() => {
 
 const signup = async () => {
 
-  console.log('signup');
-  console.log(firstnameError.value.success);
-  console.log(lastnameError.value.success);
-  console.log(emailError.value.success);
-  console.log(passwordError.value.success);
-    
     if(!firstnameSchema.safeParse(firstname.value).success || !lastnameSchema.safeParse(lastname.value).success || !emailSchema.safeParse(email.value).success || !passwordSchema.safeParse(password.value).success) {
         return;
     }

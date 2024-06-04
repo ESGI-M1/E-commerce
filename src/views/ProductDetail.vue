@@ -65,7 +65,7 @@ const product = ref({
 
 const fetchProductById = async (id) => {
   try {
-    const response = await axios.get(`http://localhost:3000/api/products/${id}`);
+    const response = await axios.get(`http://localhost:3000/products/${id}`);
     console.log('Product data:', response.data);
     product.value = response.data;
   } catch (error) {

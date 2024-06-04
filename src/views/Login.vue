@@ -1,16 +1,6 @@
-<template>
-  <div class="login auth-form">
-    <h1>Connexion</h1>
-    <form @submit.prevent="login">
-      <input type="email" placeholder="Email" v-model="email" required />
-      <input type="password" placeholder="Mot de passe" v-model="password" required />
-      <button type="submit">Connexion</button>
-    </form>
-  </div>
-</template>
-
-<script setup>
-import { ref } from 'vue';
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { z } from 'zod';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
@@ -18,10 +8,35 @@ const email = ref('');
 const password = ref('');
 const router = useRouter();
 
+const emailSchema = z.string().email('L\'email est invalide');
+const passwordSchema = z.string().min(12, '12 caractères minimum');
+
+const emailError = computed(() => {
+  const parsedEmail = emailSchema.safeParse(email.value);
+
+  if (parsedEmail.success) {
+    return '';
+  }
+
+  return parsedEmail.error.issues[0].message;
+});
+
+const passwordError = computed(() => {
+  const parsedPassword = passwordSchema.safeParse(password.value);
+
+  if (parsedPassword.success) {
+    return '';
+  }
+
+  return parsedPassword.error.issues[0].message;
+});
+
 const login = () => {
-  if (!email.value || !password.value) {
+  
+  if(!emailSchema.safeParse(email.value).success || !passwordSchema.safeParse(password.value).success) {
     return;
   }
+
   axios.post('http://localhost:3000/login', {
     email: email.value,
     password: password.value
@@ -38,6 +53,30 @@ const login = () => {
   });
 }
 </script>
+
+<template>
+  <div class="login auth-form">
+    <h1>Connexion</h1>
+    <form @submit.prevent="login">
+      <div>
+        <label for="email">Email</label>
+        <input type="email" placeholder="Email" v-model="email" required />
+        <small class="error" v-if="emailError && email">
+          {{ emailError }}
+        </small>
+      </div>
+      <div>
+        <label for="password">Mot de passe</label>
+        <input type="password" placeholder="Mot de passe" v-model="password" autocomplete="current-password" required />
+        <small class="error" v-if="passwordError && password">
+          {{ passwordError }}
+        </small>
+      </div>
+      <button type="submit">Connexion</button>
+    </form>
+  </div>
+</template>
+
 
 <style scoped>
 .auth-form {

@@ -77,7 +77,7 @@ fetchProductById(productId.value);
 
 const addToCart = async () => {
   try {
-    const response = await axios.post('http://localhost:5173/cart', {
+    const response = await axios.post('http://localhost:3000/cart', {
       productId: product.value.id,
       quantity: 1
     }, {

@@ -32,7 +32,7 @@ const signup = async () => {
         return;
     }
     try {
-        const response = await axios.post('http://localhost:5173/users', {
+        const response = await axios.post('http://localhost:git /users', {
             firstname: firstname.value,
             lastname: lastname.value,
             email: email.value,

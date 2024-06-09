@@ -27,7 +27,7 @@
       <div class="totals">
         <div class="subtotal">
           <p>Sous-total</p>
-          <p>{{ subtotal }} €</p>
+          <p>{{ cartSubtotal }} €</p>
         </div>
         <div class="shipping">
           <p>Frais estimés de prise en charge et d'expédition</p>
@@ -35,7 +35,7 @@
         </div>
         <div class="total">
           <p>Total</p>
-          <p>{{ total }} €</p>
+          <p>{{ cartTotal }} €</p>
         </div>
       </div>
       <button @click="checkout">Paiement <i class="fab fa-paypal"></i></button>
@@ -43,46 +43,46 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { useCartStore } from '@/store/cart';
+import { onMounted, computed } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
-export default {
-  data() {
-    return {
-      cartItems: []
-    };
-  },
-  computed: {
-    subtotal() {
-      return this.cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0).toFixed(2);
-    },
-    total() {
-      return (parseFloat(this.subtotal) + 0).toFixed(2); // Ajustez si nécessaire
-    }
-  },
-  methods: {
-    async fetchCartItems() {
-      try {
-        const response = await axios.get('http://localhost:5173/cart', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}` // Assurez-vous que le token est stocké après connexion
-          }
-        });
-        this.cartItems = response.data;
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
+const router = useRouter();
+const { cartItems, cartTotal, cartSubtotal } = useCartStore();
+
+
+const fetchCartItems = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/cart', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
       }
-    },
-    async checkout() {
-      // Logique pour passer la commande
-      alert('Paiement effectué via PayPal.');
-    }
-  },
-  created() {
-    this.fetchCartItems();
+    });
+    cartItems.value = response.data;
+  } catch (error) {
+    console.error('Error fetching cart items:', error);
   }
 };
+
+const subtotal = computed(() => {
+  return cartItems.value.reduce((acc, item) => acc + (item.product.price * item.quantity), 0).toFixed(2);
+});
+
+const total = computed(() => {
+  return (parseFloat(subtotal.value) + 0).toFixed(2);
+});
+
+const checkout = () => {
+  alert('Paiement effectué via PayPal.');
+};
+
+onMounted(() => {
+  fetchCartItems();
+});
 </script>
+
 
 <style scoped>
 /* Styles CSS ici */

@@ -28,7 +28,10 @@ router.post("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
     try {
-        const product = await Product.findByPk(parseInt(req.params.id), {
+        const productId = parseInt(req.params.id);
+        console.log(`Fetching product with ID: ${productId}`);
+        
+        const product = await Product.findByPk(productId, {
             include: [
                 { model: Category, required: false },
                 { model: Image, required: false }
@@ -36,14 +39,19 @@ router.get("/:id", async (req, res, next) => {
         });
 
         if (product) {
+            console.log('Product found:', product);
             res.json(product);
         } else {
+            console.log('Product not found');
             res.sendStatus(404);
         }
     } catch (e) {
+        console.error('Error fetching product by ID:', e);
         next(e);
     }
 });
+
+
 
 router.patch("/:id", async (req, res, next) => {
     try {

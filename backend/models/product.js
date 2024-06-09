@@ -1,7 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 
-module.exports = function(connection){
-
+module.exports = function(connection) {
     class Product extends Model {
         static associate(db) {
             Product.belongsToMany(db.Category, { through: 'ProductCategories' });
@@ -48,7 +47,6 @@ module.exports = function(connection){
             description: {
                 type: DataTypes.TEXT,
             },
-    
         },
         {
             timestamps: true,
@@ -57,7 +55,6 @@ module.exports = function(connection){
             sequelize: connection
         }
     );
+
     return Product;
-}
-
-
+};

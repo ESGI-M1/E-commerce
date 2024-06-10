@@ -6,7 +6,6 @@ const ProductRouter = require("./routes/product");
 const CategoryRouter = require("./routes/category");
 const ImageRouter = require("./routes/image");
 const SecurityRouter = require("./routes/security");
-const CartRouter = require("./routes/cart");
 
 const app = express();
 const cors = require('cors')
@@ -24,7 +23,6 @@ app.use("/users", UserRouter);
 app.use("/products", ProductRouter);
 app.use('/categories', CategoryRouter);
 app.use('/images', ImageRouter);
-app.use('/cart', CartRouter);
 
 app.use(SecurityRouter);
 app.listen(process.env.PORT, () => {

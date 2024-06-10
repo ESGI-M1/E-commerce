@@ -43,8 +43,8 @@ const loadProductImages = async () => {
     class="product-card"
     @click="showProductDetails(product.id)"
   >
-    <img :src="product.imageSrc ?? '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
-    <div class="product-info">
+  <img :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
+  <div class="product-info">
       <h2 class="product-name">{{ product.name }}</h2>
       <p class="product-description">{{ product.description }}</p>
       <p class="product-reference">{{ product.reference }}</p>

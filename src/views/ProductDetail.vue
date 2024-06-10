@@ -10,7 +10,7 @@ const productId = ref(route.params.id);
 
 const product = ref({
   name: '',
-  image: '',
+  imageSrc: '', // Utilisation de imageSrc au lieu de image pour stocker l'URL de l'image
   description: '',
   price: 0,
   comments: []
@@ -21,69 +21,55 @@ const fetchProductById = async (id) => {
     const response = await axios.get(`http://localhost:3000/products/${id}`);
     console.log('Product data:', response.data);
     product.value = response.data;
-    await getProductImage(product);
   } catch (error) {
     console.error('Error fetching product:', error);
     alert('There was an error fetching the product details. Please try again later.');
   }
 };
 
-onMounted(() => {
-  fetchProductById(productId.value);
-});
-
 const addToCart = async () => {
   try {
-    const response = await axios.post('http://localhost:3000/cart', {
-      productId: product.value.id,
-      quantity: 1
-    }, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}` // Assurez-vous que le token est stocké après connexion
-      }
-    });
-    console.log('Product added to cart:', response.data);
-    alert('Product added to cart successfully');
-  } catch (error) {
-    console.error('Error adding product to cart:', error);
-  }
-};
-const getProductImage = async (product) => {
-  try {
-    const response = await axios.get(`http://localhost:3000/api/images?productId=${product.id}`);
-    const images = response.data;
-    if (images.length > 0) {
-      product.imageSrc.value = images[0].url;
-    } else {
-      product.imageSrc.value =  "../../produit_avatar.jpg";
+    let userId = null;
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decodedToken = jwt_decode(token);
+      userId = decodedToken.userId;
     }
+
+    const response = await axios.post('http://localhost:3000/carts', {
+      userId: userId,
+      productId: product.value.id,
+      quantity: 1,
+    });
+    
+    console.log('Product added to cart:', response.data);
+    alert('Produit ajouté au panier avec succès');
   } catch (error) {
-    console.error(`Error fetching images for product ${product.id}:`, error);
-    product.imageSrc.valuer =  "../../produit_avatar.jpg";
+    console.error('Erreur lors de l\'ajout au panier:', error);
+    alert('Une erreur s\'est produite lors de l\'ajout au panier. Veuillez réessayer plus tard.');
   }
 };
+
+  fetchProductById(productId.value);
 </script>
 
 <template>
   <div class="product-page">
-    <div class="product-details" v-if="product.name">
-      <h2>{{ product.name }}</h2>
-      <img :src="product.imageSrc ?? '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
-      <p class="product-description">{{ product.description }}</p>
-      <p class="product-price">Price: ${{ parseInt(product.price) }}</p>
-      <button @click="addToCart" class="add-to-cart">Add to Cart</button>
+    <div class="product-image-container">
+      <img :src="product.Images[0].url ?? '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
     </div>
-
-    <div class="comments-section">
-      <div class="comments-header">
-        <h3>Avis</h3>
+    <div class="product-info">
+      <h2>{{ product.name }}</h2>
+      <p>{{ product.description }}</p>
+      <p><strong>Prix :</strong> ${{ parseInt(product.price) }}</p>
+      <div v-if="product.reference === 'chaussure'" class="sizes-container">
+        <p><strong>Tailles disponibles :</strong></p>
+        <div class="size" v-for="size in sizes" :key="size" @click="selectSize(size)">{{ size }}</div>
       </div>
-      <ul class="comment-list">
-        <li v-for="comment in (product.comments || [])" :key="comment.id" class="comment">
-          <span class="comment-author">{{ comment.author }}</span>
-          <p class="comment-text">{{ comment.text }}</p>
-        </li>
-      </ul>
+      <div class="button-container">
+        <button @click="addToCart" class="add-to-cart">Ajouter au Panier</button>
+        <button @click="addToFavorites" class="add-to-favorites"><i class="fas fa-heart"></i> Ajouter aux Favoris</button>
+      </div>
     </div>
   </div>
 </template>
@@ -91,74 +77,81 @@ const getProductImage = async (product) => {
 <style scoped>
 .product-page {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding: 20px;
 }
 
-.product-details {
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 20px;
-  text-align: center;
+.product-image-container {
+  margin-right: 20px;
 }
 
 .product-image {
+  max-width: 600px;
   width: 100%;
-  max-width: 400px;
-  margin: 20px 0;
+  height: auto;
 }
 
-.product-description {
-  margin-top: 10px;
+.product-info {
+  text-align: center;
+}
+
+.product-info h2 {
+  margin-top: 0;
+}
+
+.product-info p {
+  margin-bottom: 10px;
+}
+
+.sizes-container {
+  margin-top: 20px;
+}
+
+.size {
+  display: inline-block;
+  background-color: #eee;
+  padding: 5px 10px;
+  margin-right: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.add-to-cart,
+.add-to-favorites {
+  padding: 10px 30px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .add-to-cart {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #000;
   color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
-.add-to-cart:hover {
-  background-color: #0056b3;
-}
-
-.comments-section {
-  width: 100%;
-  max-width: 600px;
-  margin-top: 20px;
-  text-align: left;
-}
-
-.comments-header {
+.add-to-favorites {
+  background-color: #ff99cc;
+  color: white;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  cursor: pointer;
 }
 
-.comment-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 10px;
+.fa-heart {
+  margin-right: 5px;
 }
 
-.comment {
-  margin-bottom: 15px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.comment-author {
-  font-weight: bold;
-}
-
-.comment-text {
-  margin-top: 5px;
+.add-to-cart:hover,
+.add-to-favorites:hover {
+  opacity: 0.8;
 }
 </style>

@@ -42,9 +42,7 @@ const login = () => {
     password: password.value
   })
   .then(response => {
-    // Enregistrer le token d'authentification
     localStorage.setItem('authToken', response.data.token);
-    // Rediriger l'utilisateur vers la page d'accueil
     router.push('/');
   })
   .catch(error => {

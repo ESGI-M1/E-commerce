@@ -29,8 +29,8 @@ onMounted(() => {
 
 <template>
     <template v-if="category">
-        <span> > </span>
-        <span>{{ category.name }}</span>
-        <BreadCrumbLink :categoryId="category.parentCategoryId" v-if="category.parentCategoryId" />
+      <BreadCrumbLink :categoryId="category.parentCategoryId" v-if="category.parentCategoryId" />
+      <span> > </span>
+      <RouterLink :to="{ name: 'Category', params: { slug: category.slug } }">{{ category.name }}</RouterLink>
     </template>
 </template>

@@ -21,6 +21,7 @@ const fetchProductById = async (id) => {
     const response = await axios.get(`http://localhost:3000/products/${id}`);
     console.log('Product data:', response.data);
     product.value = response.data;
+    await getProductImage(product);
   } catch (error) {
     console.error('Error fetching product:', error);
     alert('There was an error fetching the product details. Please try again later.');
@@ -47,13 +48,27 @@ const addToCart = async () => {
     console.error('Error adding product to cart:', error);
   }
 };
+const getProductImage = async (product) => {
+  try {
+    const response = await axios.get(`http://localhost:3000/api/images?productId=${product.id}`);
+    const images = response.data;
+    if (images.length > 0) {
+      product.imageSrc.value = images[0].url;
+    } else {
+      product.imageSrc.value =  "../../produit_avatar.jpg";
+    }
+  } catch (error) {
+    console.error(`Error fetching images for product ${product.id}:`, error);
+    product.imageSrc.valuer =  "../../produit_avatar.jpg";
+  }
+};
 </script>
 
 <template>
   <div class="product-page">
     <div class="product-details" v-if="product.name">
       <h2>{{ product.name }}</h2>
-      <img :src="product.image" alt="Product Image" class="product-image" />
+      <img :src="product.imageSrc ?? '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
       <p class="product-description">{{ product.description }}</p>
       <p class="product-price">Price: ${{ parseInt(product.price) }}</p>
       <button @click="addToCart" class="add-to-cart">Add to Cart</button>

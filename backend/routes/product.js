@@ -10,6 +10,18 @@ router.get("/", async (req, res) => {
     res.json(products);
 });
 
+
+router.get("/:id/images", async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const images = await Image.findAll({ where: { productId } });
+        res.json(images);
+    } catch (error) {
+        console.error("Error fetching images for product:", error);
+        res.status(500).json({ error: "Failed to fetch images for product" });
+    }
+});
+
 router.post("/", async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;

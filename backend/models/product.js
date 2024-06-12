@@ -5,9 +5,7 @@ module.exports = function(connection) {
         static associate(db) {
             Product.belongsToMany(db.Category, { through: 'ProductCategories' });
             db.Category.belongsToMany(Product, { through: 'ProductCategories' });
-
-            Product.hasMany(db.Image);
-            db.Image.belongsTo(Product);
+            this.hasOne(db.Image, { foreignKey: 'productId' });
         }
     }
 
@@ -46,6 +44,11 @@ module.exports = function(connection) {
             },
             description: {
                 type: DataTypes.TEXT,
+            },
+            // Ajouter la colonne ImageId pour la relation One-to-One
+            imageId: {
+                type: DataTypes.INTEGER,
+                allowNull: true, // Vous pouvez ajuster en fonction de vos besoins
             },
         },
         {

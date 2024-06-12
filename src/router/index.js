@@ -9,6 +9,7 @@ import Cart from '../views/Cart.vue';
 import ProductDetail from '../views/ProductDetail.vue';
 import Identifier from '../views/Identify.vue';
 import Users from '../views/Users.vue';
+import Payment from '../views/Payment.vue';
 
 const routes = [
   {
@@ -66,6 +67,11 @@ const routes = [
     path: '/cart',
     name: 'Panier',
     component: Cart
+  },
+  {
+    path: '/payment',
+    name: 'Paiement',
+    component: Payment
   },
 ];
 

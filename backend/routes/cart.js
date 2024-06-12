@@ -88,6 +88,47 @@ router.post("/", async (req, res, next) => {
   }
 });
 
+
+router.patch("/update/:id", async (req, res, next) => {
+  const cartId = req.params.id;
+  const newUserId = req.body.userId;
+
+  try {
+    const cart = await Cart.findByPk(cartId); // Utiliser findByPk au lieu de findOne
+    if (!cart) {
+      return res.status(404).json({ error: 'Cart not found' });
+    }
+
+    cart.userId = newUserId;
+    await cart.save();
+
+    res.status(200).json({ message: 'Cart updated successfully' });
+  } catch (error) {
+    console.error('Error updating cart:', error);
+    res.status(500).json({ error: 'Unable to update cart' });
+  }
+});
+
+router.patch("/update-quantity/:id", async (req, res, next) => {
+  const cartId = req.params.id;
+  const newQuantity = req.body.quantity;
+
+  try {
+    const cart = await Cart.findByPk(cartId);
+    if (!cart) {
+      return res.status(404).json({ error: 'Cart not found' });
+    }
+
+    cart.quantity = newQuantity;
+    await cart.save();
+
+    res.status(200).json({ message: 'Cart quantity updated successfully' });
+  } catch (error) {
+    console.error('Error updating cart quantity:', error);
+    res.status(500).json({ error: 'Unable to update cart quantity' });
+  }
+});
+
 router.get("/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;

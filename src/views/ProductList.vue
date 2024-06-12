@@ -5,17 +5,13 @@ import { useProductsStore } from '@/store/products';
 import axios from 'axios';
 import { useCartStore } from '@/store/cart';
 
-// Initialiser les stores
 const productsStore = useProductsStore();
 const router = useRouter();
 const { cartItems, cartTotal, cartSubtotal } = useCartStore();
 
-// Fonction pour récupérer les items du panier
 const fetchCartItems = async () => {
   try {
-    const temporaryId = localStorage.getItem('temporaryId');
-    if (temporaryId) {
-      const response = await axios.get(`http://localhost:3000/carts/${temporaryId}`, {
+      const response = await axios.get(`http://localhost:3000/carts`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -28,13 +24,11 @@ const fetchCartItems = async () => {
         item.image = image;
       }
       console.log('Cart items:', cartItems.value);
-    }
   } catch (error) {
     console.error('Error fetching cart items:', error);
   }
 };
 
-// Fonction pour récupérer les images des produits
 const fetchProductImages = async () => {
   for (const product of productsStore.products) {
     try {
@@ -52,18 +46,15 @@ const fetchProductImages = async () => {
   }
 };
 
-// Fonction pour afficher les détails du produit
 const showProductDetails = (id: string) => {
   router.push({ name: 'ProductDetail', params: { id } });
 };
 
-// Lifecycle hook pour charger les données lors du montage du composant
 onMounted(() => {
   fetchCartItems();
   fetchProductImages();
 });
 </script>
-
 
 <template>
   <div 

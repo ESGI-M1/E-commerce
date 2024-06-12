@@ -40,10 +40,9 @@ const fetchProductById = async (id) => {
 
 const addToCart = async (quantity) => {
   let userId;
-  const isAuthenticated = !!localStorage.getItem('authToken');
-
+  const isAuthenticated = localStorage.getItem('authToken') ? localStorage.getItem('authToken') : null;
   if (isAuthenticated) {
-    userId = localStorage.getItem('authToken');
+    userId = isAuthenticated;
   } else {
     if (localStorage.getItem('temporaryId')) {
       userId = localStorage.getItem('temporaryId');

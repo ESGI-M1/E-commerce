@@ -9,65 +9,83 @@ const router = useRouter();
 const productId = ref(route.params.id);
 
 const product = ref({
+  id: '',
   name: '',
-  imageSrc: '', // Utilisation de imageSrc au lieu de image pour stocker l'URL de l'image
+  imageSrc: '', // Utilisation de imageSrc pour stocker l'URL de l'image
   description: '',
   price: 0,
+  reference: '',
   comments: []
 });
 
 const fetchProductById = async (id) => {
   try {
     const response = await axios.get(`http://localhost:3000/products/${id}`);
-    console.log('Product data:', response.data);
     product.value = response.data;
+
+    // Fetch the image for the product
+    if (product.value.id) {
+      const imageResponse = await axios.get(`http://localhost:3000/products/${product.value.id}/images`);
+      if (imageResponse.data && imageResponse.data.length > 0) {
+        product.value.imageSrc = imageResponse.data[0].url;
+      } else {
+        product.value.imageSrc = '../../produit_avatar.jpg';
+      }
+    }
   } catch (error) {
     console.error('Error fetching product:', error);
     alert('There was an error fetching the product details. Please try again later.');
   }
 };
 
-const addToCart = async () => {
-  try {
-    let userId = null;
-    const token = localStorage.getItem('token');
-    if (token) {
-      const decodedToken = jwt_decode(token);
-      userId = decodedToken.userId;
-    }
+const addToCart = async (quantity) => {
+  let userId;
+  const isAuthenticated = !!localStorage.getItem('authToken');
 
+  if (isAuthenticated) {
+    userId = localStorage.getItem('authToken');
+  } else {
+    if (localStorage.getItem('temporaryId')) {
+      userId = localStorage.getItem('temporaryId');
+    } else {
+      userId = Math.floor(Math.random() * 2147483647).toString();
+      localStorage.setItem('temporaryId', userId);
+    }
+  }
+
+  try {
     const response = await axios.post('http://localhost:3000/carts', {
       userId: userId,
       productId: product.value.id,
-      quantity: 1,
+      quantity: quantity
     });
-    
-    console.log('Product added to cart:', response.data);
-    alert('Produit ajouté au panier avec succès');
+    alert('Product added to cart successfully');
+    router.push('/cart');
   } catch (error) {
-    console.error('Erreur lors de l\'ajout au panier:', error);
-    alert('Une erreur s\'est produite lors de l\'ajout au panier. Veuillez réessayer plus tard.');
+    alert('Failed to add product to cart');
   }
 };
 
+onMounted(() => {
   fetchProductById(productId.value);
+});
 </script>
 
 <template>
   <div class="product-page">
     <div class="product-image-container">
-      <img :src="product.Images[0].url ?? '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
+      <img :src="product.imageSrc" :alt="product.name" class="product-image" />
     </div>
     <div class="product-info">
       <h2>{{ product.name }}</h2>
       <p>{{ product.description }}</p>
-      <p><strong>Prix :</strong> ${{ parseInt(product.price) }}</p>
+      <p><strong>Prix :</strong> ${{ parseFloat(product.price).toFixed(2) }}</p>
       <div v-if="product.reference === 'chaussure'" class="sizes-container">
         <p><strong>Tailles disponibles :</strong></p>
-        <div class="size" v-for="size in sizes" :key="size" @click="selectSize(size)">{{ size }}</div>
+        <div class="size" v-for="size in ['38', '39', '40', '41', '42', '43']" :key="size" @click="selectSize(size)">{{ size }}</div>
       </div>
       <div class="button-container">
-        <button @click="addToCart" class="add-to-cart">Ajouter au Panier</button>
+        <button @click="() => addToCart(1)" class="add-to-cart">Ajouter au Panier</button>
         <button @click="addToFavorites" class="add-to-favorites"><i class="fas fa-heart"></i> Ajouter aux Favoris</button>
       </div>
     </div>

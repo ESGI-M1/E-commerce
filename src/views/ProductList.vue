@@ -3,57 +3,87 @@ import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import { useProductsStore } from '@/store/products';
 import axios from 'axios';
+import { useCartStore } from '@/store/cart';
 
+// Initialiser les stores
 const productsStore = useProductsStore();
 const router = useRouter();
+const { cartItems, cartTotal, cartSubtotal } = useCartStore();
 
-productsStore.products.forEach(product => {
-  product.imageSrc = ref('../../produit_avatar.jpg');
-});
+// Fonction pour récupérer les items du panier
+const fetchCartItems = async () => {
+  try {
+    const temporaryId = localStorage.getItem('temporaryId');
+    if (temporaryId) {
+      const response = await axios.get(`http://localhost:3000/carts/${temporaryId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      cartItems.value = response.data;
+      for (const item of cartItems.value) {
+        const productId = item.productId;
+        const imageResponse = await axios.get(`http://localhost:3000/products/${productId}/images`);
+        const image = imageResponse.data;
+        item.image = image;
+      }
+      console.log('Cart items:', cartItems.value);
+    }
+  } catch (error) {
+    console.error('Error fetching cart items:', error);
+  }
+};
 
-const showProductDetails = (id) => {
+// Fonction pour récupérer les images des produits
+const fetchProductImages = async () => {
+  for (const product of productsStore.products) {
+    try {
+      console.log(`Fetching image for product ${product.id}`);
+      const response = await axios.get(`http://localhost:3000/products/${product.id}/images`);
+      if (response.data && response.data.length > 0) {
+        product.imageSrc = response.data[0].url; // Associer l'URL de l'image au produit
+      } else {
+        product.imageSrc = '../../produit_avatar.jpg'; // Image par défaut si aucune image n'est trouvée
+      }
+    } catch (error) {
+      console.error(`Error fetching images for product ${product.id}:`, error);
+      product.imageSrc = '../../produit_avatar.jpg'; // Image par défaut en cas d'erreur
+    }
+  }
+};
+
+// Fonction pour afficher les détails du produit
+const showProductDetails = (id: string) => {
   router.push({ name: 'ProductDetail', params: { id } });
 };
 
-const getProductImage = async (product) => {
-  try {
-    const response = await axios.get(`http://localhost:3000/images?productId=${product.id}`);
-    const images = response.data;
-    if (images.length > 0) {
-      product.imageSrc.value = images[0].url;
-    }
-  } catch (error) {
-    console.error(`Error fetching images for product ${product.id}:`, error);
-  }
-};
-
-const loadProductImages = async () => {
-  for (let product of productsStore.products) {
-    await getProductImage(product);
-  }
-};
-
-  loadProductImages();
+// Lifecycle hook pour charger les données lors du montage du composant
+onMounted(() => {
+  fetchCartItems();
+  fetchProductImages();
+});
 </script>
+
 
 <template>
   <div 
-    v-for="product in productsStore.products"
-    :key="product.id" 
+    v-for="products in cartItems.value"
+    :key="products.product.id" 
     class="product-card"
-    @click="showProductDetails(product.id)"
+    @click="showProductDetails(products.product.id)"
   >
-  <img :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
-  <div class="product-info">
-      <h2 class="product-name">{{ product.name }}</h2>
-      <p class="product-description">{{ product.description }}</p>
-      <p class="product-reference">{{ product.reference }}</p>
-      <p class="product-price">${{ parseFloat(product.price).toFixed(2) }}</p>
+    <img :src="products.image[0].url || '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
+    <div class="product-info">
+      <h2 class="product-name">{{ products.product.name }}</h2>
+      <p class="product-description">{{ products.product.description }}</p>
+      <p class="product-reference">{{ products.product.reference }}</p>
+      <p class="product-price">${{ parseFloat(products.product.price).toFixed(2) }}</p>
     </div>
   </div>
 </template>
 
-<style>
+
+<style scoped>
 .product-card {
   background: white;
   border: 1px solid #ddd;
@@ -62,6 +92,7 @@ const loadProductImages = async () => {
   width: calc(33.333% - 20px);
   cursor: pointer;
   transition: transform 0.2s;
+  margin: 10px;
 }
 
 .product-card:hover {
@@ -98,49 +129,5 @@ const loadProductImages = async () => {
 .product-price {
   font-weight: bold;
   color: #2c3e50;
-}
-
-.product-details {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.details-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.details-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  z-index: 1;
-  max-width: 600px;
-  width: 100%;
-}
-
-.details-content img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 15px;
-}
-
-.details-content button {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
 }
 </style>

@@ -22,10 +22,10 @@ router.post("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     try {
         const product = await Product.findByPk(req.params.id, {
-            include: Image // inclure les images associées
+            include: Image
         });
         if (product) {
-            res.json(product);
+            res.json(product.Image.url);
         } else {
             res.sendStatus(404);
         }

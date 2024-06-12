@@ -2,6 +2,11 @@ const { connection, Schema } = require('./db');
 
 const ProductSchema = new Schema(
   {
+    _id: {
+      type: Number,
+      required: true,
+      unique: true,
+    },
     name: {
       type: String,
       required: true,
@@ -26,11 +31,11 @@ const ProductSchema = new Schema(
       type: String,
     },
     categories: [{
-      type: Schema.Types.ObjectId,
+      type: Number,
       ref: 'Category',
     }],
     images: [{
-      type: Schema.Types.ObjectId,
+      type: Number,
       ref: 'Image',
     }],
   },

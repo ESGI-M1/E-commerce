@@ -1,5 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
-const categoryMongo = require("../dtos/denormalization/categoryMongo");
+const productMongo = require("../dtos/denormalization/productMongo");
 
 module.exports = function(connection){
 
@@ -10,6 +10,19 @@ module.exports = function(connection){
 
             Product.hasMany(db.Image);
             db.Image.belongsTo(Product);
+        }
+
+        static addHooks(db) {
+            Product.addHook("afterCreate", (product) =>
+                productMongo(product.id, db.Category, db.Product, db.Image)
+            );
+            Product.addHook("afterUpdate", (product) =>
+                productMongo(product.id, db.Category, db.Product, db.Image)
+            );
+            /*
+            Product.addHook("afterDestroy", (product) =>
+                productMongo(product, db.Category, db.Product)
+            );*/
         }
     }
 

@@ -11,10 +11,10 @@ module.exports = function (connection) {
 
         static addHooks(db) {
             Category.addHook("afterCreate", (category) =>
-              categoryMongo(category, db.Category, db.Product)
+              categoryMongo(category.id, db.Category, db.Product)
             );
             Category.addHook("afterUpdate", (category) =>
-              categoryMongo(category, {Category: db.Category, Product: db.Product, onlyRemove: true})
+              categoryMongo(category.id, db.Category, db.Product)
             );
         }
     }

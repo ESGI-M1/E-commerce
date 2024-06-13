@@ -1,48 +1,27 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
-import { useProductsStore } from '@/store/products';
 import axios from 'axios';
-import { useCartStore } from '@/store/cart';
+import { useProductsStore } from '@/store/products';
 
 const productsStore = useProductsStore();
 const router = useRouter();
-const { cartItems, cartTotal, cartSubtotal } = useCartStore();
 
-const fetchCartItems = async () => {
+const fetchProducts = async () => {
   try {
-      const response = await axios.get(`http://localhost:3000/carts`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      cartItems.value = response.data;
-      for (const item of cartItems.value) {
-        const productId = item.productId;
-        const imageResponse = await axios.get(`http://localhost:3000/products/${productId}/images`);
-        const image = imageResponse.data;
-        item.image = image;
-      }
-      console.log('Cart items:', cartItems.value);
-  } catch (error) {
-    console.error('Error fetching cart items:', error);
-  }
-};
+    const response = await axios.get('http://localhost:3000/products');
+    productsStore.products = response.data;
 
-const fetchProductImages = async () => {
-  for (const product of productsStore.products) {
-    try {
-      console.log(`Fetching image for product ${product.id}`);
-      const response = await axios.get(`http://localhost:3000/products/${product.id}/images`);
-      if (response.data && response.data.length > 0) {
-        product.imageSrc = response.data[0].url; // Associer l'URL de l'image au produit
-      } else {
-        product.imageSrc = '../../produit_avatar.jpg'; // Image par défaut si aucune image n'est trouvée
-      }
-    } catch (error) {
-      console.error(`Error fetching images for product ${product.id}:`, error);
-      product.imageSrc = '../../produit_avatar.jpg'; // Image par défaut en cas d'erreur
+    for (const product of productsStore.products) {
+        const imageResponse = await axios.get(`http://localhost:3000/products/${product.id}/images`);
+        if (imageResponse.data && imageResponse.data.length > 0) {
+          product.imageSrc = imageResponse.data[0].url;
+        } else {
+          product.imageSrc = '../../produit_avatar.jpg';
+        }
     }
+  } catch (error) {
+    console.error('Error fetching products:', error);
   }
 };
 
@@ -51,24 +30,23 @@ const showProductDetails = (id: string) => {
 };
 
 onMounted(() => {
-  fetchCartItems();
-  fetchProductImages();
+  fetchProducts();
 });
 </script>
 
 <template>
   <div 
-    v-for="products in cartItems.value"
-    :key="products.product.id" 
+    v-for="product in productsStore.products"
+    :key="product.id" 
     class="product-card"
-    @click="showProductDetails(products.product.id)"
+    @click="showProductDetails(product.id)"
   >
-    <img :src="products.image[0].url || '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
+    <img :src="product.Image ? product.Image.url : '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
     <div class="product-info">
-      <h2 class="product-name">{{ products.product.name }}</h2>
-      <p class="product-description">{{ products.product.description }}</p>
-      <p class="product-reference">{{ products.product.reference }}</p>
-      <p class="product-price">${{ parseFloat(products.product.price).toFixed(2) }}</p>
+      <h2 class="product-name">{{ product.name }}</h2>
+      <p class="product-description">{{ product.description }}</p>
+      <p class="product-reference">{{ product.reference }}</p>
+      <p class="product-price">${{ parseFloat(product.price).toFixed(2) }}</p>
     </div>
   </div>
 </template>

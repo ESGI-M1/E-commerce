@@ -7,6 +7,7 @@ const CategoryRouter = require("./routes/category");
 const ImageRouter = require("./routes/image");
 const CartRouter = require("./routes/cart");
 const SecurityRouter = require("./routes/security");
+const PromoRouter = require("./routes/promo");
 
 const app = express();
 const cors = require('cors')
@@ -25,8 +26,9 @@ app.use("/products", ProductRouter);
 app.use('/categories', CategoryRouter);
 app.use('/images', ImageRouter);
 app.use('/carts', CartRouter);
-
+app.use('/promos', PromoRouter);
 app.use(SecurityRouter);
+
 app.listen(process.env.PORT, () => {
   console.log("Server running on port " + process.env.PORT);
 });

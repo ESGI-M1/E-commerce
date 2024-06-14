@@ -47,7 +47,7 @@ const fetchProductById = async (id: string) => {
 
 const addToFavorites = async (productId: string) => {
   const token = localStorage.getItem('temporaryId');
-  if (token) {
+  if (token || !localStorage.getItem('authToken')) {
     router.push('/login');
     return;
   }

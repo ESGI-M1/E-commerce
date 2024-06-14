@@ -41,16 +41,31 @@ const login = () => {
     email: email.value,
     password: password.value
   })
-  .then(response => {
-    // Enregistrer le token d'authentification
-    localStorage.setItem('authToken', response.data.token);
-    // Rediriger l'utilisateur vers la page d'accueil
+  .then(async response => {
+  const temporaryId = localStorage.getItem('temporaryId');
+  try {
+    if (temporaryId) {
+      const cartResponse = await axios.get(`http://localhost:3000/carts/${temporaryId}`);
+      const carts = cartResponse.data;
+        for (const cart of carts) {
+          await axios.patch(`http://localhost:3000/carts/update/${cart.id}`, {
+            userId: response.data.id
+          });
+        }    
+      await axios.delete(`http://localhost:3000/users/${temporaryId}`);
+      localStorage.removeItem('temporaryId');
+    }
+    localStorage.setItem('authToken', response.data.id);
     router.push('/');
-  })
-  .catch(error => {
-    console.log(error);
-    alert('Échec de la connexion');
-  });
+  } catch (error) {
+    console.error('Error updating carts:', error);
+    alert('Failed to update carts. Please try again later.');
+  }
+})
+.catch(error => {
+  console.log(error);
+  alert('Échec de la connexion');
+});
 }
 </script>
 

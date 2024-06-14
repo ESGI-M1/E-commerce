@@ -9,6 +9,8 @@ import Cart from '../views/Cart.vue';
 import ProductDetail from '../views/ProductDetail.vue';
 import Identifier from '../views/Identify.vue';
 import Users from '../views/Users.vue';
+import Payment from '../views/Payment.vue';
+import Favoris from '../views/Favorite.vue';
 
 const routes = [
   {
@@ -57,7 +59,7 @@ const routes = [
     component: Category
   },
   {
-    path: '/detail-produit/:id',
+    path: '/products/:id',
     name: 'ProductDetail',
     component: ProductDetail,
     props: true
@@ -66,6 +68,16 @@ const routes = [
     path: '/cart',
     name: 'Panier',
     component: Cart
+  },
+  {
+    path: '/payment',
+    name: 'Paiement',
+    component: Payment
+  },
+  {
+    path: '/favorite',
+    name: 'Favoris',
+    component: Favoris
   },
 ];
 

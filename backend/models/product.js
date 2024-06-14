@@ -1,15 +1,13 @@
 const { Model, DataTypes } = require("sequelize");
 const productMongo = require("../dtos/denormalization/productMongo");
 
-module.exports = function(connection){
-
+module.exports = function(connection) {
     class Product extends Model {
-        static associate(db) {
-            Product.belongsToMany(db.Category, { through: 'ProductCategories' });
-            db.Category.belongsToMany(Product, { through: 'ProductCategories' });
-
-            Product.hasMany(db.Image);
-            db.Image.belongsTo(Product);
+        static associate(models) {
+            Product.belongsToMany(models.Category, { through: 'ProductCategories' });
+            models.Category.belongsToMany(Product, { through: 'ProductCategories' });
+            this.hasOne(models.Image, { foreignKey: 'productId' });
+            this.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
         }
 
         static addHooks(db) {
@@ -62,16 +60,18 @@ module.exports = function(connection){
             description: {
                 type: DataTypes.TEXT,
             },
-    
+            imageId: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
         },
         {
             timestamps: true,
             createdAt: true,
             updatedAt: 'updateTimestamp',
-            sequelize: connection
+            sequelize: connection,
         }
     );
+
     return Product;
-}
-
-
+};

@@ -1,11 +1,12 @@
-const { Model, DataTypes } = require("sequelize");
+const { Model, DataTypes } = require('sequelize');
 
 module.exports = function(connection) {
     class Product extends Model {
-        static associate(db) {
-            Product.belongsToMany(db.Category, { through: 'ProductCategories' });
-            db.Category.belongsToMany(Product, { through: 'ProductCategories' });
-            this.hasOne(db.Image, { foreignKey: 'productId' });
+        static associate(models) {
+            Product.belongsToMany(models.Category, { through: 'ProductCategories' });
+            models.Category.belongsToMany(Product, { through: 'ProductCategories' });
+            this.hasOne(models.Image, { foreignKey: 'productId' });
+            this.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
         }
     }
 
@@ -45,17 +46,16 @@ module.exports = function(connection) {
             description: {
                 type: DataTypes.TEXT,
             },
-            // Ajouter la colonne ImageId pour la relation One-to-One
             imageId: {
                 type: DataTypes.INTEGER,
-                allowNull: true, // Vous pouvez ajuster en fonction de vos besoins
+                allowNull: true,
             },
         },
         {
             timestamps: true,
             createdAt: true,
             updatedAt: 'updateTimestamp',
-            sequelize: connection
+            sequelize: connection,
         }
     );
 

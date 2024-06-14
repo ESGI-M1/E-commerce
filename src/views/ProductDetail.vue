@@ -1,12 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
 const route = useRoute();
 const router = useRouter();
-
-const productId = ref(route.params.id);
+const isFavorite = ref(false);
+const productId = ref(route.params.id as string);
 
 const product = ref({
   id: '',
@@ -18,7 +18,7 @@ const product = ref({
   comments: []
 });
 
-const fetchProductById = async (id) => {
+const fetchProductById = async (id: string) => {
   try {
     const response = await axios.get(`http://localhost:3000/products/${id}`);
     product.value = response.data;
@@ -32,13 +32,59 @@ const fetchProductById = async (id) => {
         product.value.imageSrc = '../../produit_avatar.jpg';
       }
     }
+
+    const userId = localStorage.getItem('authToken');
+    if (userId) {
+      const favoriteResponse = await axios.get(`http://localhost:3000/favorites/${userId}`);
+      const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId);
+      isFavorite.value = favoriteProductIds.includes(product.value.id);
+    }
   } catch (error) {
     console.error('Error fetching product:', error);
     alert('There was an error fetching the product details. Please try again later.');
   }
 };
 
-const addToCart = async (quantity) => {
+const addToFavorites = async (productId: string) => {
+  const token = localStorage.getItem('temporaryId');
+  if (token) {
+    router.push('/login');
+    return;
+  }
+  try {
+    const userId = localStorage.getItem('authToken');
+    const response = await axios.post('http://localhost:3000/favorites/add', {
+     userId,
+      productId
+    });
+
+    if (response.status === 201) {
+      isFavorite.value = true;
+      alert('Produit ajouté aux favoris avec succès');
+    }
+  } catch (error) {
+    console.error('Error adding product to favorites:', error);
+    alert('Échec de l\'ajout du produit aux favoris');
+  }
+};
+
+const removeFromFavorites = async (productId: string) => {
+  try {
+    const userId = localStorage.getItem('authToken');
+    if (!userId) {
+      throw new Error('User is not authenticated');
+    }
+
+    await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`);
+    isFavorite.value = false;
+    alert('Produit supprimé des favoris avec succès');
+  } catch (error) {
+    console.error('Error removing favorite product:', error);
+    alert('Échec de la suppression du produit des favoris');
+  }
+};
+
+const addToCart = async (quantity: number) => {
   let userId;
   const isAuthenticated = localStorage.getItem('authToken') ? localStorage.getItem('authToken') : null;
   if (isAuthenticated) {
@@ -58,10 +104,10 @@ const addToCart = async (quantity) => {
       productId: product.value.id,
       quantity: quantity
     });
-    alert('Product added to cart successfully');
+    alert('Produit ajouté au panier avec succès');
     router.push('/cart');
   } catch (error) {
-    alert('Failed to add product to cart');
+    alert('Échec de l\'ajout du produit au panier');
   }
 };
 
@@ -69,6 +115,7 @@ onMounted(() => {
   fetchProductById(productId.value);
 });
 </script>
+
 
 <template>
   <div class="product-page">
@@ -85,11 +132,19 @@ onMounted(() => {
       </div>
       <div class="button-container">
         <button @click="() => addToCart(1)" class="add-to-cart">Ajouter au Panier</button>
-        <button @click="addToFavorites" class="add-to-favorites"><i class="fas fa-heart"></i> Ajouter aux Favoris</button>
+        <div class="favorite-container">
+          <button v-if="isFavorite" @click.stop="removeFromFavorites(product.id)" class="remove-from-favorites">
+            <i class="fas fa-heart"></i> Ajouté aux Favoris
+          </button>
+          <button v-else @click.stop="addToFavorites(product.id)" class="add-to-favorites">
+            <i class="far fa-heart"></i> Ajouter aux Favoris
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .product-page {
@@ -142,7 +197,8 @@ onMounted(() => {
 }
 
 .add-to-cart,
-.add-to-favorites {
+.add-to-favorites,
+.remove-from-favorites {
   padding: 10px 30px;
   margin: 0 10px;
   border: none;
@@ -163,12 +219,20 @@ onMounted(() => {
   align-items: center;
 }
 
+.remove-from-favorites {
+  background-color: #ff9999;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
 .fa-heart {
   margin-right: 5px;
 }
 
 .add-to-cart:hover,
-.add-to-favorites:hover {
+.add-to-favorites:hover,
+.remove-from-favorites:hover {
   opacity: 0.8;
 }
 </style>

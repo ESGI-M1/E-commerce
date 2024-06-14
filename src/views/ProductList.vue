@@ -12,14 +12,7 @@ const fetchProducts = async () => {
     const response = await axios.get('http://localhost:3000/products');
     productsStore.products = response.data;
 
-    for (const product of productsStore.products) {
-        const imageResponse = await axios.get(`http://localhost:3000/products/${product.id}/images`);
-        if (imageResponse.data && imageResponse.data.length > 0) {
-          product.imageSrc = imageResponse.data[0].url;
-        } else {
-          product.imageSrc = '../../produit_avatar.jpg';
-        }
-    }
+    console.log('Products:', productsStore.products);
   } catch (error) {
     console.error('Error fetching products:', error);
   }
@@ -41,7 +34,8 @@ onMounted(() => {
     class="product-card"
     @click="showProductDetails(product.id)"
   >
-    <img :src="product.Image ? product.Image.url : '../../produit_avatar.jpg'" alt="Product Image" class="product-image" />
+    <img :src="product.Image ? product.Image.url : '../../produit_avatar.jpg'" :alt="product.Image ? product.Image.description : 'Product image'" 
+    class="product-image" />
     <div class="product-info">
       <h2 class="product-name">{{ product.name }}</h2>
       <p class="product-description">{{ product.description }}</p>

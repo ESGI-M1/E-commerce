@@ -58,12 +58,13 @@
 
       <!-- Login Button or User Icon -->
       <div v-if="isAuthenticated" class="user-menu">
-        <i class="fas fa-user"></i>
-        <div class="dropdown">
-          <a href="/profile" class="dropdown-item">Mon Profil</a>
-          <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
-        </div>
+      <i class="fas fa-user"></i>
+      <div class="dropdown">
+        <a href="/profile" class="dropdown-item">Mon Profil</a>
+        <a :href="'/favorite'" class="dropdown-item">Mes favoris</a>
+        <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
       </div>
+    </div>
       <button v-else @click="redirectToLogin" class="login-button">S'identifier</button>
     </div>
   </nav>
@@ -77,8 +78,7 @@ const isAuthenticated = ref(false);
 const router = useRouter();
 
 const checkAuthStatus = () => {
-  // Remplacer par une vérification réelle de l'état de connexion
-  isAuthenticated.value = !!localStorage.getItem('authToken');
+  isAuthenticated.value = localStorage.getItem('authToken');
 };
 
 const redirectToLogin = () => {

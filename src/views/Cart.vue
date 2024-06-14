@@ -2,23 +2,24 @@
   <div class="cart">
     <header>
       <h1>Mon Panier</h1>
-      <p v-if="!authToken"><router-link to="/login">Rejoins-nous</router-link> ou <router-link to="/signup">S'identifier</router-link></p>
+      <p v-if="!authToken">
+        <router-link to="/login">Rejoins-nous</router-link> ou <router-link to="/signup">S'identifier</router-link>
+      </p>
     </header>
 
     <div class="cart-content">
       <div class="cart-items" v-if="cartItems.length">
         <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
-          <div class="item-details">
+          <div class="item-details" @click="showProductDetails(item.product.id)">
             <h3>{{ item.product.name }}</h3>
             <img :src="item.image[0]?.url ?? '../../produit_avatar.jpg'" :alt="item.image[0]?.description" class="product-image" />
           </div>
           <div class="item-quantity">
             <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
-  <option value="remove">Supprimer</option>
-  <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-  <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">{{ item.quantity }}</option>
-</select>
-
+              <option value="remove">Supprimer</option>
+              <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+              <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">{{ item.quantity }}</option>
+            </select>
           </div>
           <div class="item-price">
             <p>{{ item.product.price }} €</p>
@@ -29,15 +30,19 @@
       <div v-else>
         <p>Il n'y a aucun article dans ton panier.</p>
       </div>
-
       <div class="cart-summary" v-if="cartItems.length">
         <h2>Récapitulatif</h2>
         <div class="promo-code">
           <label for="promo">As-tu un code promo ?</label>
           <div class="promo-input">
-            <input type="text" id="promo" placeholder="Entrez votre code promo">
-            <button @click="applyPromoCode" class="apply-button">Appliquer</button>
+          <input type="text" id="promo" placeholder="Entrez votre code promo" v-model="promoCode">
+          <button @click="applyPromoCode" class="apply-button">Appliquer</button>
+        </div>
+        <div v-if="promo">
+            Code promo appliqué : {{ promo.code }}
+            <button @click="removePromo" class="remove-button">Supprimer</button>
           </div>
+        <p v-if="promoError" class="error-message">{{ promoError }}</p>
         </div>
         <div class="totals">
           <div class="subtotal">
@@ -49,8 +54,18 @@
             <p>Gratuit</p>
           </div>
           <div class="total">
-            <p>Total</p>
-            <p>{{ total }} €</p>
+            <div class="total-price">
+              <p>Total</p>
+              <div class="price-container">
+                <p :style="{ 'text-decoration': promo ? 'line-through' : 'none', 'color': promo ? 'red' : 'initial' }" class="old-price">
+                  {{ promo ? subtotal : total }} €
+                </p>
+                <span class="discount" v-if="promo">(- {{ promo.discountPercentage }}%)</span>
+              </div>
+            </div>
+            <p v-if="promo" class="new-price">
+              {{ (total - (total * promo.discountPercentage / 100)).toFixed(2) }} €
+            </p>
           </div>
         </div>
         <button @click="checkout" class="checkout-button">Paiement</button>
@@ -60,7 +75,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
@@ -68,16 +83,53 @@ import axios from 'axios';
 const router = useRouter();
 const cartItems = ref([]);
 const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId');
+const promo = ref(null);
+const promoCode = ref(''); 
+const promoError = ref('');
+
+const removePromo = async () => {
+  try {
+    const cartIds = cartItems.value.map(item => item.id);
+    const response = await axios.post('http://localhost:3000/carts/remove-promo', { userId: authToken, cartIds }, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+
+    if (response.data.success) {
+      promo.value = null;
+      fetchCartItems();
+      promoError.value = '';
+    } else {
+      console.error('Erreur lors de la suppression du code promo :', response.data.error);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la suppression du code promo :', error);
+  }
+};
+
+
+const applyPromoCode = async () => {
+  try {
+    const response = await axios.post(`http://localhost:3000/promos/${promoCode.value}/apply`, null, { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } });
+
+    if (response.data.success) {
+      promo.value = response.data;
+      fetchCartItems();
+      promoError.value = '';
+    } else {
+      promoError.value = response.data.error || 'Ce code promo a expiré.';
+    }
+  } catch (error) {
+    promoError.value = 'Ce code promo est invalide.';
+  }
+};
 
 const fetchCartItems = async () => {
   try {
     if (authToken) {
-      const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
+      const response = await axios.get(`http://localhost:3000/carts/${authToken}`, { headers: { Authorization: `Bearer ${authToken}` } });
       const items = response.data;
 
-      // Combine duplicate items and remove duplicates
+      // Combiner les articles dupliqués et supprimer les doublons
       const combinedItems = [];
       const itemMap = new Map();
       for (const item of items) {
@@ -93,9 +145,7 @@ const fetchCartItems = async () => {
         const duplicateItems = items.filter(i => i.productId === productId);
         if (duplicateItems.length > 1) {
           for (let i = 1; i < duplicateItems.length; i++) {
-            await axios.delete(`http://localhost:3000/carts/${duplicateItems[i].id}`, {
-              params: { userId: authToken }
-            });
+            await axios.delete(`http://localhost:3000/carts/${duplicateItems[i].id}`, { params: { userId: authToken } });
           }
         }
       }
@@ -107,18 +157,25 @@ const fetchCartItems = async () => {
       }
 
       cartItems.value = combinedItems;
+
+      // Vérifier s'il y a un code promo dans le panier et récupérer ses détails si nécessaire
+      if (cartItems.value[0].promoCodeId) {
+        const promoId = cartItems.value[0].promoCodeId;
+        const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
+        promo.value = responsePromo.data;
+      } else {
+        promo.value = null; // Aucun code promo
+      }
     }
   } catch (error) {
-    console.error('Error fetching cart items:', error);
+    console.error('Erreur lors de la récupération des articles du panier :', error);
   }
 };
 
 const updateCartQuantity = async (id, quantity) => {
   try {
     if (quantity === 'remove') {
-      await axios.delete(`http://localhost:3000/carts/${id}`, {
-        params: { userId: authToken }
-      });
+      await axios.delete(`http://localhost:3000/carts/${id}`, { params: { userId: authToken } });
       cartItems.value = cartItems.value.filter(item => item.id !== id);
     } else {
       await axios.patch(`http://localhost:3000/carts/update-quantity/${id}`, { quantity });
@@ -126,7 +183,7 @@ const updateCartQuantity = async (id, quantity) => {
       item.quantity = quantity;
     }
   } catch (error) {
-    console.error('Error updating cart:', error);
+    console.error('Erreur lors de la mise à jour du panier :', error);
   }
 };
 
@@ -140,7 +197,7 @@ const total = computed(() => {
 
 const checkout = () => {
   if (!authToken) {
-    router.push('/identifier');
+    router.push('/login');
   } else {
     router.push('/payment');
   }
@@ -150,14 +207,16 @@ const checkoutWithPaypal = () => {
   alert('Paiement effectué via PayPal.');
 };
 
-const applyPromoCode = () => {
-  alert('Code promo appliqué.');
+const showProductDetails = (id: string) => {
+  router.push({ name: 'ProductDetail', params: { id } });
 };
 
 onMounted(() => {
   fetchCartItems();
 });
 </script>
+
+
 
 <style scoped>
 .cart {
@@ -198,6 +257,7 @@ header {
 }
 
 .item-details {
+  cursor: pointer;
   flex: 1;
 }
 
@@ -300,5 +360,42 @@ input[type="text"] {
 
 .fa-paypal {
   margin-left: 5px;
+}
+
+.total {
+  display: block!important;
+}
+
+.total p:first-child {
+  text-align: left;
+}
+
+.total-price {
+  display: flex;
+  justify-content: space-between;
+}
+
+.price-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.old-price {
+  margin-right: 10px;
+}
+
+.discount {
+  color: green;
+}
+
+.new-price {
+  text-align: right;
+  margin-top: 5px;
+}
+
+.error-message {
+  color: red;
+  text-align: left;
 }
 </style>

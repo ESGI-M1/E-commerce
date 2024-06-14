@@ -10,6 +10,7 @@ import ProductDetail from '../views/ProductDetail.vue';
 import Identifier from '../views/Identify.vue';
 import Users from '../views/Users.vue';
 import Payment from '../views/Payment.vue';
+import Favoris from '../views/Favorite.vue';
 
 const routes = [
   {
@@ -72,6 +73,11 @@ const routes = [
     path: '/payment',
     name: 'Paiement',
     component: Payment
+  },
+  {
+    path: '/favorite',
+    name: 'Favoris',
+    component: Favoris
   },
 ];
 

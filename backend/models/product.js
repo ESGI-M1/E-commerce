@@ -1,4 +1,5 @@
-const { Model, DataTypes } = require('sequelize');
+const { Model, DataTypes } = require("sequelize");
+const productMongo = require("../dtos/denormalization/productMongo");
 
 module.exports = function(connection) {
     class Product extends Model {
@@ -7,6 +8,19 @@ module.exports = function(connection) {
             models.Category.belongsToMany(Product, { through: 'ProductCategories' });
             this.hasOne(models.Image, { foreignKey: 'productId' });
             this.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
+        }
+
+        static addHooks(db) {
+            Product.addHook("afterCreate", (product) =>
+                productMongo(product.id, db.Category, db.Product, db.Image)
+            );
+            Product.addHook("afterUpdate", (product) =>
+                productMongo(product.id, db.Category, db.Product, db.Image)
+            );
+            /*
+            Product.addHook("afterDestroy", (product) =>
+                productMongo(product, db.Category, db.Product)
+            );*/
         }
     }
 

@@ -13,6 +13,7 @@ const FavoriteRouter = require("./routes/favorite");
 const app = express();
 const cors = require('cors')
 require ("./migrate");
+require("./mongo/db");
 
 const options = {
   origin: ['http://localhost:5173'],

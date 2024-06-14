@@ -1,4 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
+const categoryMongo = require("../dtos/denormalization/categoryMongo");
 
 module.exports = function (connection) {
 
@@ -6,6 +7,15 @@ module.exports = function (connection) {
 
         static associate(db) {
             Category.belongsTo(db.Category, { as: 'parentCategory' });
+        }
+
+        static addHooks(db) {
+            Category.addHook("afterCreate", (category) =>
+              categoryMongo(category.id, db.Category, db.Product)
+            );
+            Category.addHook("afterUpdate", (category) =>
+              categoryMongo(category.id, db.Category, db.Product)
+            );
         }
     }
 

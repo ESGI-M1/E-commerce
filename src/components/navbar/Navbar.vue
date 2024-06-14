@@ -144,7 +144,7 @@ checkAuthStatus();
   display: none;
   position: absolute;
   top: 100%;
-  left: -40px;
+  right: 0;
   background-color: white;
   box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   z-index: 1;

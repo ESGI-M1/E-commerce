@@ -134,7 +134,7 @@ router.get("/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
 
-    const cartItems = await Cart.findAll({ where: { userId }, include: [{ model: Product, as: 'product' }] });
+    const cartItems = await Cart.findAll({ where: { userId, status: 'en attente'}, include: [{ model: Product, as: 'product' }] });
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(404).json({ error: 'Cart not found' });

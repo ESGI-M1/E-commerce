@@ -12,6 +12,8 @@ import Users from '../views/Users.vue';
 import Payment from '../views/Payment.vue';
 import Favoris from '../views/Favorite.vue';
 import Ressources from '../views/Ressources.vue';
+import Locker from '../views/Locker.vue';
+
 import axios from 'axios';
 
 const isAdmin = async () => {
@@ -106,6 +108,12 @@ const routes = [
     path: '/ressources',
     name: 'Ressources',
     component: Ressources,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/locker',
+    name: 'Produits',
+    component: Locker,
     meta: { requiresAdmin: true }
   },
 ];

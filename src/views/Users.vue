@@ -1,25 +1,30 @@
 <template>
   <div class="users">
     <h1>Utilisateurs</h1>
-    <button @click="showAddUserModal">Ajouter Utilisateur</button>
+    <button class="btn btn-success" @click="showAddUserModal"><i class="fa fa-plus"></i> Ajouter Utilisateur</button>
 
     <table>
       <thead>
         <tr>
+          <th>Id</th>
           <th>Nom</th>
           <th>Prénom</th>
           <th>Email</th>
+          <th>Rôle</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="user in users" :key="user.id">
+          <td>{{ user.id }}</td>
           <td>{{ user.lastname }}</td>
           <td>{{ user.firstname }}</td>
           <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
           <td>
-            <button @click="showEditUserModal(user)">Modifier</button>
-            <button @click="deleteUser(user)">Supprimer</button>
+            <button @click="resetPassword(user)" class="btn btn-warning">Réinitialiser MDP</button>
+            <button @click="deleteUser(user)" class="btn btn-danger">Supprimer</button>
+            <button @click="showEditUserModal(user)" class="btn btn-primary">Modifier</button>
           </td>
         </tr>
       </tbody>
@@ -31,6 +36,7 @@
         <h2 v-if="isEditing">Modifier Utilisateur</h2>
         <h2 v-else>Ajouter Utilisateur</h2>
         <form @submit.prevent="isEditing ? updateUser() : addUser()">
+
           <label for="firstname">Prénom</label>
           <input v-model="currentUser.firstname" type="text" id="firstname" required>
 
@@ -40,8 +46,8 @@
           <label for="email">Email</label>
           <input v-model="currentUser.email" type="email" id="email" required>
 
-          <label for="password">Mot de passe</label>
-          <input v-model="currentUser.password" type="password" id="password" required>
+          <label for="role">Rôle</label>
+          <input v-model="currentUser.role" type="text" id="role" required>
 
           <button type="submit">{{ isEditing ? 'Modifier' : 'Ajouter' }}</button>
         </form>
@@ -60,7 +66,8 @@ const userSchema = z.object({
   firstname: z.string().min(1, "Le prénom est requis"),
   lastname: z.string().min(1, "Le nom est requis"),
   email: z.string().email("Adresse email invalide"),
-  password: z.string().min(8, "Le mot de passe doit comporter au moins 8 caractères")
+  password: z.string().min(8, "Le mot de passe doit comporter au moins 8 caractères"),
+  role: z.string() // Ajoutez le schéma pour le rôle si nécessaire
 });
 
 const users = ref([]);
@@ -138,8 +145,8 @@ const closeModal = () => {
 };
 
 onMounted(() => {
-  fetchUsers
-})();
+  fetchUsers();
+});
 </script>
 
 <style scoped>
@@ -177,4 +184,65 @@ onMounted(() => {
     text-decoration: none;
     cursor: pointer;
   }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f2f2f2;
+  }
+
+  button {
+    margin-right: 5px;
+    cursor: pointer;
+    float: right;
+  }
+  .btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0069d9;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
 </style>

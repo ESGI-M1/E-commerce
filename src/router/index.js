@@ -43,7 +43,8 @@ const routes = [
   {
     path: '/users',
     name: 'Users',
-    component: Users
+    component: Users,
+    meta: { requiresAdmin: true }
   },
   {
     path: '/dashboard',

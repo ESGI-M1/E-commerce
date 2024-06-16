@@ -101,7 +101,15 @@ const removeFromFavorites = async (productId: number) => {
   }
 };
 
-onMounted(fetchFavorites);
+const authToken = localStorage.getItem('authToken');
+
+onMounted(async () => {
+  if (!authToken) {
+    router.push('/login');
+  } else {
+    await fetchFavorites();
+  }
+});
 </script>
 
 <style scoped>

@@ -57,10 +57,11 @@ router.post("/", async (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const existingCart = await Cart.findOne({ where: { userId } });
-    if (!existingCart) {
+    let user = await User.findByPk(userId);
+
+    if (!user) {
         const tempPassword = generateRandomPassword(12);
-        const tempUser = await User.create({
+        await User.create({
           id: userId,
           firstname: 'Temp',
           lastname: 'User',

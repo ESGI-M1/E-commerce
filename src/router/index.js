@@ -11,6 +11,28 @@ import Identifier from '../views/Identify.vue';
 import Users from '../views/Users.vue';
 import Payment from '../views/Payment.vue';
 import Favoris from '../views/Favorite.vue';
+import Ressources from '../views/Ressources.vue';
+import axios from 'axios';
+
+const isAdmin = async () => {
+  const authToken = localStorage.getItem('authToken');
+  if (!authToken) {
+    return false;
+  }
+
+  try {
+    const response = await axios.get(`http://localhost:3000/users/${authToken}`);
+    const user = response.data;
+    if (!user || user.role != 'admin') {
+      return false;
+    }
+
+    return user.role === 'admin';
+  } catch (error) {
+    return false;
+  }
+};
+
 
 const routes = [
   {
@@ -79,11 +101,30 @@ const routes = [
     name: 'Favoris',
     component: Favoris
   },
+  {
+    path: '/ressources',
+    name: 'Ressources',
+    component: Ressources,
+    meta: { requiresAdmin: true }
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory('/'),
   routes
+});
+
+router.beforeEach(async (to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAdmin)) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
+      next('/');
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

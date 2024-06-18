@@ -28,34 +28,42 @@ onMounted(() => {
 </script>
 
 <template>
-  <div 
-    v-for="product in productsStore.products"
-    :key="product.id" 
-    class="product-card"
-    @click="showProductDetails(product.id)"
-  >
-    <img :src="product.Image ? product.Image.url : '../../produit_avatar.jpg'" :alt="product.Image ? product.Image.description : 'Product image'" 
-    class="product-image" />
-    <div class="product-info">
-      <h2 class="product-name">{{ product.name }}</h2>
-      <p class="product-description">{{ product.description }}</p>
-      <p class="product-reference">{{ product.reference }}</p>
-      <p class="product-price">${{ parseFloat(product.price).toFixed(2) }}</p>
+  <div class="product-list">
+    <div 
+      v-for="product in productsStore.products"
+      :key="product.id" 
+      class="product-card"
+      @click="showProductDetails(product.id)"
+    >
+      <img :src="product.Image ? product.Image.url : '../../produit_avatar.jpg'" :alt="product.Image ? product.Image.description : 'Product image'" 
+      class="product-image" />
+      <div class="product-info">
+        <h2 class="product-name">{{ product.name }}</h2>
+        <p class="product-description">{{ product.description }}</p>
+        <p class="product-reference">{{ product.reference }}</p>
+        <p class="product-price">${{ parseFloat(product.price).toFixed(2) }}</p>
+      </div>
     </div>
   </div>
 </template>
 
-
 <style scoped>
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
 .product-card {
   background: white;
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
-  width: calc(33.333% - 20px);
+  width: calc(33.333% - 20px); /* Adjust width to account for margins */
+  margin: 10px;
+  box-sizing: border-box; /* Ensures width calculation includes padding and border */
   cursor: pointer;
   transition: transform 0.2s;
-  margin: 10px;
 }
 
 .product-card:hover {

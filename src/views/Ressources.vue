@@ -8,6 +8,14 @@
     <div class="resource-item" @click="navigateToProducts">
       <h1>Produits</h1>
     </div>
+
+    <div class="resource-item" @click="navigateToCategories">
+      <h1>Catégories</h1>
+    </div>
+
+    <div class="resource-item" @click="navigateToPromos">
+      <h1>Promos</h1>
+    </div>
   </div>
 </template>
 
@@ -22,6 +30,14 @@ const navigateToUsers = () => {
 
 const navigateToProducts = () => {
   router.push('/locker');
+};
+
+const navigateToCategories = () => {
+  router.push('/categories');
+};
+
+const navigateToPromos = () => {
+  router.push('/promos');
 };
 </script>
 

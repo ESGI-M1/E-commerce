@@ -2,6 +2,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 
 const UserRouter = require("./routes/user");
+const MailerRouter = require("./routes/mailer");
 const ProductRouter = require("./routes/product");
 const CategoryRouter = require("./routes/category");
 const ImageRouter = require("./routes/image");
@@ -20,6 +21,7 @@ app.use(cookieParser(process.env.JWT_SECRET));
 app.use(cors(options))
 
 app.use("/users", UserRouter);
+app.use("/mailer", MailerRouter);
 app.use("/products", ProductRouter);
 app.use('/categories', CategoryRouter);
 app.use('/images', ImageRouter);

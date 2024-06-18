@@ -9,6 +9,7 @@ import Cart from '../views/Cart.vue';
 import ProductDetail from '../views/ProductDetail.vue';
 import Identifier from '../views/Identify.vue';
 import Users from '../views/Users.vue';
+import Mailer from '../views/Mailer.vue';
 
 const routes = [
   {
@@ -20,6 +21,11 @@ const routes = [
     path: '/users',
     name: 'Users',
     component: Users
+  },
+  {
+    path: '/mailer',
+    name: 'Mailer',
+    component: Mailer
   },
   {
     path: '/dashboard',

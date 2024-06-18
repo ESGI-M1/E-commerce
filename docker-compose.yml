@@ -18,6 +18,11 @@ services:
       MONGO_URL: mongodb://root:password@mongo:27017/app?authSource=admin
       DATABASE_URL: postgres://root:password@postgres:5432/app
       JWT_SECRET: secret
+      MAILER_SERVICE: Gmail
+      MAILER_HOST: smtp.gmail.com
+      MAILER_PORT: 465
+      MAILER_ADDRESS: dabh45@gmail.com
+      MAILER_PASSWORD: ddzx ztcb frrk ijsk
     ports:
       - 127.0.0.1:3000:3000
     volumes:

@@ -1,4 +1,4 @@
-const CategoryMongo = require("../../mongo/Category");
+const CategoryMongo = require("../../mongo/category");
 
 module.exports = async function (categoryId, Category, Product) {
     

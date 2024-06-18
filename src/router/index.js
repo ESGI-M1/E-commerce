@@ -38,7 +38,6 @@ const isAdmin = async () => {
   }
 };
 
-import Mailer from '../views/Mailer.vue';
 
 const routes = [
   {
@@ -51,11 +50,6 @@ const routes = [
     name: 'Users',
     component: Users,
     meta: { requiresAdmin: true }
-  },
-  {
-    path: '/mailer',
-    name: 'Mailer',
-    component: Mailer
   },
   {
     path: '/dashboard',

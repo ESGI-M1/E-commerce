@@ -1,49 +1,15 @@
 <template>
   <div class="cart">
     <header>
-      <h1>Mon Panier</h1>
-      <p v-if="!authToken">
-        <router-link to="/login">Rejoins-nous</router-link> ou <router-link to="/signup">S'identifier</router-link>
-      </p>
+      <h1>Paiement</h1>
     </header>
 
     <div class="cart-content">
       <div class="cart-items" v-if="cartItems.length">
-        <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
-          <div class="item-details" @click="showProductDetails(item.product.id)">
-            <h3>{{ item.product.name }}</h3>
-            <img :src="item.image[0]?.url ?? '../../produit_avatar.jpg'" :alt="item.image[0]?.description" class="product-image" />
-          </div>
-          <div class="item-quantity">
-            <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
-              <option value="remove">Supprimer</option>
-              <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-              <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">{{ item.quantity }}</option>
-            </select>
-          </div>
-          <div class="item-price">
-            <p>{{ item.product.price }} €</p>
-            <p>Total: {{ (item.product.price * item.quantity).toFixed(2) }} €</p>
-          </div>
-        </div>
-      </div>
-      <div v-else>
-        <p>Il n'y a aucun article dans ton panier.</p>
+        <h2>Options de livraison</h2>
       </div>
       <div class="cart-summary" v-if="cartItems.length">
         <h2>Récapitulatif</h2>
-        <div class="promo-code">
-          <label for="promo">As-tu un code promo ?</label>
-          <div class="promo-input">
-          <input type="text" id="promo" placeholder="Entrez votre code promo" v-model="promoCode">
-          <button @click="applyPromoCode" class="apply-button">Appliquer</button>
-        </div>
-        <div v-if="promo">
-            Code promo appliqué : {{ promo.code }}
-            <button @click="removePromo" class="remove-button">Supprimer</button>
-          </div>
-        <p v-if="promoError" class="error-message">{{ promoError }}</p>
-        </div>
         <div class="totals">
           <div class="subtotal">
             <p>Sous-total</p>
@@ -68,10 +34,28 @@
             </p>
           </div>
         </div>
-        <button @click="checkout" class="checkout-button">Paiement</button>
-        <button @click="checkoutWithPaypal" class="paypal-button">Paiement avec PayPal <i class="fab fa-paypal"></i></button>
+        <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
+          <div class="item-details" @click="showProductDetails(item.product.id)">
+            <h3>{{ item.product.name }}</h3>
+            <img :src="item.image[0]?.url ?? '../../produit_avatar.jpg'" :alt="item.image[0]?.description" class="product-image" />
+          </div>
+          <div class="item-quantity">
+            <label for="quantity">Quantité :</label>
+            <p :value="item.quantity" :key="item.quantity">{{ item.quantity }}</p>
+          </div>
+          <div class="item-price">
+            <p :value="item.product.price" :key="item.product.price">{{ item.product.price }} €</p>
+          </div>
+        </div>
       </div>
     </div>
+  <div class="payment">
+    <div class="payment-form">
+      <h2>Paiement sécurisé</h2>
+      <div id="card-element" class="card-element"></div>
+      <button v-if="promo" @click="handlePayment" :disabled="!stripe">Payer {{ (total - (total * promo.discountPercentage / 100)).toFixed(2) }} €</button>
+    </div>
+  </div>
   </div>
 </template>
 
@@ -79,49 +63,13 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { loadStripe } from '@stripe/stripe-js';
 
+const stripePromise = loadStripe('pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz');
 const router = useRouter();
 const cartItems = ref([]);
 const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId');
 const promo = ref(null);
-const promoCode = ref(''); 
-const promoError = ref('');
-
-const removePromo = async () => {
-  try {
-    const cartIds = cartItems.value.map(item => item.id);
-    const response = await axios.post('http://localhost:3000/carts/remove-promo', { userId: authToken, cartIds }, {
-      headers: { Authorization: `Bearer ${authToken}` }
-    });
-
-    if (response.data.success) {
-      promo.value = null;
-      fetchCartItems();
-      promoError.value = '';
-    } else {
-      console.error('Erreur lors de la suppression du code promo :', response.data.error);
-    }
-  } catch (error) {
-    console.error('Erreur lors de la suppression du code promo :', error);
-  }
-};
-
-
-const applyPromoCode = async () => {
-  try {
-    const response = await axios.post(`http://localhost:3000/promos/${promoCode.value}/apply`, null, { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } });
-
-    if (response.data.success) {
-      promo.value = response.data;
-      fetchCartItems();
-      promoError.value = '';
-    } else {
-      promoError.value = response.data.error || 'Ce code promo a expiré.';
-    }
-  } catch (error) {
-    promoError.value = 'Ce code promo est invalide.';
-  }
-};
 
 const fetchCartItems = async () => {
   try {
@@ -158,13 +106,12 @@ const fetchCartItems = async () => {
 
       cartItems.value = combinedItems;
 
-      // Vérifier s'il y a un code promo dans le panier et récupérer ses détails si nécessaire
       if (cartItems.value[0].promoCodeId) {
         const promoId = cartItems.value[0].promoCodeId;
         const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
         promo.value = responsePromo.data;
       } else {
-        promo.value = null; // Aucun code promo
+        promo.value = null;
       }
     }
   } catch (error) {
@@ -172,20 +119,6 @@ const fetchCartItems = async () => {
   }
 };
 
-const updateCartQuantity = async (id, quantity) => {
-  try {
-    if (quantity === 'remove') {
-      await axios.delete(`http://localhost:3000/carts/${id}`, { params: { userId: authToken } });
-      cartItems.value = cartItems.value.filter(item => item.id !== id);
-    } else {
-      await axios.patch(`http://localhost:3000/carts/update-quantity/${id}`, { quantity });
-      const item = cartItems.value.find(item => item.id === id);
-      item.quantity = quantity;
-    }
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour du panier :', error);
-  }
-};
 
 const subtotal = computed(() => {
   return cartItems.value.reduce((acc, item) => acc + (item.product.price * item.quantity), 0).toFixed(2);
@@ -195,20 +128,33 @@ const total = computed(() => {
   return parseFloat(subtotal.value).toFixed(2);
 });
 
-const checkout = () => {
-  if (!authToken) {
-    router.push('/login');
-  } else {
-    router.push('/payment');
-  }
-};
-
-const checkoutWithPaypal = () => {
-  alert('Paiement effectué via PayPal.');
-};
-
 const showProductDetails = (id: string) => {
   router.push({ name: 'ProductDetail', params: { id } });
+};
+
+const handlePayment = async () => {
+  try {
+    const stripe = await stripePromise;
+    const { error } = await stripe.redirectToCheckout({
+      lineItems: cartItems.value.map(item => ({
+        priceData: {
+          currency: 'eur',
+          productData: { name: item.product.name },
+          unitAmount: item.product.price * 100,
+        },
+        quantity: item.quantity,
+      })),
+      mode: 'payment',
+      successUrl: 'http://localhost:3000/success',
+      cancelUrl: 'http://localhost:3000/cancel',
+    });
+
+    if (error) {
+      console.error('Erreur de redirection Stripe:', error);
+    }
+  } catch (error) {
+    console.error('Erreur de paiement Stripe:', error);
+  }
 };
 
 onMounted(() => {

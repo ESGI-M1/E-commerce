@@ -54,6 +54,26 @@ const addCategory = async () => {
   }
 };
 
+// Function to modify a category
+const modifyCategory = async (category) => {
+  try {
+    const parsedCategory = categorySchema.parse(category);
+    await axios.patch(`http://localhost:3000/categories/${category.id}`, parsedCategory);
+  } catch (error) {
+    console.error('Error modifying category:', error);
+  }
+};
+
+// Function to delete a category
+const deleteCategory = async (category) => {
+  try {
+    await axios.delete(`http://localhost:3000/categories/${category.id}`);
+    categories.value = categories.value.filter((c) => c.id !== category.id);
+  } catch (error) {
+    console.error('Error deleting category:', error);
+  }
+};
+
 
 // PRODUCT
 const productSchema = z.object({
@@ -248,14 +268,24 @@ onMounted(() => {
             <th>Slug</th>
             <th>Description</th>
             <th>parentId</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="category in categories" :key="category.id">
-            <td>{{ category.name }}</td>
-            <td>{{ category.slug }}</td>
-            <td>{{ category.description }}</td>
-            <td>{{ category.parentCategoryId }}</td>
+            <td> <input v-model="category.name" type="text" required> </td>
+            <td> <input v-model="category.slug" type="text" required> </td>
+            <td> <input v-model="category.description" type="text"> </td>
+            <td>
+              <select v-model="category.parentCategoryId">
+                <option value="">None</option>
+                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+              </select>
+            </td>
+            <td>
+              <button @click="modifyCategory(category)">Modify</button>
+              <button @click="deleteCategory(category)">Delete</button>
+            </td>
           </tr>
         </tbody>
       </table>

@@ -21,9 +21,11 @@ router.post("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
     try {
-        const image = await Image.findByPk(parseInt(req.params.id));
-        if (image) {
-            res.json(image);
+        const product = await Product.findByPk(req.params.id, {
+            include: Image
+        });
+        if (product) {
+            res.json(product.Image.url);
         } else {
             res.sendStatus(404);
         }

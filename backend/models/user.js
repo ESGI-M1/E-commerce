@@ -41,9 +41,9 @@ module.exports = function (connection) {
         },
       },
       role: {
-        type: DataTypes.ENUM("user", "admin"),
+        type: DataTypes.ENUM("user", "admin", "temp"),
         allowNull: false,
-        defaultValue: "admin",
+        defaultValue: "user",
       },
     },
     { sequelize: connection }

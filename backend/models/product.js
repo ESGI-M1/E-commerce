@@ -1,14 +1,27 @@
 const { Model, DataTypes } = require("sequelize");
+const productMongo = require("../dtos/denormalization/productMongo");
 
-module.exports = function(connection){
-
+module.exports = function(connection) {
     class Product extends Model {
-        static associate(db) {
-            Product.belongsToMany(db.Category, { through: 'ProductCategories' });
-            db.Category.belongsToMany(Product, { through: 'ProductCategories' });
+        static associate(models) {
 
-            Product.hasMany(db.Image);
-            db.Image.belongsTo(Product);
+            Product.belongsToMany(models.Category, { through: 'ProductCategories' });
+            models.Category.belongsToMany(Product, { through: 'ProductCategories' });
+
+            this.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
+        }
+
+        static addHooks(models) {
+            Product.addHook("afterCreate", (product) =>
+                productMongo(product.id, models.Category, models.Product, models.Image)
+            );
+            Product.addHook("afterUpdate", (product) =>
+                productMongo(product.id, models.Category, models.Product, models.Image)
+            );
+            /*
+            Product.addHook("afterDestroy", (product) =>
+                productMongo(product, db.Category, db.Product)
+            );*/
         }
     }
 
@@ -48,16 +61,18 @@ module.exports = function(connection){
             description: {
                 type: DataTypes.TEXT,
             },
-    
+            imageId: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
         },
         {
             timestamps: true,
             createdAt: true,
             updatedAt: 'updateTimestamp',
-            sequelize: connection
+            sequelize: connection,
         }
     );
+
     return Product;
-}
-
-
+};

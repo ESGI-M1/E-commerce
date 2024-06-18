@@ -10,6 +10,18 @@ router.get("/", async (req, res) => {
     res.json(products);
 });
 
+
+router.get("/:id/images", async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const images = await Image.findAll({ where: { productId } });
+        res.json(images);
+    } catch (error) {
+        console.error("Error fetching images for product:", error);
+        res.status(500).json({ error: "Failed to fetch images for product" });
+    }
+});
+
 router.post("/", async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;
@@ -28,7 +40,10 @@ router.post("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
     try {
-        const product = await Product.findByPk(parseInt(req.params.id), {
+        const productId = parseInt(req.params.id);
+        console.log(`Fetching product with ID: ${productId}`);
+        
+        const product = await Product.findByPk(productId, {
             include: [
                 { model: Category, required: false },
                 { model: Image, required: false }
@@ -36,14 +51,19 @@ router.get("/:id", async (req, res, next) => {
         });
 
         if (product) {
+            console.log('Product found:', product);
             res.json(product);
         } else {
+            console.log('Product not found');
             res.sendStatus(404);
         }
     } catch (e) {
+        console.error('Error fetching product by ID:', e);
         next(e);
     }
 });
+
+
 
 router.patch("/:id", async (req, res, next) => {
     try {

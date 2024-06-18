@@ -2,7 +2,12 @@ const { Model, DataTypes } = require("sequelize");
 
 module.exports = function(connection) {
 
-    class Image extends Model {}
+    class Image extends Model {
+        static associate(models) {
+            Image.belongsTo(models.Product, { foreignKey: 'productId' });
+            models.Product.hasMany(Image, { foreignKey: 'productId' });
+        }
+    }
 
     Image.init(
         {

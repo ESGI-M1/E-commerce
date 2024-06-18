@@ -1,34 +1,52 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import { useProductsStore } from '@/store/products';
 
 const productsStore = useProductsStore();
-
 const router = useRouter();
 
-const showProductDetails = (id) => {
+const fetchProducts = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/products');
+    productsStore.products = response.data;
+
+    console.log('Products:', productsStore.products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+  }
+};
+
+const showProductDetails = (id: string) => {
   router.push({ name: 'ProductDetail', params: { id } });
 };
 
+onMounted(() => {
+  fetchProducts();
+});
 </script>
 
 <template>
-    <div 
-        v-for="product in productsStore.products"
-        :key="product.id" 
-        class="product-card"
-        @click="showProductDetails(product.id)"
-      >
-        <img :src="product.image" alt="Product Image" class="product-image" />
-        <div class="product-info">
-          <h2>{{ product.name }}</h2>
-          <p>{{ product.description }}</p>
-          <p class="product-price" >${{ parseInt(product.price).toFixed(2) }}</p>
-        </div>
-      </div>
+  <div 
+    v-for="product in productsStore.products"
+    :key="product.id" 
+    class="product-card"
+    @click="showProductDetails(product.id)"
+  >
+    <img :src="product.Image ? product.Image.url : '../../produit_avatar.jpg'" :alt="product.Image ? product.Image.description : 'Product image'" 
+    class="product-image" />
+    <div class="product-info">
+      <h2 class="product-name">{{ product.name }}</h2>
+      <p class="product-description">{{ product.description }}</p>
+      <p class="product-reference">{{ product.reference }}</p>
+      <p class="product-price">${{ parseFloat(product.price).toFixed(2) }}</p>
+    </div>
+  </div>
 </template>
 
-<style>
+
+<style scoped>
 .product-card {
   background: white;
   border: 1px solid #ddd;
@@ -37,6 +55,7 @@ const showProductDetails = (id) => {
   width: calc(33.333% - 20px);
   cursor: pointer;
   transition: transform 0.2s;
+  margin: 10px;
 }
 
 .product-card:hover {
@@ -51,54 +70,27 @@ const showProductDetails = (id) => {
 
 .product-info {
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.product-name {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.product-description {
+  margin-bottom: 10px;
+}
+
+.product-reference {
+  color: grey;
+  margin-bottom: 10px;
 }
 
 .product-price {
   font-weight: bold;
   color: #2c3e50;
-}
-
-.product-details {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.details-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.details-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  z-index: 1;
-  max-width: 600px;
-  width: 100%;
-}
-
-.details-content img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 15px;
-}
-
-.details-content button {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
 }
 </style>

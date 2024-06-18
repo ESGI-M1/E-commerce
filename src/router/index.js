@@ -3,7 +3,6 @@ import Dashboard from '../views/Dashboard.vue';
 import About from '../views/About.vue';
 import Login from '../views/Login.vue';
 import Signup from '../views/Signup.vue';
-import Products from '../views/Products.vue';
 import Category from '../views/Category.vue';
 import Cart from '../views/Cart.vue';
 import ProductDetail from '../views/ProductDetail.vue';
@@ -13,6 +12,10 @@ import Payment from '../views/Payment.vue';
 import Favoris from '../views/Favorite.vue';
 import Ressources from '../views/Ressources.vue';
 import Locker from '../views/Locker.vue';
+import Profile from '../views/Profile.vue';
+import Categories from '../views/Categories.vue';
+import ProductList from '../views/ProductList.vue';
+import Promos from '../views/Promos.vue';
 
 import axios from 'axios';
 
@@ -40,7 +43,7 @@ const routes = [
   {
     path: '/',
     name: 'Accueil',
-    component: Products
+    component: ProductList
   },
   {
     path: '/users',
@@ -74,11 +77,6 @@ const routes = [
     component: Identifier
   },
   {
-    path: '/products',
-    name: 'Products',
-    component: Products
-  },
-  {
     path: '/category/:slug',
     name: 'Category',
     component: Category
@@ -105,6 +103,11 @@ const routes = [
     component: Favoris
   },
   {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile
+  },
+  {
     path: '/ressources',
     name: 'Ressources',
     component: Ressources,
@@ -114,6 +117,18 @@ const routes = [
     path: '/locker',
     name: 'Produits',
     component: Locker,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/categories',
+    name: 'Catégories',
+    component: Categories,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/promos',
+    name: 'Code promos',
+    component: Promos,
     meta: { requiresAdmin: true }
   },
 ];

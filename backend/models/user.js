@@ -41,7 +41,7 @@ module.exports = function (connection) {
         },
       },
       role: {
-        type: DataTypes.ENUM("user", "admin", "temp"),
+        type: DataTypes.ENUM("user", "admin", "temp", "store"),
         allowNull: false,
         defaultValue: "user",
       },

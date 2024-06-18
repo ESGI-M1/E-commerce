@@ -58,28 +58,30 @@
 
       <!-- Login Button or User Icon -->
       <div v-if="isAuthenticated" class="user-menu">
-      <i class="fas fa-user"></i>
-      <div class="dropdown">
-        <a href="/profile" class="dropdown-item">Mon Profil</a>
-        <a :href="'/favorite'" class="dropdown-item">Mes favoris</a>
-        <a :href="'/ressources'" class="dropdown-item">Gestion des ressources</a>
-        <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
+        <i class="fas fa-user"></i>
+        <div class="dropdown">
+          <a href="/profile" class="dropdown-item">Mon Profil</a>
+          <a :href="'/favorite'" class="dropdown-item">Mes favoris</a>
+          <a v-if="isAdmin" :href="'/ressources'" class="dropdown-item">Gestion des ressources</a>
+          <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
+        </div>
       </div>
-    </div>
       <button v-else @click="redirectToLogin" class="login-button">S'identifier</button>
     </div>
   </nav>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const isAuthenticated = ref(false);
+const isAdmin = ref(false);
 const router = useRouter();
 
 const checkAuthStatus = () => {
-  isAuthenticated.value = localStorage.getItem('authToken');
+  isAuthenticated.value = !!localStorage.getItem('authToken');
 };
 
 const redirectToLogin = () => {
@@ -93,8 +95,27 @@ const logout = () => {
   router.push('/');
 };
 
-// Vérifier l'état de connexion au montage du composant
-checkAuthStatus();
+const checkIsAdmin = async () => {
+  const authToken = localStorage.getItem('authToken');
+  if (!authToken) {
+    isAdmin.value = false;
+    return;
+  }
+
+  try {
+    const response = await axios.get(`http://localhost:3000/users/${authToken}`);
+    const user = response.data;
+    isAdmin.value = user && user.role === 'admin';
+  } catch (error) {
+    isAdmin.value = false;
+  }
+};
+
+// Vérifier l'état de connexion et le rôle de l'utilisateur au montage du composant
+onMounted(async () => {
+  checkAuthStatus();
+  await checkIsAdmin();
+});
 </script>
 
 <style scoped>

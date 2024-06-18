@@ -13,15 +13,14 @@ module.exports = function(connection) {
 
         static addHooks(models) {
             Product.addHook("afterCreate", (product) =>
-                productMongo(product.id, models.Category, models.Product, models.Image)
+                productMongo(product.id, models.Category, models.Product)
             );
             Product.addHook("afterUpdate", (product) =>
-                productMongo(product.id, models.Category, models.Product, models.Image)
+                productMongo(product.id, models.Category, models.Product)
             );
-            /*
             Product.addHook("afterDestroy", (product) =>
-                productMongo(product, db.Category, db.Product)
-            );*/
+                productMongo(product.id, models.Category, models.Product, true)
+            );
         }
     }
 

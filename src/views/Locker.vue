@@ -7,16 +7,26 @@
         <thead>
           <tr>
             <th>Nom</th>
+            <th>Reference</th>
             <th>Description</th>
             <th>Prix</th>
+            <th>Catégories</th>
+            <th>Actif</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="product in products" :key="product.id">
             <td>{{ product.name }}</td>
+            <td>{{ product.reference }}</td>
             <td>{{ product.description }}</td>
             <td>{{ product.price }}</td>
+            <td>
+              <ul>
+                <li v-for="category in product.Categories" :key="category.id">{{ category.name }}</li>
+              </ul>
+            </td>
+            <td>{{ product.active ? 'Oui' : 'Non' }}</td>
             <td>
               <button @click="showEditProductModal(product)" class="btn btn-primary">Modifier</button>
               <button @click="deleteProduct(product)" class="btn btn-danger">Supprimer</button>
@@ -33,12 +43,25 @@
           <form @submit.prevent="isEditing ? updateProduct() : addProduct()">
             <label for="name">Nom</label>
             <input v-model="currentProduct.name" type="text" id="name" required>
+
+            <label for="reference">Reference</label>
+            <input v-model="currentProduct.reference" type="text" id="reference" required>
   
             <label for="description">Description</label>
             <textarea v-model="currentProduct.description" id="description" rows="4" required></textarea>
   
             <label for="price">Prix</label>
             <input v-model="currentProduct.price" type="number" step="0.01" id="price" required>
+
+            <template v-if="isEditing">
+              <label for="categories">Catégories</label>
+              <select v-model="currentProduct.Categories" id="categories" multiple>
+                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+              </select>
+            </template>
+
+            <label for="active">Actif</label>
+            <input v-model="currentProduct.active" type="checkbox" id="active">
   
             <button type="submit" class="btn btn-primary">{{ isEditing ? 'Modifier' : 'Ajouter' }}</button>
           </form>
@@ -55,15 +78,20 @@ import { z } from 'zod';
 const productSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, "Le nom est requis"),
+  reference: z.string().min(1, "La référence est requise"),
   description: z.string().min(1, "La description est requise"),
-  price: z.number().min(0.01, "Le prix doit être supérieur à 0")
+  price: z.number().positive("Le prix doit être supérieur à 0"),
+  active: z.boolean(),
+  Categories: z.array(z.number())
 });
 
 const products = ref([]);
 const currentProduct = ref({
   name: '',
+  reference: '',
   description: '',
-  price: 0
+  price: 0,
+  Categories: []
 });
 const showModal = ref(false);
 const isEditing = ref(false);
@@ -91,14 +119,19 @@ const addProduct = async () => {
 const updateProduct = async () => {
   try {
     const parsedProduct = productSchema.parse(currentProduct.value);
-    await axios.put(`http://localhost:3000/products/${currentProduct.value.id}`, parsedProduct);
+    console.log(parsedProduct);
+    await axios.patch(`http://localhost:3000/products/${currentProduct.value.id}`, parsedProduct);
     const index = products.value.findIndex(p => p.id === currentProduct.value.id);
     if (index !== -1) {
       products.value[index] = currentProduct.value;
     }
     closeModal();
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du produit :', error);
+    if(error instanceof z.ZodError) {
+      console.error('Zod : Erreur lors de la modification du produit :', error.errors);
+    } else {
+      console.error('Erreur lors de la modification du produit :', error);
+    }
   }
 };
 
@@ -110,13 +143,25 @@ const deleteProduct = async (product) => {
     console.error('Erreur lors de la suppression du produit :', error);
   }
 };
+  
+const categories = ref([]);
+const fetchCategories = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/categories');
+      categories.value = response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des catégories :', error);
+    }
+  };
 
 const showAddProductModal = () => {
   isEditing.value = false;
   currentProduct.value = {
     name: '',
+    reference: '',
     description: '',
-    price: 0
+    price: 0,
+    Categories: []
   };
   showModal.value = true;
 };
@@ -133,6 +178,7 @@ const closeModal = () => {
 
 onMounted(() => {
   fetchProducts();
+  fetchCategories();
 });
 </script>
 

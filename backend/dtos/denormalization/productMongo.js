@@ -1,22 +1,18 @@
 const ProductMongo = require("../../mongo/product");
 
-module.exports = async function (productId, Category, Product, Image) {
+module.exports = async function (productId, Category, Product, isDelete = false) {
+
+    await ProductMongo.deleteOne({ _id: productId });
+    if(isDelete) return;
     
     const product = await Product.findByPk(productId, {
         include: [
             {
                 model: Category,
                 required: false,
-            },
-            {
-                model: Image,
-                required: false,
             }
         ]
     });
-    await ProductMongo.deleteOne({ _id: productId });
-
-    console.log('productMongo', product);
 
     const productMongo = new ProductMongo({
         _id: productId,
@@ -25,8 +21,8 @@ module.exports = async function (productId, Category, Product, Image) {
         price: product.price,
         active: product.active,
         categories: product.Categories.length > 0 ? product.Categories.map(category => category.id) : [],
-        images: product.Images.length > 0 ? product.Images.map(image => image.id) : [],
     });
+    
     await productMongo.save();
     
 };

@@ -9,6 +9,7 @@ const CartRouter = require("./routes/cart");
 const SecurityRouter = require("./routes/security");
 const PromoRouter = require("./routes/promo");
 const FavoriteRouter = require("./routes/favorite");
+//const StripeRouter = require("./stripe/stripe");
 
 const app = express();
 const cors = require('cors')
@@ -30,6 +31,7 @@ app.use('/images', ImageRouter);
 app.use('/carts', CartRouter);
 app.use('/promos', PromoRouter);
 app.use('/favorites', FavoriteRouter);
+//app.use('/stripe', StripeRouter);
 app.use(SecurityRouter);
 
 app.listen(process.env.PORT, () => {

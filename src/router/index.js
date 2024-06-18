@@ -15,6 +15,7 @@ import Locker from '../views/Locker.vue';
 import Profile from '../views/Profile.vue';
 import Categories from '../views/Categories.vue';
 import ProductList from '../views/ProductList.vue';
+import Promos from '../views/Promos.vue';
 
 import axios from 'axios';
 
@@ -122,6 +123,12 @@ const routes = [
     path: '/categories',
     name: 'Catégories',
     component: Categories,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/promos',
+    name: 'Code promos',
+    component: Promos,
     meta: { requiresAdmin: true }
   },
 ];

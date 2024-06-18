@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 module.exports = function (connection) {
 
   class User extends Model {
-    static addHooks(db) {
+    static addHooks() {
       User.addHook("beforeCreate", async (user) => {
         user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
       });

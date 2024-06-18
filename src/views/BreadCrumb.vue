@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import BreadCrumbLink from './BreadCrumbLink.vue';
 
-import { defineProps } from 'vue';
-
 const props = defineProps({
   category: {
     type: Object,

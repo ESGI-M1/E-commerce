@@ -1,4 +1,5 @@
 const { Router } = require("express");
+const { Op } = require("sequelize");
 const { Product, Category, Image } = require("../models");
 const router = new Router();
 
@@ -10,6 +11,25 @@ router.get("/", async (req, res) => {
     res.json(products);
 });
 
+router.get("/search", async (req, res) => {
+
+    try{
+        const { q } = req.query;
+        const products = await Product.findAll({
+            where: {
+                name: {
+                    [Op.iLike]: `%${q}%`,
+                },
+            },
+        });
+        res.json(products);
+        
+    } catch (error) {
+        console.error("Error fetching products by search query:", error);
+        res.status(500).json({ error: "Failed to fetch products by search query" });
+    }
+
+});
 
 router.get("/:id/images", async (req, res) => {
     try {

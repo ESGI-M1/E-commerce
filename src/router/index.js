@@ -7,15 +7,15 @@ import Category from '../views/Category.vue';
 import Cart from '../views/Cart.vue';
 import ProductDetail from '../views/ProductDetail.vue';
 import Identifier from '../views/Identify.vue';
-import Users from '../views/Users.vue';
+import Users from '../views/Admin/Users.vue';
 import Payment from '../views/Payment.vue';
 import Favoris from '../views/Favorite.vue';
-import Ressources from '../views/Ressources.vue';
-import Locker from '../views/Locker.vue';
+import Ressources from '../views/Admin/Ressources.vue';
+import Locker from '../views/Admin/Locker.vue';
 import Profile from '../views/Profile.vue';
-import Categories from '../views/Categories.vue';
+import Categories from '../views/Admin/Categories.vue';
 import ProductList from '../views/ProductList.vue';
-import Promos from '../views/Promos.vue';
+import Promos from '../views/Admin/Promos.vue';
 
 import axios from 'axios';
 

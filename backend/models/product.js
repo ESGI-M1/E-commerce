@@ -4,18 +4,19 @@ const productMongo = require("../dtos/denormalization/productMongo");
 module.exports = function(connection) {
     class Product extends Model {
         static associate(models) {
+
             Product.belongsToMany(models.Category, { through: 'ProductCategories' });
             models.Category.belongsToMany(Product, { through: 'ProductCategories' });
-            this.hasOne(models.Image, { foreignKey: 'productId' });
+
             this.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
         }
 
-        static addHooks(db) {
+        static addHooks(models) {
             Product.addHook("afterCreate", (product) =>
-                productMongo(product.id, db.Category, db.Product, db.Image)
+                productMongo(product.id, models.Category, models.Product, models.Image)
             );
             Product.addHook("afterUpdate", (product) =>
-                productMongo(product.id, db.Category, db.Product, db.Image)
+                productMongo(product.id, models.Category, models.Product, models.Image)
             );
             /*
             Product.addHook("afterDestroy", (product) =>

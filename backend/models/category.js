@@ -5,16 +5,16 @@ module.exports = function (connection) {
 
     class Category extends Model {
 
-        static associate(db) {
-            Category.belongsTo(db.Category, { as: 'parentCategory' });
+        static associate(models) {
+            Category.belongsTo(models.Category, { as: 'parentCategory' });
         }
 
-        static addHooks(db) {
+        static addHooks(models) {
             Category.addHook("afterCreate", (category) =>
-              categoryMongo(category.id, db.Category, db.Product)
+              categoryMongo(category.id, models.Category, models.Product)
             );
             Category.addHook("afterUpdate", (category) =>
-              categoryMongo(category.id, db.Category, db.Product)
+              categoryMongo(category.id, models.Category, models.Product)
             );
         }
     }

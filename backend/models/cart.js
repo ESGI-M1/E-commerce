@@ -2,6 +2,7 @@ const { Model, DataTypes } = require('sequelize');
 
 module.exports = function (connection) {
   class Cart extends Model {
+    
     static associate(models) {
       Cart.belongsTo(models.User, {
         foreignKey: 'userId',

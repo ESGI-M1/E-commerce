@@ -19,17 +19,9 @@ jobs:
       - name: Start containers
         run: docker-compose up -d
 
-      - name: Change directory to backend
-        run: |
-          pwd
-          cd backend
-          pwd
-
-
       - name: Run tests
         run: |
-          pwd
+          cd backend
           npm run test
-
       
 

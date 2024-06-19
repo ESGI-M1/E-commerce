@@ -20,7 +20,11 @@ jobs:
         run: docker-compose up -d
 
       - name: Change directory to backend
-        working-directory: ./backend
+        run: |
+          pwd
+          cd .\backend\
+          pwd
+
 
       - name: Run tests
         run: npm run test

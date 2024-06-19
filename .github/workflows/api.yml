@@ -22,7 +22,7 @@ jobs:
       - name: Change directory to backend
         run: |
           pwd
-          cd .\backend\
+          cd backend
           pwd
 
 

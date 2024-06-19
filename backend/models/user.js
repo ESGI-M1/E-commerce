@@ -19,8 +19,22 @@ module.exports = function (connection) {
 
   User.init(
     {
-      firstname: DataTypes.STRING(50),
-      lastname: DataTypes.STRING(50),
+      firstname: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+          isAlpha: true,
+        },
+      },
+      lastname: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+          isAlpha: true,
+        },
+      },
       email: {
         type: DataTypes.STRING,
         allowNull: false,

@@ -20,13 +20,7 @@ jobs:
         run: docker-compose up -d
 
       - name: Wait for services to be ready
-        run: |
-          # Example of waiting for a service on port 3000 to be ready
-          while ! nc -z localhost 3000; do
-            echo "Waiting for the service to start...";
-            sleep 5;
-          done
-          echo "Service is up and running!"
+        run: sleep 120;
 
       - name: Run tests
         run: |

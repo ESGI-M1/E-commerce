@@ -1,0 +1,61 @@
+### Register wrong password
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "email":"toto@toto.com",
+    "password":"totototo",
+    "firstName":"toto",
+    "lastName":"toto"
+}
+
+### Register wrong email
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "email":"toto@toto",
+    "password":"totototo",
+    "firstName":"toto",
+    "lastName":"toto"
+}
+
+### Register empty first name
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "email":"toto@toto.com",
+    "password":"Toto123456!",
+    "lastname":"toto"
+}
+
+### Register empty last name
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "email":"toto@toto.com",
+    "password":"Toto123456!",
+    "firstname":"toto"
+}
+
+### Register correct
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "email":"toto@toto.com",
+    "password":"Toto123456!",
+    "firstname":"toto",
+    "lastname":"toto"
+}
+
+### Login wrong email
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+    "email":"toto@toto.com",
+    "password":"Toto123456!"
+}

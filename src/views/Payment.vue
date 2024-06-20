@@ -65,7 +65,7 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { loadStripe } from '@stripe/stripe-js';
 
-const stripePromise = loadStripe('pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz');
+const stripePromise = loadStripe('pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'); // Remplacez par votre clé publique
 const router = useRouter();
 const cartItems = ref([]);
 const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId');
@@ -119,7 +119,6 @@ const fetchCartItems = async () => {
   }
 };
 
-
 const subtotal = computed(() => {
   return cartItems.value.reduce((acc, item) => acc + (item.product.price * item.quantity), 0).toFixed(2);
 });
@@ -135,19 +134,13 @@ const showProductDetails = (id: string) => {
 const handlePayment = async () => {
   try {
     const stripe = await stripePromise;
-    const { error } = await stripe.redirectToCheckout({
-      lineItems: cartItems.value.map(item => ({
-        priceData: {
-          currency: 'eur',
-          productData: { name: item.product.name },
-          unitAmount: item.product.price * 100,
-        },
-        quantity: item.quantity,
-      })),
-      mode: 'payment',
-      successUrl: 'http://localhost:3000/success',
-      cancelUrl: 'http://localhost:3000/cancel',
+    const response = await axios.post('http://localhost:3000/stripe', {
+      items: cartItems.value,
+      promo: promo.value,
     });
+    const sessionId = response.data.id;
+
+    const { error } = await stripe.redirectToCheckout({ sessionId });
 
     if (error) {
       console.error('Erreur de redirection Stripe:', error);
@@ -161,6 +154,7 @@ onMounted(() => {
   fetchCartItems();
 });
 </script>
+
 
 
 

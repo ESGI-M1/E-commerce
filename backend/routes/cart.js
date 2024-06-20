@@ -50,6 +50,7 @@ function generateRandomPassword(length) {
   return password;
 }
 
+// Ajoute un produit au panier
 router.post("/", async (req, res, next) => {
   try {
     let userId = req.body.userId;
@@ -73,7 +74,7 @@ router.post("/", async (req, res, next) => {
 
     let productId = req.body.productId;
     let quantity = 1;
-    const existingCartItem = await Cart.findOne({ where: { userId, productId } });
+    const existingCartItem = await Cart.findOne({ where: { userId, productId, orderId: null } });
 
     if (existingCartItem) {
       existingCartItem.quantity += 1;
@@ -130,11 +131,12 @@ router.patch("/update-quantity/:id", async (req, res, next) => {
   }
 });
 
+// Recupere tous les produits du panier d'un utilisateur
 router.get("/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
 
-    const cartItems = await Cart.findAll({ where: { userId, status: 'en attente'}, include: [{ model: Product, as: 'product' }] });
+    const cartItems = await Cart.findAll({ where: { userId, orderId: null}, include: [{ model: Product, as: 'product' }] });
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(404).json({ error: 'Cart not found' });

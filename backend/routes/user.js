@@ -1,12 +1,17 @@
 const { Router } = require("express");
 const { User } = require("../models");
 const checkAuth = require("../middlewares/checkAuth");
+const checkRole = require("../middlewares/checkRole");
 const router = new Router();
 
 router.get("/", async (req, res) => {
-  const users = await User.findAll({
-  });
-  res.json(users);
+  try {
+    const users = await User.findAll();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Unable to fetch users' });
+  }
 });
 
 router.post("/", async (req, res, next) => {

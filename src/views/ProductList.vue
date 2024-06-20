@@ -35,7 +35,7 @@ onMounted(() => {
       class="product-card"
       @click="showProductDetails(product.id)"
     >
-      <img :src="product.Image ? product.Image.url : '../../produit_avatar.jpg'" :alt="product.Image ? product.Image.description : 'Product image'" 
+      <img :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'" :alt="product.Images ? product.Images[0].description : 'Product image'" 
       class="product-image" />
       <div class="product-info">
         <h2 class="product-name">{{ product.name }}</h2>

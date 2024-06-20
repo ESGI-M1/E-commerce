@@ -8,15 +8,20 @@ import Search from '../views/Search.vue';
 import Cart from '../views/Cart.vue';
 import ProductDetail from '../views/ProductDetail.vue';
 import Identifier from '../views/Identify.vue';
-import Users from '../views/Users.vue';
 import Payment from '../views/Payment.vue';
 import Favoris from '../views/Favorite.vue';
-import Ressources from '../views/Ressources.vue';
-import Locker from '../views/Locker.vue';
 import Profile from '../views/Profile.vue';
-import Categories from '../views/Categories.vue';
 import ProductList from '../views/ProductList.vue';
-import Promos from '../views/Promos.vue';
+import Order from '../views/Order.vue';
+import OrderDetail from '../views/OrderDetail.vue';
+import ReturnProduct from '../views/ReturnProduct.vue';
+
+//Admin
+import Users from '../views/admin/Users.vue';
+import Promos from '../views/admin/Promos.vue';
+import Categories from '../views/admin/Categories.vue';
+import Ressources from '../views/admin/Ressources.vue';
+import Locker from '../views/admin/Locker.vue';
 
 import axios from 'axios';
 import path from 'path';
@@ -114,6 +119,24 @@ const routes = [
     name: 'Profile',
     component: Profile
   },
+  {
+    path: '/order',
+    name: 'Historique des commandes', 
+    component: Order
+  },
+  {
+    path: '/order/:id',
+    name: 'OrderDetail',
+    component: OrderDetail,
+    props: true
+  },
+  {
+    path: '/order/:orderId/returnProduct/:productId',
+    name: 'ReturnProducts',
+    component: ReturnProduct,
+    props: (route) => ({
+      quantity: route.params.quantity,
+    }),  },
   {
     path: '/ressources',
     name: 'Ressources',

@@ -18,8 +18,8 @@
           <tr v-for="promo in promos" :key="promo.id">
             <td>{{ promo.id }}</td>
             <td>{{ promo.code }}</td>
-            <td>{{ promo.startDate }}</td>
-            <td>{{ promo.endDate }}</td>
+            <td>{{ formatDate(promo.startDate) }}</td>
+            <td>{{ formatDate(promo.endDate) }}</td>
             <td>{{ promo.discountPercentage }}</td>
             <td>
               <button @click="editPromo(promo.id)" class="btn btn-primary">Modifier</button>
@@ -58,6 +58,7 @@
   import { ref, onMounted } from 'vue';
   import axios from 'axios';
   import { useRouter } from 'vue-router';
+  import { format, parseISO } from 'date-fns';
   
   const promos = ref([]);
   const promo = ref({
@@ -125,6 +126,10 @@
     editMode.value = false;
     showAddEditForm.value = true;
   };
+
+  const formatDate = (dateStr) => {
+  return format(parseISO(dateStr), 'dd/MM/yyyy');
+};
   
   const cancelEdit = () => {
     showAddEditForm.value = false;

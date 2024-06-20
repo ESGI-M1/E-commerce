@@ -9,6 +9,8 @@ const CartRouter = require("./routes/cart");
 const SecurityRouter = require("./routes/security");
 const PromoRouter = require("./routes/promo");
 const FavoriteRouter = require("./routes/favorite");
+const OrderRouter = require("./routes/order");
+const ReturnRouter = require("./routes/return");
 //const StripeRouter = require("./stripe/stripe");
 
 const app = express();
@@ -31,6 +33,9 @@ app.use('/images', ImageRouter);
 app.use('/carts', CartRouter);
 app.use('/promos', PromoRouter);
 app.use('/favorites', FavoriteRouter);
+app.use('/orders', OrderRouter);
+app.use('/return', ReturnRouter);
+
 //app.use('/stripe', StripeRouter);
 app.use(SecurityRouter);
 

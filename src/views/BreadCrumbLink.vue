@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { defineProps } from 'vue';
 
 const props = defineProps({
   categoryId: {

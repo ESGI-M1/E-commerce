@@ -4,6 +4,7 @@ import About from '../views/About.vue';
 import Login from '../views/Login.vue';
 import Signup from '../views/Signup.vue';
 import Category from '../views/Category.vue';
+import Search from '../views/Search.vue';
 import Cart from '../views/Cart.vue';
 import ProductDetail from '../views/ProductDetail.vue';
 import Identifier from '../views/Identify.vue';
@@ -23,6 +24,7 @@ import Ressources from '../views/admin/Ressources.vue';
 import Locker from '../views/admin/Locker.vue';
 
 import axios from 'axios';
+import path from 'path';
 
 const isAdmin = async () => {
   const authToken = localStorage.getItem('authToken');
@@ -85,6 +87,11 @@ const routes = [
     path: '/category/:slug',
     name: 'Category',
     component: Category
+  },
+  {
+    path: '/search',
+    name: 'Search',
+    component: Search
   },
   {
     path: '/products/:id',

@@ -52,6 +52,8 @@
       <!-- Search Bar -->
       <input
         type="text"
+        v-model="search"
+        @input="searchProducts"
         placeholder="Rechercher"
         class="search-bar"
       >
@@ -75,11 +77,32 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useProductsStore } from '@/store/products';
+
 import axios from 'axios';
 
 const isAuthenticated = ref(false);
 const isAdmin = ref(false);
 const router = useRouter();
+const search = ref('');
+const productsStore = useProductsStore();
+
+const searchProducts = async () => {
+
+  // route search
+  if (router.currentRoute.value.name !== 'Search') {
+    console.log('route search');
+    router.push('/search');
+  }
+
+  try {
+    const response = await axios.get(`http://localhost:3000/products/search?q=${search.value}`);
+    productsStore.setProducts(response.data);
+    productsStore.setFilter({ name: search.value });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+  }
+};
 
 const checkAuthStatus = () => {
   isAuthenticated.value = !!localStorage.getItem('authToken');
@@ -120,6 +143,19 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+
+.search-results-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;

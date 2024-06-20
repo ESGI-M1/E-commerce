@@ -20,6 +20,11 @@
             <option value="">Aucune</option>
             <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
           </select>
+
+          <label for="products">Produits</label>
+          <select v-model="newCategory.Products" id="products" multiple>
+            <option v-for="product in products" :key="product.id" :value="product.id">{{ product.name }}</option>
+          </select>
   
           <button type="submit" class="btn add-btn"><i class="fas fa-plus"></i> Ajouter</button>
         </form>
@@ -35,6 +40,7 @@
               <th>Slug</th>
               <th>Description</th>
               <th>Catégorie Parent</th>
+              <th>Produits</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -50,7 +56,13 @@
                 </select>
               </td>
               <td>
-                <button @click="modifyCategory(category)" class="btn edit-btn"><i class="fas fa-edit"></i> Modifier</button>
+                {{ category.Products.length }}
+                <select v-model="category.Products" multiple>
+                  <option v-for="product in products" :key="product.id" :value="product.id">{{ product.name }}</option>
+                </select>
+              </td>
+              <td>
+                <button @click="updateCategory(category)" class="btn edit-btn"><i class="fas fa-edit"></i> Modifier</button>
                 <button @click="deleteCategory(category)" class="btn delete-btn"><i class="fas fa-trash-alt"></i> Supprimer</button>
               </td>
             </tr>
@@ -62,7 +74,7 @@
   
   <script setup>
   import axios from 'axios';
-  import { ref } from 'vue';
+  import { ref, onMounted } from 'vue';
   import { z } from 'zod';
   import { useRouter } from 'vue-router';
   
@@ -73,7 +85,8 @@
     name: z.string().min(1, "Le nom est requis"),
     slug: z.string().min(1, "Le slug est requis"),
     description: z.string().optional(),
-    parentCategoryId: z.number().nullable()
+    parentCategoryId: z.number().nullable(),
+    Products: z.array(z.number())
   });
   
   const categories = ref([]);
@@ -81,7 +94,8 @@
     name: '',
     slug: '',
     description: '',
-    parentCategoryId: null
+    parentCategoryId: null,
+    Products: []
   });
   
   const fetchCategories = async () => {
@@ -104,12 +118,17 @@
     }
   };
   
-  const modifyCategory = async (category) => {
+  const updateCategory = async (category) => {
     try {
+      console.log(category);
       const parsedCategory = categorySchema.parse(category);
-      await axios.put(`http://localhost:3000/categories/${category.id}`, parsedCategory);
+      await axios.patch(`http://localhost:3000/categories/${category.id}`, parsedCategory);
     } catch (error) {
-      console.error('Erreur lors de la modification de la catégorie :', error);
+      if( error instanceof z.ZodError) {
+        console.error('ZOD : Erreur lors de la modification de la catégorie :', error.errors);
+      } else {
+        console.error('Erreur lors de la modification de la catégorie :', error);
+      }
     }
   };
   
@@ -121,17 +140,32 @@
       console.error('Erreur lors de la suppression de la catégorie :', error);
     }
   };
+
+  const products = ref([]);
+  const fetchProducts = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/products');
+    products.value = response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des produits :', error);
+  }
+};
   
   const clearNewCategory = () => {
     newCategory.value = {
       name: '',
       slug: '',
       description: '',
-      parentCategoryId: null
+      parentCategoryId: null,
+      Products: []
     };
   };
   
-  fetchCategories();
+
+  onMounted(() => {
+    fetchCategories();
+    fetchProducts();
+  });
   </script>
   
   <style scoped>

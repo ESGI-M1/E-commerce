@@ -1,4 +1,5 @@
 const { Router } = require("express");
+const { Op } = require("sequelize");
 const { Product, Category, Image } = require("../models");
 const router = new Router();
 
@@ -10,6 +11,25 @@ router.get("/", async (req, res) => {
     res.json(products);
 });
 
+router.get("/search", async (req, res) => {
+
+    try{
+        const { q } = req.query;
+        const products = await Product.findAll({
+            where: {
+                name: {
+                    [Op.iLike]: `%${q}%`,
+                },
+            },
+        });
+        res.json(products);
+        
+    } catch (error) {
+        console.error("Error fetching products by search query:", error);
+        res.status(500).json({ error: "Failed to fetch products by search query" });
+    }
+
+});
 
 router.get("/:id/images", async (req, res) => {
     try {
@@ -24,13 +44,8 @@ router.get("/:id/images", async (req, res) => {
 
 router.post("/", async (req, res, next) => {
     try {
-        const { Categories, ...productData } = req.body;
+        const { ...productData } = req.body;
         const product = await Product.create(productData);
-
-        if (Categories && Categories.length) {
-            const categories = await Category.findAll({ where: { id: Categories } });
-            await product.setCategories(categories);
-        }
 
         res.status(201).json(product);
     } catch (e) {
@@ -71,12 +86,12 @@ router.patch("/:id", async (req, res, next) => {
         const product = await Product.findByPk(parseInt(req.params.id));
 
         if (product) {
-            await product.update(productData);
 
             if (Categories && Categories.length) {
                 const categories = await Category.findAll({ where: { id: Categories } });
                 await product.setCategories(categories);
             }
+            await product.update(productData);
 
             res.json(product);
         } else {

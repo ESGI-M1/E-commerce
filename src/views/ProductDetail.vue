@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BreadCrumb from './BreadCrumb.vue';
+
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
@@ -118,6 +120,7 @@ onMounted(() => {
 
 
 <template>
+  <BreadCrumb v-if="product.Categories && product.Categories[0]" :category="product.Categories[0]" />
   <div class="product-page">
     <div class="product-image-container">
       <img :src="product.imageSrc" :alt="product.name" class="product-image" />

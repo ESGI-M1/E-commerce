@@ -34,10 +34,6 @@ const ProductSchema = new Schema(
       type: Number,
       ref: 'Category',
     }],
-    images: [{
-      type: Number,
-      ref: 'Image',
-    }],
   },
   {
     timestamps: true,

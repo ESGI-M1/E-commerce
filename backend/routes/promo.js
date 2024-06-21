@@ -5,7 +5,9 @@ const { PromoCode, Cart } = require('../models');
 //get
 router.get('/', async (req, res) => {
   try {
-    const promos = await PromoCode.findAll();
+    const promos = await PromoCode.findAll({
+      order: [['code', 'ASC']]
+    });
     res.status(200).json(promos);
   } catch (error) {
     res.status(500).json({ error: 'Une erreur est survenue lors de la récupération des codes promos.' });

@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const { Order, Cart, Product, Image, Category, PromoCode } = require("../models");
 const router = new Router();
-const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
 
 router.get("/", async (req, res) => {

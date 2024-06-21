@@ -56,7 +56,7 @@
         @input="searchProducts"
         placeholder="Rechercher"
         class="search-bar"
-      >
+      />
 
       <!-- Login Button or User Icon -->
       <div v-if="isAuthenticated" class="user-menu">
@@ -75,82 +75,80 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useProductsStore } from '@/store/products';
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useProductsStore } from '@/store/products'
 
-import axios from 'axios';
+import axios from 'axios'
 
-const isAuthenticated = ref(false);
-const isAdmin = ref(false);
-const router = useRouter();
-const search = ref('');
-const productsStore = useProductsStore();
+const isAuthenticated = ref(false)
+const isAdmin = ref(false)
+const router = useRouter()
+const search = ref('')
+const productsStore = useProductsStore()
 
 const searchProducts = async () => {
-
   // route search
   if (router.currentRoute.value.name !== 'Search') {
-    console.log('route search');
-    router.push('/search');
+    console.log('route search')
+    router.push('/search')
   }
 
   try {
-    const response = await axios.get(`http://localhost:3000/products/search?q=${search.value}`);
-    productsStore.setProducts(response.data);
-    productsStore.setFilter({ name: search.value });
+    const response = await axios.get(`http://localhost:3000/products/search?q=${search.value}`)
+    productsStore.setProducts(response.data)
+    productsStore.setFilter({ name: search.value })
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching products:', error)
   }
-};
+}
 
 const checkAuthStatus = () => {
-  isAuthenticated.value = !!localStorage.getItem('authToken');
-};
+  isAuthenticated.value = !!localStorage.getItem('authToken')
+}
 
 const redirectToLogin = () => {
-  router.push('/identifier');
-};
+  router.push('/identifier')
+}
 
 const logout = () => {
   // Logique de déconnexion
-  localStorage.removeItem('authToken');
-  isAuthenticated.value = false;
-  router.push('/');
-};
+  localStorage.removeItem('authToken')
+  isAuthenticated.value = false
+  router.push('/')
+}
 
 const checkIsAdmin = async () => {
-  const authToken = localStorage.getItem('authToken');
+  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
-    isAdmin.value = false;
-    return;
+    isAdmin.value = false
+    return
   }
 
   try {
-    const response = await axios.get(`http://localhost:3000/users/${authToken}`);
-    const user = response.data;
-    isAdmin.value = user && user.role === 'admin';
+    const response = await axios.get(`http://localhost:3000/users/${authToken}`)
+    const user = response.data
+    isAdmin.value = user && user.role === 'admin'
   } catch (error) {
-    isAdmin.value = false;
+    isAdmin.value = false
   }
-};
+}
 
 // Vérifier l'état de connexion et le rôle de l'utilisateur au montage du composant
 onMounted(async () => {
-  checkAuthStatus();
-  await checkIsAdmin();
-});
+  checkAuthStatus()
+  await checkIsAdmin()
+})
 </script>
 
 <style scoped>
-
 .search-results-container {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
   background-color: white;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 1;
   border-radius: 4px;
   overflow: hidden;
@@ -205,7 +203,7 @@ onMounted(async () => {
   top: 100%;
   right: 0;
   background-color: white;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 1;
   min-width: 160px;
   border-radius: 4px;
@@ -223,7 +221,8 @@ onMounted(async () => {
   background-color: #f1f1f1;
 }
 
-.nav-item:hover .dropdown, .user-menu:hover .dropdown {
+.nav-item:hover .dropdown,
+.user-menu:hover .dropdown {
   display: block;
 }
 

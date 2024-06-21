@@ -13,9 +13,9 @@
 </template>
 
 <script>
-import Button from './button/Button.vue';
+import Button from './button/Button.vue'
 export default {
-  components: {Button},
+  components: { Button },
   props: {
     buttonText: {
       type: String,
@@ -29,24 +29,24 @@ export default {
   data() {
     return {
       showModal: false
-    };
+    }
   },
   methods: {
     confirmAction() {
-      this.showModal = true;
-      document.body.style.overflow = 'hidden';
+      this.showModal = true
+      document.body.style.overflow = 'hidden'
     },
     cancelAction() {
-      this.showModal = false;
-      document.body.style.overflow = '';
+      this.showModal = false
+      document.body.style.overflow = ''
     },
     confirm() {
-      this.$emit('confirmed');
-      this.showModal = false;
-      document.body.style.overflow = '';
+      this.$emit('confirmed')
+      this.showModal = false
+      document.body.style.overflow = ''
     }
   }
-};
+}
 </script>
 
 <style scoped>

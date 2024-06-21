@@ -34,6 +34,7 @@ router.get("/:id(\\d+)", async (req, res, next) => {
 
 // TODO ADD DEFAULT VALUE CONFIG IN BACK OFFICE
 router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
+    
     try {
         const category = await Category.findOne({
             where: { 
@@ -54,8 +55,10 @@ router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
             ],
         });
         if (category) {
+            console.log(req.params.slug, "category found");
             res.json(category);
         } else {
+            console.log(req.params.slug, "category not found");
             res.sendStatus(404);
         }
     } catch (e) {

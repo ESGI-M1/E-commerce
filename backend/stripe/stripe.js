@@ -1,12 +1,11 @@
 const { Router } = require("express");
-const { User } = require("../models");
 const router = new Router();
 const Stripe = require('stripe');
 const stripe = Stripe('sk_test_51PSJfGRvgxYLdiJ7BNE7Bd66RYSlpx4rxDPaZaNA3Gp3BbpTpX9TMiFQzgRMtWViErcK6NJiWrCj1613DtUr756M00OVXx6tdH');
 
 app.post('/', async (req, res) => {
   try {
-    const { items, promo } = req.body;
+    const { items } = req.body;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: items.map(item => ({

@@ -2,9 +2,9 @@
   <div class="auth-form-container">
     <div class="form-container">
       <button class="toggle-button" @click="toggleForms">
-      <span v-if="showSignup">← Connexion</span>
-      <span v-else>Inscription →</span>
-    </button>
+        <span v-if="showSignup">← Connexion</span>
+        <span v-else>Inscription →</span>
+      </button>
       <Signup v-show="showSignup" />
       <Login v-show="!showSignup" />
     </div>
@@ -12,15 +12,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import Signup from './Signup.vue';
-import Login from './Login.vue';
+import { ref } from 'vue'
+import Signup from './Signup.vue'
+import Login from './Login.vue'
 
-const showSignup = ref(true);
+const showSignup = ref(true)
 
 const toggleForms = () => {
-  showSignup.value = !showSignup.value;
-};
+  showSignup.value = !showSignup.value
+}
 </script>
 
 <style scoped>

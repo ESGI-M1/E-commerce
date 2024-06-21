@@ -20,25 +20,25 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
+const router = useRouter()
 
 const navigateToUsers = () => {
-  router.push('/users');
-};
+  router.push('/users')
+}
 
 const navigateToProducts = () => {
-  router.push('/locker');
-};
+  router.push('/locker')
+}
 
 const navigateToCategories = () => {
-  router.push('/categories');
-};
+  router.push('/categories')
+}
 
 const navigateToPromos = () => {
-  router.push('/promos');
-};
+  router.push('/promos')
+}
 </script>
 
 <style scoped>

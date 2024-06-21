@@ -1,50 +1,49 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import Dashboard from '../views/Dashboard.vue';
-import About from '../views/About.vue';
-import Login from '../views/Login.vue';
-import Signup from '../views/Signup.vue';
-import Category from '../views/Category.vue';
-import Search from '../views/Search.vue';
-import Cart from '../views/Cart.vue';
-import ProductDetail from '../views/ProductDetail.vue';
-import Identifier from '../views/Identify.vue';
-import Payment from '../views/Payment.vue';
-import Favoris from '../views/Favorite.vue';
-import Profile from '../views/Profile.vue';
-import ProductList from '../views/ProductList.vue';
-import Order from '../views/Order.vue';
-import OrderDetail from '../views/OrderDetail.vue';
-import ReturnProduct from '../views/ReturnProduct.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+import Dashboard from '../views/Dashboard.vue'
+import About from '../views/About.vue'
+import Login from '../views/Login.vue'
+import Signup from '../views/Signup.vue'
+import Category from '../views/Category.vue'
+import Search from '../views/Search.vue'
+import Cart from '../views/Cart.vue'
+import ProductDetail from '../views/ProductDetail.vue'
+import Identifier from '../views/Identify.vue'
+import Payment from '../views/Payment.vue'
+import Favoris from '../views/Favorite.vue'
+import Profile from '../views/Profile.vue'
+import ProductList from '../views/ProductList.vue'
+import Order from '../views/Order.vue'
+import OrderDetail from '../views/OrderDetail.vue'
+import ReturnProduct from '../views/ReturnProduct.vue'
 
 //Admin
-import Users from '../views/admin/Users.vue';
-import Promos from '../views/admin/Promos.vue';
-import Categories from '../views/admin/Categories.vue';
-import Ressources from '../views/admin/Ressources.vue';
-import Locker from '../views/admin/Locker.vue';
+import Users from '../views/admin/Users.vue'
+import Promos from '../views/admin/Promos.vue'
+import Categories from '../views/admin/Categories.vue'
+import Ressources from '../views/admin/Ressources.vue'
+import Locker from '../views/admin/Locker.vue'
 
-import axios from 'axios';
-import path from 'path';
+import axios from 'axios'
+import path from 'path'
 
 const isAdmin = async () => {
-  const authToken = localStorage.getItem('authToken');
+  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
-    return false;
+    return false
   }
 
   try {
-    const response = await axios.get(`http://localhost:3000/users/${authToken}`);
-    const user = response.data;
+    const response = await axios.get(`http://localhost:3000/users/${authToken}`)
+    const user = response.data
     if (!user || user.role != 'admin') {
-      return false;
+      return false
     }
 
-    return user.role === 'admin';
+    return user.role === 'admin'
   } catch (error) {
-    return false;
+    return false
   }
-};
-
+}
 
 const routes = [
   {
@@ -80,7 +79,7 @@ const routes = [
   },
   {
     path: '/identifier',
-    name: 'S\'identifier',
+    name: "S'identifier",
     component: Identifier
   },
   {
@@ -121,7 +120,7 @@ const routes = [
   },
   {
     path: '/order',
-    name: 'Historique des commandes', 
+    name: 'Historique des commandes',
     component: Order
   },
   {
@@ -135,8 +134,9 @@ const routes = [
     name: 'ReturnProducts',
     component: ReturnProduct,
     props: (route) => ({
-      quantity: route.params.quantity,
-    }),  },
+      quantity: route.params.quantity
+    })
+  },
   {
     path: '/ressources',
     name: 'Ressources',
@@ -160,25 +160,25 @@ const routes = [
     name: 'Code promos',
     component: Promos,
     meta: { requiresAdmin: true }
-  },
-];
+  }
+]
 
 const router = createRouter({
   history: createWebHistory('/'),
   routes
-});
+})
 
 router.beforeEach(async (to, from, next) => {
-  if (to.matched.some(record => record.meta.requiresAdmin)) {
-    const isAdminUser = await isAdmin();
+  if (to.matched.some((record) => record.meta.requiresAdmin)) {
+    const isAdminUser = await isAdmin()
     if (!isAdminUser) {
-      next('/');
+      next('/')
     } else {
-      next();
+      next()
     }
   } else {
-    next();
+    next()
   }
-});
+})
 
-export default router;
+export default router

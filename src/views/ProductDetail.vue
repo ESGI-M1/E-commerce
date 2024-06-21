@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import BreadCrumb from './BreadCrumb.vue';
+import BreadCrumb from './BreadCrumb.vue'
 
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 
-const route = useRoute();
-const router = useRouter();
-const isFavorite = ref(false);
-const productId = ref(route.params.id as string);
+const route = useRoute()
+const router = useRouter()
+const isFavorite = ref(false)
+const productId = ref(route.params.id as string)
 
 const product = ref({
   id: '',
@@ -17,110 +17,117 @@ const product = ref({
   description: '',
   price: 0,
   reference: '',
-  comments: []
-});
+  comments: [],
+  Categories: []
+})
 
 const fetchProductById = async (id: string) => {
   try {
-    const response = await axios.get(`http://localhost:3000/products/${id}`);
-    product.value = response.data;
+    const response = await axios.get(`http://localhost:3000/products/${id}`)
+    product.value = response.data
 
     // Fetch the image for the product
     if (product.value.id) {
-      const imageResponse = await axios.get(`http://localhost:3000/products/${product.value.id}/images`);
+      const imageResponse = await axios.get(
+        `http://localhost:3000/products/${product.value.id}/images`
+      )
       if (imageResponse.data && imageResponse.data.length > 0) {
-        product.value.imageSrc = imageResponse.data[0].url;
+        product.value.imageSrc = imageResponse.data[0].url
       } else {
-        product.value.imageSrc = '../../produit_avatar.jpg';
+        product.value.imageSrc = '../../produit_avatar.jpg'
       }
     }
 
-    const userId = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('authToken')
     if (userId) {
-      const favoriteResponse = await axios.get(`http://localhost:3000/favorites/${userId}`);
-      const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId);
-      isFavorite.value = favoriteProductIds.includes(product.value.id);
+      const favoriteResponse = await axios.get(`http://localhost:3000/favorites/${userId}`)
+      const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId)
+      isFavorite.value = favoriteProductIds.includes(product.value.id)
     }
   } catch (error) {
-    console.error('Error fetching product:', error);
-    alert('There was an error fetching the product details. Please try again later.');
+    console.error('Error fetching product:', error)
+    alert('There was an error fetching the product details. Please try again later.')
   }
-};
+}
 
 const addToFavorites = async (productId: string) => {
-  const token = localStorage.getItem('temporaryId');
+  const token = localStorage.getItem('temporaryId')
   if (token || !localStorage.getItem('authToken')) {
-    router.push('/login');
-    return;
+    router.push('/login')
+    return
   }
   try {
-    const userId = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('authToken')
     const response = await axios.post('http://localhost:3000/favorites/add', {
-     userId,
+      userId,
       productId
-    });
+    })
 
     if (response.status === 201) {
-      isFavorite.value = true;
-      alert('Produit ajouté aux favoris avec succès');
+      isFavorite.value = true
+      alert('Produit ajouté aux favoris avec succès')
     }
   } catch (error) {
-    console.error('Error adding product to favorites:', error);
-    alert('Échec de l\'ajout du produit aux favoris');
+    console.error('Error adding product to favorites:', error)
+    alert("Échec de l'ajout du produit aux favoris")
   }
-};
+}
 
 const removeFromFavorites = async (productId: string) => {
   try {
-    const userId = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('authToken')
     if (!userId) {
-      throw new Error('User is not authenticated');
+      throw new Error('User is not authenticated')
     }
 
-    await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`);
-    isFavorite.value = false;
-    alert('Produit supprimé des favoris avec succès');
+    await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
+    isFavorite.value = false
+    alert('Produit supprimé des favoris avec succès')
   } catch (error) {
-    console.error('Error removing favorite product:', error);
-    alert('Échec de la suppression du produit des favoris');
+    console.error('Error removing favorite product:', error)
+    alert('Échec de la suppression du produit des favoris')
   }
-};
+}
 
 const addToCart = async (quantity: number) => {
-  let userId;
-  const isAuthenticated = localStorage.getItem('authToken') ? localStorage.getItem('authToken') : null;
+  let userId
+  const isAuthenticated = localStorage.getItem('authToken')
+    ? localStorage.getItem('authToken')
+    : null
   if (isAuthenticated) {
-    userId = isAuthenticated;
+    userId = isAuthenticated
   } else {
     if (localStorage.getItem('temporaryId')) {
-      userId = localStorage.getItem('temporaryId');
+      userId = localStorage.getItem('temporaryId')
     } else {
-      userId = Math.floor(Math.random() * 2147483647).toString();
-      localStorage.setItem('temporaryId', userId);
+      userId = Math.floor(Math.random() * 2147483647).toString()
+      localStorage.setItem('temporaryId', userId)
     }
   }
 
   try {
-    const response = await axios.post('http://localhost:3000/carts', {
+    await axios.post('http://localhost:3000/carts', {
       userId: userId,
       productId: product.value.id,
       quantity: quantity
-    });
-    alert('Produit ajouté au panier avec succès');
-    router.push('/cart');
+    })
+    alert('Produit ajouté au panier avec succès')
+    router.push('/cart')
   } catch (error) {
-    alert('Échec de l\'ajout du produit au panier');
+    alert("Échec de l'ajout du produit au panier")
   }
-};
+}
 
 onMounted(() => {
-  fetchProductById(productId.value);
-});
+  fetchProductById(productId.value)
+})
 </script>
 
-
 <template>
-  <BreadCrumb v-if="product.Categories && product.Categories[0]" :category="product.Categories[0]" />
+  <BreadCrumb
+    v-if="product.Categories && product.Categories[0]"
+    :category="product.Categories[0]"
+  />
   <div class="product-page">
     <div class="product-image-container">
       <img :src="product.imageSrc" :alt="product.name" class="product-image" />
@@ -128,15 +135,26 @@ onMounted(() => {
     <div class="product-info">
       <h2>{{ product.name }}</h2>
       <p>{{ product.description }}</p>
-      <p><strong>Prix :</strong> ${{ parseFloat(product.price).toFixed(2) }}</p>
+      <p><strong>Prix :</strong> ${{ product.price.toFixed(2) }}</p>
       <div v-if="product.reference === 'chaussure'" class="sizes-container">
         <p><strong>Tailles disponibles :</strong></p>
-        <div class="size" v-for="size in ['38', '39', '40', '41', '42', '43']" :key="size" @click="selectSize(size)">{{ size }}</div>
+        <div
+          class="size"
+          v-for="size in ['38', '39', '40', '41', '42', '43']"
+          :key="size"
+          @click="selectSize(size)"
+        >
+          {{ size }}
+        </div>
       </div>
       <div class="button-container">
         <button @click="() => addToCart(1)" class="add-to-cart">Ajouter au Panier</button>
         <div class="favorite-container">
-          <button v-if="isFavorite" @click.stop="removeFromFavorites(product.id)" class="remove-from-favorites">
+          <button
+            v-if="isFavorite"
+            @click.stop="removeFromFavorites(product.id)"
+            class="remove-from-favorites"
+          >
             <i class="fas fa-heart"></i> Ajouté aux Favoris
           </button>
           <button v-else @click.stop="addToFavorites(product.id)" class="add-to-favorites">
@@ -147,7 +165,6 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .product-page {

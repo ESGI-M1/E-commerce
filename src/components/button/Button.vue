@@ -14,15 +14,15 @@ export default {
   },
   computed: {
     buttonClass() {
-      return `button ${this.color}`;
+      return `button ${this.color}`
     }
   },
   methods: {
     handleClick() {
-      this.$emit('click');
+      this.$emit('click')
     }
   }
-};
+}
 </script>
 
 <style scoped>

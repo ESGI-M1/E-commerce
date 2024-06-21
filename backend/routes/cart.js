@@ -1,10 +1,9 @@
 const { Router } = require("express");
 const { Cart, Product, User } = require("../models");
-const jwt = require('jsonwebtoken'); // Assurez-vous d'importer jwt pour décoder le token
 const router = new Router();
 const crypto = require('crypto'); // Importer le module crypto pour générer des mots de passe aléatoires
 
-router.get("/", async (req, res, next) => {
+router.get("/", async (req, res) => {
   try {
     const cartItems = await Cart.findAll({ include: [{ model: Product, as: 'product' }] });
     console.log("Cart items:", cartItems); // Ajoutez ce log pour vérifier les données récupérées
@@ -51,7 +50,7 @@ function generateRandomPassword(length) {
 }
 
 // Ajoute un produit au panier
-router.post("/", async (req, res, next) => {
+router.post("/", async (req, res) => {
   try {
     let userId = req.body.userId;
     if (!userId) {
@@ -91,7 +90,7 @@ router.post("/", async (req, res, next) => {
 });
 
 
-router.patch("/update/:id", async (req, res, next) => {
+router.patch("/update/:id", async (req, res) => {
   const cartId = req.params.id;
   const newUserId = req.body.userId;
 
@@ -111,7 +110,7 @@ router.patch("/update/:id", async (req, res, next) => {
   }
 });
 
-router.patch("/update-quantity/:id", async (req, res, next) => {
+router.patch("/update-quantity/:id", async (req, res) => {
   const cartId = req.params.id;
   const newQuantity = req.body.quantity;
 
@@ -132,7 +131,7 @@ router.patch("/update-quantity/:id", async (req, res, next) => {
 });
 
 // Recupere tous les produits du panier d'un utilisateur
-router.get("/:userId", async (req, res, next) => {
+router.get("/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
 
@@ -149,7 +148,7 @@ router.get("/:userId", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", async (req, res) => {
   const userId = req.query.userId;
   const cartItemId = req.params.id;
 

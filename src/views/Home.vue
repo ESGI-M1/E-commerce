@@ -1,5 +1,5 @@
 <script>
-import Form from "../layout/form/Form.vue";
+import Form from '../layout/form/Form.vue'
 
 export default {
   components: {
@@ -7,9 +7,8 @@ export default {
   },
   data() {
     return {
-      fields: [
-      ]
-    };
+      fields: []
+    }
   }
-};
+}
 </script>

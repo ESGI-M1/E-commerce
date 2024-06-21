@@ -1,5 +1,5 @@
 <script lang="ts">
-import SidebarLink from './SidebarLink.vue';
+import SidebarLink from './SidebarLink.vue'
 import { collapsed, toggleSidebar, sidebarWidth } from './state'
 
 export default {
@@ -30,11 +30,7 @@ export default {
     <SidebarLink to="/signup" icon="fas fa-user-plus">Signup</SidebarLink>
     <SidebarLink to="/products" icon="fas fa-shopping-cart">Products</SidebarLink>
 
-    <span
-      class="collapse-icon"
-      :class="{ 'rotate-180': collapsed }"
-      @click="toggleSidebar"
-    >
+    <span class="collapse-icon" :class="{ 'rotate-180': collapsed }" @click="toggleSidebar">
       <i class="fas fa-angle-double-left" />
     </span>
   </div>

@@ -2,19 +2,21 @@
   <form class="form">
     <div v-for="(field, index) in fields" :key="index" class="form-field">
       <label :for="field.id">{{ field.label }}:</label>
-      <input :type="field.type" :id="field.id" :name="field.name" v-model="form[field.name]">
+      <input :type="field.type" :id="field.id" :name="field.name" v-model="form[field.name]" />
     </div>
-    <Button v-if="submit" color="primary" :type="submit.type" @click="submit.click" >{{ submit.label }}</Button>
+    <Button v-if="submit" color="primary" :type="submit.type" @click="submit.click">{{
+      submit.label
+    }}</Button>
     <Button v-else color="primary" type="submit">Sauvegarder</Button>
   </form>
   {{ submit }}
 </template>
 
 <script setup>
-import Button from '../../components/button/Button.vue';
-import useForm from './useForm.js';
+import Button from '../../components/button/Button.vue'
+import useForm from './useForm.js'
 
-const props = defineProps({
+defineProps({
   fields: {
     type: Array,
     required: true
@@ -22,15 +24,10 @@ const props = defineProps({
   submit: {
     type: Object,
     required: false
-  },
-});
+  }
+})
 
-const { form, handleChange, handleSubmit } = useForm({});
-
-function submitForm(formData) {
-  console.log('Form submitted:', formData);
-}
-
+const { form } = useForm({})
 </script>
 
 <style scoped>

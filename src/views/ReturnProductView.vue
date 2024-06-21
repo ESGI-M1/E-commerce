@@ -69,7 +69,7 @@ const quantityOptions = computed(() => {
 
 const fetchProductDetails = async () => {
   try {
-    const responseQuantity = await axios.get(`http://localhost:3000/carts/${productId.value}`);
+    const responseQuantity = await axios.get(`http://localhost:3000/carts/product/${productId.value}`);
     quantity.value = responseQuantity.data.quantity;
 
     const productResponse = await axios.get(`http://localhost:3000/products/${productId.value}`);

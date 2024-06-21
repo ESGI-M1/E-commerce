@@ -135,7 +135,7 @@ onMounted(() => {
     <div class="product-info">
       <h2>{{ product.name }}</h2>
       <p>{{ product.description }}</p>
-      <p><strong>Prix :</strong> ${{ product.price.toFixed(2) }}</p>
+      <p><strong>Prix :</strong> ${{ product.price }}</p>
       <div v-if="product.reference === 'chaussure'" class="sizes-container">
         <p><strong>Tailles disponibles :</strong></p>
         <div

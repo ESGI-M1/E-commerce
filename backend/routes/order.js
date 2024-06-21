@@ -108,7 +108,8 @@ router.get("/details/:idUser", async (req, res) => {
                         totalAmount: order.totalAmount,
                         status: order.status,
                         createdAt: order.createdAt,
-                        updatedAt: order.updatedAt,
+                        deliveryDate: order.deliveryDate,
+                        deliveryMethod: order.deliveryMethod,
                         carts: [] // Initialiser le tableau de paniers
                     };
                 }

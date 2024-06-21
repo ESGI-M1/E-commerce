@@ -43,7 +43,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import FancyConfirm from "../components/ConfirmComponent.vue";
+import FancyConfirm from "../components/Confirm.vue";
 
 const route = useRoute();
 const router = useRouter();

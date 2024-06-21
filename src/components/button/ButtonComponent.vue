@@ -1,38 +1,28 @@
 <template>
-  <button :class="buttonClass">
+  <button :class="buttonClass" @click="handleClick">
     <slot></slot>
   </button>
 </template>
 
-<script lang="ts">
-export default {
-  props: {
-    color: {
-      type: String,
-      default: 'default'
-    }
-  },
-  computed: {
-    buttonClass() {
-      return `button ${this.color}`
-    }
-  },
-  methods: {
-    handleClick() {
-      this.$emit('click')
-    }
-  }
-}
+<script setup lang="ts">
+import { computed, defineProps, defineEmits } from 'vue';
+
+const props = defineProps<{
+  color: string
+}>();
+
+const emit = defineEmits<{
+  (e: 'click'): void
+}>();
+
+const buttonClass = computed(() => `btn ${props.color}`);
+
+const handleClick = () => {
+  emit('click');
+};
 </script>
 
 <style scoped>
-.button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-}
 
 .default {
   background-color: #007bff;

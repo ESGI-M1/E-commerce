@@ -5,7 +5,7 @@ const { User } = require("../models");
 
 const router = new Router();
 
-router.post("/login", async (req, res, next) => {
+router.post("/login", async (req, res) => {
   const user = await User.findOne({
     where: {
       email: req.body.email,

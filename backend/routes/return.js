@@ -2,7 +2,7 @@ const { Router } = require("express");
 const router = new Router();
 const { ReturnProduct } = require('../models');
 
-router.post('/', async (req, res, next) => {
+router.post('/', async (req, res) => {
     try {
         const { userId, orderId, productId, quantityReturned, reason, deliveryMethod } = req.body;
 

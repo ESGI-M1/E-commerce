@@ -1,12 +1,11 @@
-<!--<script setup lang="ts">-->
-<script>
+<script lang="ts">
 //import Sidebar from './components/sidebar/Sidebar.vue'
 //import { sidebarWidth } from './components/sidebar/state'
-import Navbar from './components/navbar/Navbar.vue'
+import Navbar from './components/navbar/NavbarComponent.vue'
 
 export default {
   //components: { Sidebar, Navbar},
-  components: { Navbar},
+  components: { Navbar }
   /*setup() {
     return { sidebarWidth }
   }*/
@@ -16,7 +15,7 @@ export default {
   <Navbar />
   <!--<Sidebar />-->
   <!--<div :style="{ 'margin-left': sidebarWidth }">-->
-    <div>
+  <div>
     <router-view />
   </div>
 </template>

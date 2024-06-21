@@ -1,42 +1,43 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
-import { useProductsStore } from '@/store/products';
+import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
+import axios from 'axios'
+import { useProductsStore } from '@/store/products'
 
-const productsStore = useProductsStore();
-const router = useRouter();
+const productsStore = useProductsStore()
+const router = useRouter()
 
 const fetchProducts = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/products');
-    productsStore.products = response.data;
-
-    console.log('Products:', productsStore.products);
+    const response = await axios.get('http://localhost:3000/products')
+    productsStore.products = response.data
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching products:', error)
   }
-};
+}
 
 const showProductDetails = (id: string) => {
-  router.push({ name: 'ProductDetail', params: { id } });
-};
+  router.push({ name: 'ProductDetail', params: { id } })
+}
 
 onMounted(() => {
-  fetchProducts();
-});
+  fetchProducts()
+})
 </script>
 
 <template>
   <div class="product-list">
-    <div 
+    <div
       v-for="product in productsStore.products"
-      :key="product.id" 
+      :key="product.id"
       class="product-card"
       @click="showProductDetails(product.id)"
     >
-      <img :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'" :alt="product.Images ? product.Images[0].description : 'Product image'" 
-      class="product-image" />
+      <img
+        :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'"
+        :alt="product.Images ? product.Images[0].description : 'Product image'"
+        class="product-image"
+      />
       <div class="product-info">
         <h2 class="product-name">{{ product.name }}</h2>
         <p class="product-description">{{ product.description }}</p>

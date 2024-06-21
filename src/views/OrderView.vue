@@ -5,7 +5,12 @@
     </header>
     <div class="cart-content">
       <div v-if="orders.length > 0">
-        <div v-for="(order, orderIndex) in orders" :key="orderIndex" class="order" @click="showOrderDetails(order.id)">
+        <div
+          v-for="(order, orderIndex) in orders"
+          :key="orderIndex"
+          class="order"
+          @click="showOrderDetails(order.id)"
+        >
           <h2>Commande n°{{ order.id }}</h2>
           <div :class="['order-status', order.status]">{{ order.status }}</div>
           <div class="order-total">Total: {{ order.totalAmount }} €</div>
@@ -31,43 +36,53 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-const router = useRouter();
-const cartItems = ref([]);
-const authToken = localStorage.getItem('authToken');
+const router = useRouter()
+/*
+NOT USED
+const cartItems = ref([])
+*/
+const authToken = localStorage.getItem('authToken')
 
-const orders = ref([]);
+const orders = ref([])
 
 const fetchOrders = async () => {
-try {
-  if (authToken) {
-    const response = await axios.get(`http://localhost:3000/orders/${authToken}`);
-    orders.value = response.data;
-    console.log(orders.value);
+  try {
+    if (authToken) {
+      const response = await axios.get(`http://localhost:3000/orders/${authToken}`)
+      orders.value = response.data
+      console.log(orders.value)
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération des commandes :', error)
   }
-} catch (error) {
-  console.error('Erreur lors de la récupération des commandes :', error);
 }
-};
 
+/*
+NOT USED
 const subtotal = computed(() => {
-  return cartItems.value.reduce((acc, item) => acc + (item.product.price * item.quantity), 0).toFixed(2);
-});
+  return cartItems.value
+    .reduce((acc, item) => acc + item.product.price * item.quantity, 0)
+    .toFixed(2)
+})
 
+
+NOT USED
 const total = computed(() => {
-  return parseFloat(subtotal.value).toFixed(2);
-});
+  return parseFloat(subtotal.value).toFixed(2)
+})
+*/
 
 const showOrderDetails = (id: string) => {
-  router.push({ name: 'OrderDetail', params: { id } });
-};
+  router.push({ name: 'OrderDetail', params: { id } })
+}
 
 onMounted(() => {
-  fetchOrders();
-});
+  fetchOrders()
+})
 </script>
 
 <style scoped>
@@ -181,7 +196,7 @@ header {
   gap: 10px;
 }
 
-input[type="text"] {
+input[type='text'] {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
@@ -249,7 +264,7 @@ input[type="text"] {
 }
 
 .total {
-  display: block!important;
+  display: block !important;
 }
 
 .total p:first-child {

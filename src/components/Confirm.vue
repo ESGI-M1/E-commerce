@@ -12,7 +12,7 @@
   <button @click="confirmAction">{{ buttonText }}</button>
 </template>
 
-<script>
+<script lang="ts">
 import Button from './button/Button.vue'
 export default {
   components: { Button },

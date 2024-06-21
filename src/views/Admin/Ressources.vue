@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts"></script>
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

@@ -8,7 +8,7 @@
   </fancy-confirm>
 </template>
 
-<script>
+<script lang="ts">
 import { collapsed, toggleSidebar } from '../components/sidebar/state.js'
 import FancyConfirm from '../components/Confirm.vue'
 

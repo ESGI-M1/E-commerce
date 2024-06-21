@@ -1,5 +1,4 @@
-<!--<script setup lang="ts">-->
-<script>
+<script lang="ts">
 //import Sidebar from './components/sidebar/Sidebar.vue'
 //import { sidebarWidth } from './components/sidebar/state'
 import Navbar from './components/navbar/Navbar.vue'

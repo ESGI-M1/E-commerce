@@ -21,7 +21,7 @@ router.post('/', async (req, res, next) => {
             orderId,
             productId,
             quantity: quantityReturned,
-            reason,
+            reason: reason || 'aucune',
             deliveryMethod,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -56,5 +56,23 @@ router.get("/:productId", async (req, res, next) => {
       next(error); // Passer l'erreur au gestionnaire d'erreurs global
     }
   });
+
+  router.delete("/", async (req, res, next) => {
+    const { productId, orderId, userId } = req.query;
+  
+    try {
+      const deleted = await ReturnProduct.destroy({ where: { productId: productId, userId: userId, orderId: orderId } });
+  
+      if (deleted) {
+        res.sendStatus(204);
+      } else {
+        res.sendStatus(404);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression du produit retourné :', error);
+      res.status(500).json({ error: 'Unable to delete return product' });
+    }
+  });
+  
 
     module.exports = router;

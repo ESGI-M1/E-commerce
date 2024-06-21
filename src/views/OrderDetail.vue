@@ -37,7 +37,7 @@
               <p class="new-price">{{ calculateDiscountedPrice(cart.product.price, cart.promo.discountPercentage) }} €</p>
           <button @click="addToCart(cart.product.id, 1)" class="button-order">Commander à nouveau</button>
           <button v-if="!cart.product.returned" @click="returnItem(order.id, cart.product.id, cart.quantity)" class="button-order">Retourner l'article</button>
-          <p v-else>Demande de retour ({{ cart.product.returned.status }})</p>
+          <button v-else @click="returnItem(order.id, cart.product.id, cart.quantity)" class="button-order">Voir les détails ({{ cart.product.returned.status }})</button>
         </div>
       </div>
     </div>
@@ -66,9 +66,7 @@ const fetchOrder = async () => {
       });
       order.value = response.data[0];
 
-      // Parcourir chaque produit de la commande
       for (const cart of order.value.carts) {
-        console.log(cart.product.id, orderId.value, authToken);
         const returnProduct = await axios.get(`http://localhost:3000/return/${cart.product.id}`, {
           params: {
             orderId: orderId.value,
@@ -120,7 +118,7 @@ const downloadInvoice = async (orderId) => {
 };
 
 const returnItem = (orderId: number, productId: number, quantity: number) => {
-  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId, quantity: quantity } });
+  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } });
 };
 
 const formatDate = (dateStr: string) => {

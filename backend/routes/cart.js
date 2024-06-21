@@ -15,6 +15,24 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+router.get("/:id", async (req, res, next) => {
+  try {
+    const cart = await Cart.findOne({
+      where: {
+        productId: req.params.id
+      }
+    });
+    if (cart) {
+      res.json(cart);
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
+
 
 // Fonction pour générer un mot de passe aléatoire qui répond aux critères de validation
 function generateRandomPassword(length) {

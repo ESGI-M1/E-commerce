@@ -9,46 +9,43 @@
       </div>
     </div>
   </div>
-  <button @click="confirmAction">{{ buttonText }}</button>
+  <button :class="buttonClass" @click="confirmAction">{{ buttonText }}</button>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, defineProps, defineEmits, computed } from 'vue';
 import Button from './button/Button.vue';
-export default {
-  components: {Button},
-  props: {
-    buttonText: {
-      type: String,
-      default: 'Default'
-    },
-    confirmationMessage: {
-      type: String,
-      default: 'Default?'
-    }
-  },
-  data() {
-    return {
-      showModal: false
-    };
-  },
-  methods: {
-    confirmAction() {
-      this.showModal = true;
-      document.body.style.overflow = 'hidden';
-    },
-    cancelAction() {
-      this.showModal = false;
-      document.body.style.overflow = '';
-    },
-    confirm() {
-      this.$emit('confirmed');
-      this.showModal = false;
-      document.body.style.overflow = '';
-    }
-  }
+
+const props = defineProps<{
+  buttonText: string;
+  confirmationMessage: string;
+  class: string;
+}>();
+
+const emit = defineEmits<{
+  (e: 'confirmed'): void;
+}>();
+
+const showModal = ref(false);
+
+const buttonClass = computed(() => `btn ${props.class}`);
+
+const confirmAction = () => {
+  showModal.value = true;
+  document.body.style.overflow = 'hidden';
+};
+
+const cancelAction = () => {
+  showModal.value = false;
+  document.body.style.overflow = '';
+};
+
+const confirm = () => {
+  emit('confirmed');
+  showModal.value = false;
+  document.body.style.overflow = '';
 };
 </script>
-
 <style scoped>
 .modal {
   position: fixed;
@@ -77,11 +74,28 @@ export default {
   text-align: center;
 }
 
-button {
-  margin-left: 10px;
+.btn, .button {
+  display: inline-block;
+  padding: 12px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 body.modal-open {
   overflow: hidden;
+}
+
+.danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.danger:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
 }
 </style>

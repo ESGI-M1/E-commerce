@@ -134,9 +134,7 @@ const routes = [
     path: '/order/:orderId/returnProduct/:productId',
     name: 'ReturnProducts',
     component: ReturnProduct,
-    props: (route) => ({
-      quantity: route.params.quantity,
-    }),  },
+  },
   {
     path: '/ressources',
     name: 'Ressources',

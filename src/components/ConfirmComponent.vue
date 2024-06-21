@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { ref, defineProps, defineEmits, computed } from 'vue';
-import Button from './button/Button.vue';
+import Button from './button/ButtonComponent.vue';
 
 const props = defineProps<{
   buttonText: string;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ProductList from './ProductList.vue'
+import ProductList from './ProductListView.vue'
 import BreadCrumb from './BreadCrumb.vue'
 
 import axios from 'axios'

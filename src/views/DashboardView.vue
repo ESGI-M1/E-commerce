@@ -10,7 +10,7 @@
 
 <script lang="ts">
 import { collapsed, toggleSidebar } from '../components/sidebar/state.js'
-import FancyConfirm from '../components/Confirm.vue'
+import FancyConfirm from '../components/ConfirmComponent.vue'
 
 export default {
   components: { FancyConfirm },

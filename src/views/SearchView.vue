@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ProductList from './ProductList.vue'
+import ProductList from './ProductListView.vue'
 
 import { useProductsStore } from '@/store/products'
 

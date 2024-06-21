@@ -1,9 +1,9 @@
 <script lang="ts">
-import Form from '../layout/form/Form.vue'
+import FormComponent from '../layout/form/FormComponent.vue'
 
 export default {
   components: {
-    Form
+    FormComponent
   },
   data() {
     return {

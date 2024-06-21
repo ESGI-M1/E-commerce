@@ -13,9 +13,7 @@
 </template>
 
 <script lang="ts">
-import Button from './button/Button.vue'
 export default {
-  components: { Button },
   props: {
     buttonText: {
       type: String,

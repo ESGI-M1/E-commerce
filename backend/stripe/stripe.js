@@ -1,5 +1,7 @@
 const { Router } = require("express");
 const router = new Router();
+/*
+NOT USED
 const Stripe = require('stripe');
 const stripe = Stripe('sk_test_51PSJfGRvgxYLdiJ7BNE7Bd66RYSlpx4rxDPaZaNA3Gp3BbpTpX9TMiFQzgRMtWViErcK6NJiWrCj1613DtUr756M00OVXx6tdH');
 
@@ -25,6 +27,7 @@ app.post('/', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+})
+*/
 
 module.exports = router;

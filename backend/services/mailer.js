@@ -1,4 +1,8 @@
 const nodemailer = require('nodemailer');
+//import { config } from '@vue-email/compiler';
+const compiler = require('@vue-email/compiler');
+
+const vueEmail = compiler.config('./services/emails');
 
 const transporter = nodemailer.createTransport({
   service: process.env.MAILER_SERVICE,
@@ -11,16 +15,35 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Email options
-let mailOptions = {
-  from: process.env.MAILER_SERVICE,
-  to: 'dabh45@gmail.com',
-  subject: 'Envoi test',
-  text: 'Coucou je suis un mail test'
-};
+async function sendEmail(title, content, templateName, receiver, subject) {
+  const template = await vueEmail.render(templateName, {
+    props: {
+      title: title,
+      body: content
+    },
+  });
 
-async function envoiTest() {
+  mailOptions = {
+    from: process.env.MAILER_SERVICE,
+    to: receiver,
+    subject: subject,
+    html: template.html
+  };
+
   await transporter.sendMail(mailOptions);
 }
 
-module.exports = { envoiTest }
+async function sendConsecutiveConnexionError(user) {
+    const content = [
+      "Bonjour " + user.firstname + ",",
+      "Nous avons détecté 3 tentatives de connexion infructueuses à votre compte."
+    ];
+    await sendEmail(
+      "Tentative de connexion",
+      content,
+      "Template.vue",
+      user.email,
+      "Tentative de connexion");
+}
+
+module.exports = { sendConsecutiveConnexionError }

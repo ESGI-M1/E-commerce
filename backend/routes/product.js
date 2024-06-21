@@ -1,6 +1,5 @@
 const { Router } = require("express");
 const { Product, Category, Image } = require("../models");
-const mailer = require('../services/mailer');
 
 const router = new Router();
 
@@ -9,12 +8,6 @@ router.get("/", async (req, res) => {
         where: req.query,
         include: [Category, Image],
     });
-    try {
-        mailer.envoiTest();
-    } catch (e) {
-        console.log("Erreur lors de l'envoi du mail : " + e);
-    }
-
 
     res.json(products);
 });

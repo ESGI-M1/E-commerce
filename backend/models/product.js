@@ -68,7 +68,7 @@ module.exports = function(connection) {
         {
             timestamps: true,
             createdAt: true,
-            updatedAt: 'updateTimestamp',
+            updatedAt: true,
             sequelize: connection,
         }
     );

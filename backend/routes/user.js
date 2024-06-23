@@ -37,7 +37,7 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-router.patch("/users/:id", async (req, res, next) => {
+router.patch("/:id", async (req, res, next) => {
   try {
     const [nbUpdated, users] = await User.update(req.body, {
       where: {
@@ -54,17 +54,14 @@ router.patch("/users/:id", async (req, res, next) => {
 });
 
 router.delete("/:id", async (req, res, next) => {
+  const { id } = req.params;
   try {
     const nbDeleted = await User.destroy({
       where: {
-        id: parseInt(req.params.id),
+        id: id,
       },
     });
-    if (nbDeleted === 1) {
-      res.sendStatus(204);
-    } else {
-      res.sendStatus(404);
-    }
+    res.json({ success: true });
   } catch (e) {
     next(e);
   }

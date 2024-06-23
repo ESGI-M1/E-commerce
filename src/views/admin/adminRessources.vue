@@ -9,6 +9,14 @@
       <h1>Produits</h1>
     </div>
 
+    <div class="resource-item" @click="navigateToOrders">
+      <h1>Commandes</h1>
+    </div>
+
+    <div class="resource-item" @click="navigateToReturns">
+      <h1>Retours</h1>
+    </div>
+
     <div class="resource-item" @click="navigateToCategories">
       <h1>Catégories</h1>
     </div>
@@ -30,6 +38,14 @@ const navigateToUsers = () => {
 
 const navigateToProducts = () => {
   router.push('/locker')
+}
+
+const navigateToOrders = () => {
+  router.push('/orders')
+}
+
+const navigateToReturns = () => {
+  router.push('/returns')
 }
 
 const navigateToCategories = () => {

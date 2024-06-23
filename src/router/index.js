@@ -22,6 +22,8 @@ import Promos from '../views/admin/adminPromos.vue'
 import Categories from '../views/admin/adminCategories.vue'
 import Ressources from '../views/admin/adminRessources.vue'
 import Locker from '../views/admin/adminLocker.vue'
+import Orders from '../views/admin/adminOrders.vue'
+import Returns from '../views/admin/adminReturns.vue'
 
 import axios from 'axios'
 
@@ -155,6 +157,18 @@ const routes = [
     path: '/promos',
     name: 'Code promos',
     component: Promos,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/orders',
+    name: 'Commandes',
+    component: Orders,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/returns',
+    name: 'Retours',
+    component: Returns,
     meta: { requiresAdmin: true }
   }
 ]

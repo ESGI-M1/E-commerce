@@ -85,8 +85,16 @@ router.post('/:code/apply', async (req, res) => {
       const currentDate = new Date();
       const startDate = new Date(promo.startDate);
       const endDate = new Date(promo.endDate);
+
+      const extractDate = (date) => {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      };
+      
+      const currentDateOnly = extractDate(currentDate);
+      const startDateOnly = extractDate(startDate);
+      const endDateOnly = extractDate(endDate);
   
-      if (currentDate >= startDate && currentDate <= endDate) {
+      if (currentDateOnly >= startDateOnly && currentDateOnly <= endDateOnly) {
         await Cart.update({ promoCodeId: promo.id }, { where: { userId } });
         res.status(200).json({ success: true, discountPercentage: promo.discountPercentage, code: promoCode });
       } else {

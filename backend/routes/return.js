@@ -1,6 +1,28 @@
 const { Router } = require("express");
 const router = new Router();
-const { ReturnProduct } = require('../models');
+const { ReturnProduct, User, Product } = require('../models');
+
+router.get('/', async (req, res) => {
+  try {
+    const returns = await ReturnProduct.findAll({
+      where: req.query,
+      include: [
+        {
+          model: User,
+          as: 'user',
+        },
+        {
+          model: Product,
+          as: 'product',
+        }
+      ],
+    });
+    res.json(returns);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des commandes :', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
+  }
+});
 
 router.post('/', async (req, res) => {
     try {

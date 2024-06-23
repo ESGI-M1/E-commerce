@@ -155,32 +155,6 @@ onMounted(fetchPromos)
   padding: 20px;
 }
 
-.text-right {
-  text-align: right;
-}
-
-.modal-overlay {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal {
-  background-color: #fefefe;
-  padding: 20px;
-  border-radius: 8px;
-  width: 80%;
-  max-width: 600px;
-  position: relative;
-}
-
 .close {
   position: absolute;
   top: 10px;
@@ -220,23 +194,6 @@ form {
   margin-right: 10px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-th,
-td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-}
-
-th {
-  background-color: #f2f2f2;
-}
-
 .btn {
   padding: 8px 12px;
   border: none;
@@ -244,32 +201,5 @@ th {
   cursor: pointer;
   text-transform: uppercase;
   margin-right: 5px;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #0069d9;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.btn-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #218838;
 }
 </style>

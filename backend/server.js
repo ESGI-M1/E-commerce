@@ -11,7 +11,7 @@ const PromoRouter = require("./routes/promo");
 const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
-//const StripeRouter = require("./stripe/stripe");
+const StripeRouter = require("./stripe/stripe");
 
 const app = express();
 const cors = require('cors')
@@ -36,7 +36,7 @@ app.use('/favorites', FavoriteRouter);
 app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 
-//app.use('/stripe', StripeRouter);
+app.use('/stripe', StripeRouter);
 app.use(SecurityRouter);
 
 app.listen(process.env.PORT, () => {

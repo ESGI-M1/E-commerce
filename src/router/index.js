@@ -15,6 +15,8 @@ import ProductList from '../views/ProductListView.vue'
 import Order from '../views/OrderView.vue'
 import OrderDetail from '../views/OrderDetailView.vue'
 import ReturnProduct from '../views/ReturnProductView.vue'
+import Success from '../views/Success.vue'
+import Error from '../views/Error.vue'
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -108,6 +110,16 @@ const routes = [
     path: '/payment',
     name: 'Paiement',
     component: Payment
+  },
+  {
+    path: '/success',
+    name: 'Success',
+    component: Success
+  },
+  {
+    path: '/error',
+    name: 'Error',
+    component: Error
   },
   {
     path: '/favorite',

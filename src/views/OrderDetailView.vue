@@ -43,7 +43,7 @@
                 <p class="old-price">{{ cart.product.price }} €</p>
                 <span class="discount">(-{{ cart.promo.discountPercentage }}%)</span>
               </div>
-              <p class="new-price">{{ calculateDiscountedPrice(cart.product.price, cart.promo.discountPercentage) }} €</p>
+              <p class="new-price text-left">{{ calculateDiscountedPrice(cart.product.price, cart.promo.discountPercentage) }} €</p>
             </div>
             <p v-else class="new-price">{{ cart.product.price }} €</p>
           <button @click="addToCart(cart.product.id, 1)" class="button-order">Commander à nouveau</button>

@@ -27,7 +27,6 @@
               <img
                 :src="product.Images ? product.Images[0].url : require('@/assets/produit_avatar.jpg')"
                 :alt="product.Images ? product.Images[0].description : 'Product image'"
-                class="product-image"
                 @click="triggerFileInput"
               />
             </label>
@@ -319,6 +318,7 @@ form {
 }
 
 img {
-  max-width: 30%;
+  max-width: 25%;
+  cursor: pointer;
 }
 </style>

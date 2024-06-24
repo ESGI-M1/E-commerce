@@ -193,13 +193,4 @@ form {
 .buttons button {
   margin-right: 10px;
 }
-
-.btn {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  text-transform: uppercase;
-  margin-right: 5px;
-}
 </style>

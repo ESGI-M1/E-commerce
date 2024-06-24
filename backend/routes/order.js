@@ -6,13 +6,14 @@ const { format } = require('date-fns');
 router.get('/', async (req, res) => {
     try {
       const orders = await Order.findAll({
-        where: req.query, // Si vous souhaitez filtrer les commandes en fonction de certains critères
+        where: req.query,
         include: [
           {
-            model: User, // Inclure le modèle User avec l'alias 'user'
-            as: 'user', // Utilisation de l'alias 'user' pour l'association
+            model: User,
+            as: 'user',
           },
         ],
+        order: [['createdAt', 'DESC']],
       });
       res.json(orders);
     } catch (error) {

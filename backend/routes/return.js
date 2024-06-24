@@ -16,6 +16,7 @@ router.get('/', async (req, res) => {
           as: 'product',
         }
       ],
+      order: [['createdAt', 'DESC']],
     });
     res.json(returns);
   } catch (error) {

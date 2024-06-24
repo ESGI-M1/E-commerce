@@ -4,7 +4,11 @@ const router = new Router();
 
 router.get("/", async (req, res) => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+    order: [
+        ['lastname', 'ASC'],
+        ['firstname', 'ASC']
+      ],  });
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);

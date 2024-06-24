@@ -1,10 +1,9 @@
 const { Router } = require("express");
 const { Cart, Product, User } = require("../models");
-const jwt = require('jsonwebtoken'); // Assurez-vous d'importer jwt pour décoder le token
 const router = new Router();
 const crypto = require('crypto'); // Importer le module crypto pour générer des mots de passe aléatoires
 
-router.get("/", async (req, res, next) => {
+router.get("/", async (req, res) => {
   try {
     const cartItems = await Cart.findAll({ include: [{ model: Product, as: 'product' }] });
     console.log("Cart items:", cartItems); // Ajoutez ce log pour vérifier les données récupérées
@@ -14,6 +13,24 @@ router.get("/", async (req, res, next) => {
     res.status(500).json({ error: 'Unable to fetch cart items', details: error.message });
   }
 });
+
+router.get("/product/:id", async (req, res, next) => {
+  try {
+    const cart = await Cart.findOne({
+      where: {
+        productId: req.params.id
+      }
+    });
+    if (cart) {
+      res.json(cart);
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
 
 
 // Fonction pour générer un mot de passe aléatoire qui répond aux critères de validation
@@ -50,7 +67,8 @@ function generateRandomPassword(length) {
   return password;
 }
 
-router.post("/", async (req, res, next) => {
+// Ajoute un produit au panier
+router.post("/", async (req, res) => {
   try {
     let userId = req.body.userId;
     if (!userId) {
@@ -73,7 +91,7 @@ router.post("/", async (req, res, next) => {
 
     let productId = req.body.productId;
     let quantity = 1;
-    const existingCartItem = await Cart.findOne({ where: { userId, productId } });
+    const existingCartItem = await Cart.findOne({ where: { userId, productId, orderId: null } });
 
     if (existingCartItem) {
       existingCartItem.quantity += 1;
@@ -90,7 +108,7 @@ router.post("/", async (req, res, next) => {
 });
 
 
-router.patch("/update/:id", async (req, res, next) => {
+router.patch("/update/:id", async (req, res) => {
   const cartId = req.params.id;
   const newUserId = req.body.userId;
 
@@ -110,7 +128,7 @@ router.patch("/update/:id", async (req, res, next) => {
   }
 });
 
-router.patch("/update-quantity/:id", async (req, res, next) => {
+router.patch("/update-quantity/:id", async (req, res) => {
   const cartId = req.params.id;
   const newQuantity = req.body.quantity;
 
@@ -130,11 +148,12 @@ router.patch("/update-quantity/:id", async (req, res, next) => {
   }
 });
 
-router.get("/:userId", async (req, res, next) => {
+// Recupere tous les produits du panier d'un utilisateur
+router.get("/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    const cartItems = await Cart.findAll({ where: { userId, status: 'en attente'}, include: [{ model: Product, as: 'product' }] });
+    const cartItems = await Cart.findAll({ where: { userId, orderId: null}, include: [{ model: Product, as: 'product' }] });
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(404).json({ error: 'Cart not found' });
@@ -147,7 +166,7 @@ router.get("/:userId", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", async (req, res) => {
   const userId = req.query.userId;
   const cartItemId = req.params.id;
 

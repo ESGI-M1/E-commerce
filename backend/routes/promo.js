@@ -1,13 +1,45 @@
-const express = require('express');
-const router = express.Router();
+const { Router } = require("express");
+const router = new Router();
 const { PromoCode, Cart } = require('../models');
 
+//get
 router.get('/', async (req, res) => {
   try {
     const promos = await PromoCode.findAll();
     res.status(200).json(promos);
   } catch (error) {
     res.status(500).json({ error: 'Une erreur est survenue lors de la récupération des codes promos.' });
+  }
+});
+
+//add
+router.post('/', async (req, res) => {
+  const { code, startDate, endDate, discountPercentage } = req.body;
+
+  try {
+    const newPromo = await PromoCode.create({ code, startDate, endDate, discountPercentage });
+    res.status(201).json(newPromo);
+  } catch (error) {
+    res.status(500).json({ error: 'Une erreur est survenue lors de la création du code promo.' });
+  }
+});
+
+//edit
+router.put('/:id', async (req, res) => {
+  const promoId = req.params.id;
+  const { code, startDate, endDate, discountPercentage } = req.body;
+
+  try {
+    const promo = await PromoCode.findByPk(promoId);
+
+    if (!promo) {
+      return res.status(404).json({ error: 'Ce code promo est introuvable.' });
+    }
+
+    await promo.update({ code, startDate, endDate, discountPercentage });
+    res.status(200).json(promo);
+  } catch (error) {
+    res.status(500).json({ error: 'Une erreur est survenue lors de la mise à jour du code promo.' });
   }
 });
 
@@ -80,36 +112,5 @@ router.post('/:code/apply', async (req, res) => {
     next(error);
   }
 });
-
-router.post('/', async (req, res) => {
-  const { code, startDate, endDate } = req.body;
-
-  try {
-    const newPromo = await PromoCode.create({ code, startDate, endDate });
-    res.status(201).json(newPromo);
-  } catch (error) {
-    res.status(500).json({ error: 'Une erreur est survenue lors de la création du code promo.' });
-  }
-});
-
-router.put('/:id', async (req, res) => {
-  const promoId = req.params.id;
-  const { code, startDate, endDate, discountPercentage } = req.body;
-
-  try {
-    const promo = await PromoCode.findByPk(promoId);
-
-    if (!promo) {
-      return res.status(404).json({ error: 'Ce code promo est introuvable.' });
-    }
-
-    await promo.update({ code, startDate, endDate, discountPercentage });
-    res.status(200).json(promo);
-  } catch (error) {
-    res.status(500).json({ error: 'Une erreur est survenue lors de la mise à jour du code promo.' });
-  }
-});
-
-
 
 module.exports = router;

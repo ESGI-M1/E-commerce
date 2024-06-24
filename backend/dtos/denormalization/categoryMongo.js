@@ -1,8 +1,10 @@
 const CategoryMongo = require("../../mongo/category");
 
-module.exports = async function (categoryId, Category, Product) {
+module.exports = async function (categoryId, Category, Product, isDelete = false) {
+
+    await CategoryMongo.deleteOne({ _id: categoryId });
+    if(isDelete) return;
     
-    console.log('categoryMongo', categoryId);
     const category = await Category.findByPk(categoryId, {
         include: [
             {
@@ -14,16 +16,15 @@ module.exports = async function (categoryId, Category, Product) {
             },
         ]
     });
-    await CategoryMongo.deleteOne({ _id: categoryId });
 
-    console.log('categoryMongo', category);
+    console.log("category: ", category);
 
     const categoryMongo = new CategoryMongo({
         _id: categoryId,
         name: category.name,
         slug: category.slug,
         description: category.description,
-        products: category.products.map(product => product.id)
+        products: category.Products.length > 0 ? category.Products.map(product => product.id) : [],
     });
     await categoryMongo.save();
 };

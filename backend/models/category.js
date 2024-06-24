@@ -16,6 +16,9 @@ module.exports = function (connection) {
             Category.addHook("afterUpdate", (category) =>
               categoryMongo(category.id, models.Category, models.Product)
             );
+            Category.addHook("afterDestroy", (category) =>
+              categoryMongo(category.id, models.Category, models.Product, true)
+            );
         }
     }
 

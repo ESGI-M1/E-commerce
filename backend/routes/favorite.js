@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Favorite, Product, User } = require('../models');
 
-router.post('/add', async (req, res, next) => {
+router.post('/add', async (req, res) => {
   try {
     let userId = req.body.userId;
     let productId = req.body.productId;

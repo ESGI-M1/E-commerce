@@ -3,7 +3,8 @@
     <header>
       <h1>Mon Panier</h1>
       <p v-if="!authToken">
-        <router-link to="/login">Rejoins-nous</router-link> ou <router-link to="/signup">S'identifier</router-link>
+        <router-link to="/login">Rejoins-nous</router-link> ou
+        <router-link to="/signup">S'identifier</router-link>
       </p>
     </header>
 
@@ -12,13 +13,19 @@
         <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
           <div class="item-details" @click="showProductDetails(item.product.id)">
             <h3>{{ item.product.name }}</h3>
-            <img :src="item.image[0]?.url ?? '../../produit_avatar.jpg'" :alt="item.image[0]?.description" class="product-image" />
+            <img
+              :src="item.image[0]?.url ?? '../../produit_avatar.jpg'"
+              :alt="item.image[0]?.description"
+              class="product-image"
+            />
           </div>
           <div class="item-quantity">
             <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
               <option value="remove">Supprimer</option>
               <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-              <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">{{ item.quantity }}</option>
+              <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
+                {{ item.quantity }}
+              </option>
             </select>
           </div>
           <div class="item-price">
@@ -35,14 +42,19 @@
         <div class="promo-code">
           <label for="promo">As-tu un code promo ?</label>
           <div class="promo-input">
-          <input type="text" id="promo" placeholder="Entrez votre code promo" v-model="promoCode">
-          <button @click="applyPromoCode" class="apply-button">Appliquer</button>
-        </div>
-        <div v-if="promo">
+            <input
+              type="text"
+              id="promo"
+              placeholder="Entrez votre code promo"
+              v-model="promoCode"
+            />
+            <button @click="applyPromoCode" class="apply-button">Appliquer</button>
+          </div>
+          <div v-if="promo">
             Code promo appliqué : {{ promo.code }}
             <button @click="removePromo" class="remove-button">Supprimer</button>
           </div>
-        <p v-if="promoError" class="error-message">{{ promoError }}</p>
+          <p v-if="promoError" class="error-message">{{ promoError }}</p>
         </div>
         <div class="totals">
           <div class="subtotal">
@@ -57,166 +69,185 @@
             <div class="total-price">
               <p>Total</p>
               <div class="price-container">
-                <p :style="{ 'text-decoration': promo ? 'line-through' : 'none', 'color': promo ? 'red' : 'initial' }" class="old-price">
+                <p
+                  :style="{
+                    'text-decoration': promo ? 'line-through' : 'none',
+                    color: promo ? 'red' : 'initial'
+                  }"
+                  class="old-price"
+                >
                   {{ promo ? subtotal : total }} €
                 </p>
                 <span class="discount" v-if="promo">(- {{ promo.discountPercentage }}%)</span>
               </div>
             </div>
             <p v-if="promo" class="new-price">
-              {{ (total - (total * promo.discountPercentage / 100)).toFixed(2) }} €
+              {{ (total - (total * promo.discountPercentage) / 100).toFixed(2) }} €
             </p>
           </div>
         </div>
         <button @click="checkout" class="checkout-button">Paiement</button>
-        <button @click="checkoutWithPaypal" class="paypal-button">Paiement avec PayPal <i class="fab fa-paypal"></i></button>
+        <button @click="checkoutWithPaypal" class="paypal-button">
+          Paiement avec PayPal <i class="fab fa-paypal"></i>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-const router = useRouter();
-const cartItems = ref([]);
-const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId');
-const promo = ref(null);
-const promoCode = ref(''); 
-const promoError = ref('');
+const router = useRouter()
+const cartItems = ref([])
+const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId')
+const promo = ref(null)
+const promoCode = ref('')
+const promoError = ref('')
 
 const removePromo = async () => {
   try {
-    const cartIds = cartItems.value.map(item => item.id);
-    const response = await axios.post('http://localhost:3000/carts/remove-promo', { userId: authToken, cartIds }, {
-      headers: { Authorization: `Bearer ${authToken}` }
-    });
+    const cartIds = cartItems.value.map((item) => item.id)
+    const response = await axios.post(
+      'http://localhost:3000/carts/remove-promo',
+      { userId: authToken, cartIds },
+      {
+        headers: { Authorization: `Bearer ${authToken}` }
+      }
+    )
 
     if (response.data.success) {
-      promo.value = null;
-      fetchCartItems();
-      promoError.value = '';
+      promo.value = null
+      fetchCartItems()
+      promoError.value = ''
     } else {
-      console.error('Erreur lors de la suppression du code promo :', response.data.error);
+      console.error('Erreur lors de la suppression du code promo :', response.data.error)
     }
   } catch (error) {
-    console.error('Erreur lors de la suppression du code promo :', error);
+    console.error('Erreur lors de la suppression du code promo :', error)
   }
-};
-
+}
 
 const applyPromoCode = async () => {
   try {
-    const response = await axios.post(`http://localhost:3000/promos/${promoCode.value}/apply`, null, { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } });
+    const response = await axios.post(
+      `http://localhost:3000/promos/${promoCode.value}/apply`,
+      null,
+      { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
+    )
 
     if (response.data.success) {
-      promo.value = response.data;
-      fetchCartItems();
-      promoError.value = '';
+      promo.value = response.data
+      fetchCartItems()
+      promoError.value = ''
     } else {
-      promoError.value = response.data.error || 'Ce code promo a expiré.';
+      promoError.value = response.data.error || 'Ce code promo a expiré.'
     }
   } catch (error) {
-    promoError.value = 'Ce code promo est invalide.';
+    promoError.value = 'Ce code promo est invalide.'
   }
-};
+}
 
 const fetchCartItems = async () => {
   try {
     if (authToken) {
-      const response = await axios.get(`http://localhost:3000/carts/${authToken}`, { headers: { Authorization: `Bearer ${authToken}` } });
-      const items = response.data;
+      const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      })
+      const items = response.data
 
       // Combiner les articles dupliqués et supprimer les doublons
-      const combinedItems = [];
-      const itemMap = new Map();
+      const combinedItems = []
+      const itemMap = new Map()
       for (const item of items) {
         if (itemMap.has(item.productId)) {
-          itemMap.get(item.productId).quantity += item.quantity;
+          itemMap.get(item.productId).quantity += item.quantity
         } else {
-          itemMap.set(item.productId, item);
-          combinedItems.push(item);
+          itemMap.set(item.productId, item)
+          combinedItems.push(item)
         }
       }
 
-      for (const [productId, item] of itemMap) {
-        const duplicateItems = items.filter(i => i.productId === productId);
+      for (const productId of itemMap.keys()) {
+        const duplicateItems = items.filter((i) => i.productId === productId)
         if (duplicateItems.length > 1) {
           for (let i = 1; i < duplicateItems.length; i++) {
-            await axios.delete(`http://localhost:3000/carts/${duplicateItems[i].id}`, { params: { userId: authToken } });
+            await axios.delete(`http://localhost:3000/carts/${duplicateItems[i].id}`, {
+              params: { userId: authToken }
+            })
           }
         }
       }
 
       for (const item of combinedItems) {
-        const productId = item.productId;
-        const imageResponse = await axios.get(`http://localhost:3000/products/${productId}/images`);
-        item.image = imageResponse.data;
+        const productId = item.productId
+        const imageResponse = await axios.get(`http://localhost:3000/products/${productId}/images`)
+        item.image = imageResponse.data
       }
 
-      cartItems.value = combinedItems;
+      cartItems.value = combinedItems
 
       // Vérifier s'il y a un code promo dans le panier et récupérer ses détails si nécessaire
       if (cartItems.value[0].promoCodeId) {
-        const promoId = cartItems.value[0].promoCodeId;
-        const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
-        promo.value = responsePromo.data;
+        const promoId = cartItems.value[0].promoCodeId
+        const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`)
+        promo.value = responsePromo.data
       } else {
-        promo.value = null; // Aucun code promo
+        promo.value = null // Aucun code promo
       }
     }
   } catch (error) {
-    console.error('Erreur lors de la récupération des articles du panier :', error);
+    console.error('Erreur lors de la récupération des articles du panier :', error)
   }
-};
+}
 
 const updateCartQuantity = async (id, quantity) => {
   try {
     if (quantity === 'remove') {
-      await axios.delete(`http://localhost:3000/carts/${id}`, { params: { userId: authToken } });
-      cartItems.value = cartItems.value.filter(item => item.id !== id);
+      await axios.delete(`http://localhost:3000/carts/${id}`, { params: { userId: authToken } })
+      cartItems.value = cartItems.value.filter((item) => item.id !== id)
     } else {
-      await axios.patch(`http://localhost:3000/carts/update-quantity/${id}`, { quantity });
-      const item = cartItems.value.find(item => item.id === id);
-      item.quantity = quantity;
+      await axios.patch(`http://localhost:3000/carts/update-quantity/${id}`, { quantity })
+      const item = cartItems.value.find((item) => item.id === id)
+      item.quantity = quantity
     }
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du panier :', error);
+    console.error('Erreur lors de la mise à jour du panier :', error)
   }
-};
+}
 
 const subtotal = computed(() => {
-  return cartItems.value.reduce((acc, item) => acc + (item.product.price * item.quantity), 0).toFixed(2);
-});
+  return cartItems.value
+    .reduce((acc, item) => acc + item.product.price * item.quantity, 0)
+    .toFixed(2)
+})
 
 const total = computed(() => {
-  return parseFloat(subtotal.value).toFixed(2);
-});
+  return parseFloat(subtotal.value).toFixed(2)
+})
 
 const checkout = () => {
   if (!authToken) {
-    router.push('/login');
+    router.push('/login')
   } else {
-    router.push('/payment');
+    router.push('/payment')
   }
-};
+}
 
 const checkoutWithPaypal = () => {
-  alert('Paiement effectué via PayPal.');
-};
+  alert('Paiement effectué via PayPal.')
+}
 
 const showProductDetails = (id: string) => {
-  router.push({ name: 'ProductDetail', params: { id } });
-};
+  router.push({ name: 'ProductDetail', params: { id } })
+}
 
 onMounted(() => {
-  fetchCartItems();
-});
+  fetchCartItems()
+})
 </script>
-
-
 
 <style scoped>
 .cart {
@@ -295,7 +326,7 @@ header {
   gap: 10px;
 }
 
-input[type="text"] {
+input[type='text'] {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
@@ -363,7 +394,7 @@ input[type="text"] {
 }
 
 .total {
-  display: block!important;
+  display: block !important;
 }
 
 .total p:first-child {

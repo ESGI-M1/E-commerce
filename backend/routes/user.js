@@ -1,12 +1,15 @@
 const { Router } = require("express");
 const { User } = require("../models");
-const checkAuth = require("../middlewares/checkAuth");
 const router = new Router();
 
 router.get("/", async (req, res) => {
-  const users = await User.findAll({
-  });
-  res.json(users);
+  try {
+    const users = await User.findAll();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Unable to fetch users' });
+  }
 });
 
 router.post("/", async (req, res, next) => {
@@ -34,20 +37,17 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/users/:id", async (req, res, next) => {
   try {
     const [nbUpdated, users] = await User.update(req.body, {
       where: {
-        id: parseInt(req.params.id),
+        id: parseInt(req.params.id, 10),
       },
-      returning: true,
       individualHooks: true,
+      returning: true,
     });
-    if (users[0]) {
-      res.json(users[0]);
-    } else {
-      res.sendStatus(404);
-    }
+    if (nbUpdated) res.json(users[0]);
+    else res.sendStatus(404);
   } catch (e) {
     next(e);
   }

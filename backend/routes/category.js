@@ -34,6 +34,7 @@ router.get("/:id(\\d+)", async (req, res, next) => {
 
 // TODO ADD DEFAULT VALUE CONFIG IN BACK OFFICE
 router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
+    
     try {
         const category = await Category.findOne({
             where: { 
@@ -54,8 +55,10 @@ router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
             ],
         });
         if (category) {
+            console.log(req.params.slug, "category found");
             res.json(category);
         } else {
+            console.log(req.params.slug, "category not found");
             res.sendStatus(404);
         }
     } catch (e) {
@@ -65,14 +68,19 @@ router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
 
 router.patch("/:id", async (req, res, next) => {
     try {
-        const [nbUpdated, categories] = await Category.update(req.body, {
-            where: {
-                id: parseInt(req.params.id),
-            },
-            returning: true,
-        });
-        if (nbUpdated === 1) {
-            res.json(categories[0]);
+        const { Products } = req.body;
+        
+        const category = await Category.findByPk(parseInt(req.params.id));
+        
+        if (category) {
+
+            if (Products && Products.length) {
+                const products = await Product.findAll({ where: { id: Products } });
+                await category.setProducts(products);
+            }
+            await category.update(req.body);
+
+            res.json(category);
         } else {
             res.sendStatus(404);
         }

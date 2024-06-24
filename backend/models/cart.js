@@ -50,11 +50,6 @@ module.exports = function (connection) {
         allowNull: false,
         defaultValue: 1,
       },
-      status: {
-        type: DataTypes.ENUM('en attente', 'livré', 'payé'),
-        allowNull: false,
-        defaultValue: 'en attente',
-      },
     },
     {
       sequelize: connection,

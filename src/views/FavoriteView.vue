@@ -13,7 +13,9 @@
           <div class="product-details">
             <h2>{{ product.name }}</h2>
             <p class="product-description">{{ product.description }}</p>
-            <p class="product-price"><strong>Prix :</strong> ${{ parseFloat(product.price).toFixed(2) }}</p>
+            <p class="product-price">
+              <strong>Prix :</strong> ${{ parseFloat(product.price).toFixed(2) }}
+            </p>
           </div>
         </div>
         <button class="remove-button" @click="removeFromFavorites(product.id)">Supprimer</button>
@@ -22,94 +24,96 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
 
 interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  imageSrc: string;
+  id: number
+  name: string
+  description: string
+  price: number
+  imageSrc: string
 }
 
 interface Favorite {
-  product: Product;
+  product: Product
 }
 
-const router = useRouter();
-const favoriteProducts = ref<Product[]>([]);
+const router = useRouter()
+const favoriteProducts = ref<Product[]>([])
 
 const fetchFavorites = async () => {
   try {
-    const userId = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('authToken')
     if (!userId) {
-      throw new Error('User is not authenticated');
+      throw new Error('User is not authenticated')
     }
 
-    const response = await axios.get(`http://localhost:3000/favorites/${userId}`);
-    const favorites: Favorite[] = response.data;
+    const response = await axios.get(`http://localhost:3000/favorites/${userId}`)
+    const favorites: Favorite[] = response.data
 
-    const products: Product[] = await Promise.all(favorites.map(async favorite => {
-      const product = favorite.product;
-      if (product.id) {
-        try {
-          const imageResponse = await axios.get(`http://localhost:3000/products/${product.id}/images`);
-          if (imageResponse.data && imageResponse.data.length > 0) {
-            product.imageSrc = imageResponse.data[0].url;
-            product.imageDesc = imageResponse.data[0].description;
-          } else {
-            product.imageSrc = '../../produit_avatar.jpg';
+    const products: Product[] = await Promise.all(
+      favorites.map(async (favorite) => {
+        const product = favorite.product
+        if (product.id) {
+          try {
+            const imageResponse = await axios.get(
+              `http://localhost:3000/products/${product.id}/images`
+            )
+            if (imageResponse.data && imageResponse.data.length > 0) {
+              product.imageSrc = imageResponse.data[0].url
+              product.imageDesc = imageResponse.data[0].description
+            } else {
+              product.imageSrc = '../../produit_avatar.jpg'
+            }
+          } catch (error) {
+            console.error(`Error fetching image for product ${product.id}:`, error)
+            product.imageSrc = '../../produit_avatar.jpg'
           }
-        } catch (error) {
-          console.error(`Error fetching image for product ${product.id}:`, error);
-          product.imageSrc = '../../produit_avatar.jpg';
+        } else {
+          product.imageSrc = '../../produit_avatar.jpg'
         }
-      } else {
-        product.imageSrc = '../../produit_avatar.jpg';
-      }
-      return product;
-    }));
+        return product
+      })
+    )
 
-    favoriteProducts.value = products;
-
+    favoriteProducts.value = products
   } catch (error) {
-    console.error('Error fetching favorite products:', error);
+    console.error('Error fetching favorite products:', error)
   }
-};
+}
 
 const showProductDetails = (id: number) => {
-  router.push({ name: 'ProductDetail', params: { id } });
-};
+  router.push({ name: 'ProductDetail', params: { id } })
+}
 
 const removeFromFavorites = async (productId: number) => {
   try {
-    const userId = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('authToken')
     if (!userId) {
-      throw new Error('User is not authenticated');
+      throw new Error('User is not authenticated')
     }
 
-    await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`);
+    await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
 
     // Mise à jour de la liste des produits favoris après suppression
-    favoriteProducts.value = favoriteProducts.value.filter(product => product.id !== productId);
+    favoriteProducts.value = favoriteProducts.value.filter((product) => product.id !== productId)
   } catch (error) {
-    console.error('Error removing favorite product:', error);
+    console.error('Error removing favorite product:', error)
   }
-};
+}
 
-const authToken = localStorage.getItem('authToken');
+const authToken = localStorage.getItem('authToken')
 
 onMounted(async () => {
   if (!authToken) {
-    router.push('/login');
+    router.push('/login')
   } else {
-    await fetchFavorites();
+    await fetchFavorites()
   }
-});
+})
 </script>
 
 <style scoped>
@@ -206,4 +210,3 @@ button:hover {
   background-color: #0056b3;
 }
 </style>
-

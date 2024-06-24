@@ -25,6 +25,10 @@ const CategorySchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Category',
     },
+    products: [{
+      type: Number,
+      ref: 'Product',
+    }],
   },
   {
     timestamps: true,

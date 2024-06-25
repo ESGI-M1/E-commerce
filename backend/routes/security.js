@@ -36,4 +36,18 @@ router.post("/login", async (req, res) => {
   res.json(user);
 });
 
+router.post("/forgot-password", async (req, res) => {
+  const user = await User.findOne({
+    where: {
+      email: req.body.email,
+    },
+  });
+  
+  if (!user) return res.sendStatus(404);
+
+  // ADD MAILER Damien
+
+});
+
+
 module.exports = router;

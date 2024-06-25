@@ -98,6 +98,7 @@ const login = () => {
       </div>
       <button type="submit">Connexion</button>
     </form>
+    <RouterLink to="/forgot-password">Mot de passe oublié ?</RouterLink>
   </div>
 </template>
 

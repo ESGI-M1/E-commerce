@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Dashboard from '../views/DashboardView.vue'
 import About from '../views/AboutView.vue'
+
 import Login from '../views/LoginView.vue'
 import Signup from '../views/SignupView.vue'
+import ForgotPassword from '../views/ForgotPasswordView.vue'
+import Identifier from '../views/IdentifyView.vue'
+import ChangePassword from '../views/ChangePasswordView.vue'
+
 import Category from '../views/CategoryView.vue'
 import Search from '../views/SearchView.vue'
 import Cart from '../views/CartView.vue'
 import ProductDetail from '../views/ProductDetailView.vue'
-import Identifier from '../views/IdentifyView.vue'
 import Payment from '../views/PaymentView.vue'
 import Favoris from '../views/FavoriteView.vue'
 import Profile from '../views/ProfileView.vue'
@@ -77,13 +81,23 @@ const routes = [
   },
   {
     path: '/signup',
-    name: 'Sign up',
+    name: 'Signup',
     component: Signup
   },
   {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword
+  },
+  {
     path: '/identifier',
-    name: "S'identifier",
+    name: "Identifier",
     component: Identifier
+  },
+  {
+    path: '/change-password',
+    name: 'ChangePassword',
+    component: ChangePassword
   },
   {
     path: '/category/:slug',

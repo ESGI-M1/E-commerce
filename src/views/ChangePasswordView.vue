@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { z } from 'zod'
 import axios from 'axios'
 
-const id = ref('1')
+const id = ref(1)
 const submited = ref(false)
 
 const passwordSchema = z
@@ -50,7 +50,7 @@ const changePassword = () => {
 
   if (!passwordSchema.safeParse(password.value).success || password.value !== confirmPassword.value) return
 
-  axios.patch('http://localhost:3000/users', {
+  axios.patch('http://localhost:3000/users/ ' + id.value, {
       id: id.value,
       password: password.value
     })

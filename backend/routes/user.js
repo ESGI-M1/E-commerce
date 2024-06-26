@@ -58,11 +58,10 @@ router.patch("/:id", async (req, res, next) => {
 });
 
 router.delete("/:id", async (req, res, next) => {
-  const { id } = req.params;
   try {
     const nbDeleted = await User.destroy({
       where: {
-        id: id,
+        id: parseInt(req.params.id, 10),
       },
     });
     res.json({ success: true });

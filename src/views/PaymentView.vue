@@ -33,8 +33,31 @@
         </div>
 
         <div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
-          <h3>Livraison à domicile</h3>
-          <label>
+    <h3>Livraison à domicile</h3>
+    <div >
+      <div v-if="carts[0].user && carts[0].user.deliveryAddress" v-for="(address, index) in carts[0].user.deliveryAddress" :key="address.id" class="delivery-address">
+        <label>
+          <input
+  type="radio"
+  :value="address"
+  v-model="selectedAddress"
+  name="deliveryAddress"
+  :checked="index === 0 ? true : false"
+  @click="updateLivraisonDomicileAddress(address)"
+/>
+          <div class="address-info">
+            <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
+            <p>{{ address.street }}</p>
+            <p>{{ address.postalCode }} {{ address.city }}</p>
+            <p>{{ address.country }}</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div>
+            <input type="radio" value="newAddress" v-model="selectedAddress" name="deliveryAddress"/> Nouvelle adresse </input>
+            <label>
             Adresse :
             <input type="text" v-model="livraisonDomicileAddress.street" placeholder="Rue" required>
           </label>
@@ -51,6 +74,7 @@
             <input type="text" v-model="livraisonDomicileAddress.country" placeholder="Pays" required>
           </label>
         </div>
+  </div>
 
       </div>
       <div class="cart-summary" v-if="carts && carts.length > 0">
@@ -66,24 +90,24 @@
           </div>
           <div class="total">
             <div v-for="(cart, index) in carts" :key="index">
-          <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
-            <div class="item-details" @click="showProductDetails(item.product.id)">
-              <h3>{{ item.product.name }}</h3>
-              <img
-                :src="item.product.Images[0]?.url ?? '../../produit_avatar.jpg'"
-                :alt="item.product.Images[0]?.description"
-                class="product-image"
-              />
+              <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
+                <div class="item-details" @click="showProductDetails(item.product.id)">
+                  <h3>{{ item.product.name }}</h3>
+                  <img
+                    :src="item.product.Images[0]?.url ?? '../../produit_avatar.jpg'"
+                    :alt="item.product.Images[0]?.description"
+                    class="product-image"
+                  />
+                </div>
+                <div class="item-quantity">
+                  <label for="quantity">Quantité :</label>
+                  <p>{{ item.quantity }}</p>
+                </div>
+                <div class="item-price">
+                  <p>{{ item.product.price }} €</p>
+                </div>
+              </div>
             </div>
-            <div class="item-quantity">
-              <label for="quantity">Quantité :</label>
-              <p>{{ item.quantity }}</p>
-            </div>
-            <div class="item-price">
-              <p>{{ item.product.price }} €</p>
-            </div>
-          </div>
-        </div>
             <div class="total-price">
               <p>Total</p>
               <div class="price-container">
@@ -134,6 +158,13 @@ const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
 const carts = ref(null)
 
+const newLivraisonDomicileAddress = ref({
+  street: '',
+  postalCode: '',
+  city: '',
+  country: '',
+})
+
 const livraisonDomicileAddress = ref({
       street: '',
       postalCode: '',
@@ -144,7 +175,6 @@ const livraisonDomicileAddress = ref({
 const fetchCartItems = async () => {
   if (authToken) {
     const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
-      headers: { Authorization: `Bearer ${authToken}` }
     })
 
     carts.value = response.data
@@ -157,6 +187,27 @@ const fetchCartItems = async () => {
       promo.value = null
     }
   }
+  if (carts.value[0].user && carts.value[0].user.deliveryAddress[0]) {
+    newLivraisonDomicileAddress.value.street = carts.value[0].user.deliveryAddress[0].street
+    newLivraisonDomicileAddress.value.postalCode = carts.value[0].user.deliveryAddress[0].postalCode
+    newLivraisonDomicileAddress.value.city = carts.value[0].user.deliveryAddress[0].city
+    newLivraisonDomicileAddress.value.country = carts.value[0].user.deliveryAddress[0].country
+      }
+      console.log(newLivraisonDomicileAddress.value.street)
+
+}
+
+const updateLivraisonDomicileAddress = (address) => {
+  newLivraisonDomicileAddress.value.street = address.street
+  newLivraisonDomicileAddress.value.postalCode = address.postalCode
+  newLivraisonDomicileAddress.value.city = address.city
+  newLivraisonDomicileAddress.value.country = address.country
+
+  livraisonDomicileAddress.value.street = '';
+  livraisonDomicileAddress.value.postalCode = '';
+  livraisonDomicileAddress.value.country = '';
+  livraisonDomicileAddress.value.city = '';
+
 }
 
 const subtotal = computed(() => {
@@ -201,18 +252,17 @@ const handlePayment = async () => {
       console.error('Error creating address (Point Relais):', error);
     }
   } else if (deliveryOption.value === 'livraisonDomicile') {
-    try {
+    if (livraisonDomicileAddress.value.street != '') {
+      newLivraisonDomicileAddress.value = livraisonDomicileAddress.value
+    } 
       const response = await axios.post('http://localhost:3000/adressorders', {
-        street: livraisonDomicileAddress.value.street,
-        postalCode: livraisonDomicileAddress.value.postalCode,
-        city: livraisonDomicileAddress.value.city,
-        country: livraisonDomicileAddress.value.country,
+        street: newLivraisonDomicileAddress.value.street,
+        postalCode: newLivraisonDomicileAddress.value.postalCode,
+        city: newLivraisonDomicileAddress.value.city,
+        country: newLivraisonDomicileAddress.value.country,
       });
 
       newAddress = response.data;
-    } catch (error) {
-      console.error('Error creating address (Livraison Domicile):', error);
-    }
   }
 
   if (newAddress) {
@@ -319,6 +369,13 @@ header {
 
 .point-relais-form,
 .livraison-domicile-form {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.livraison-domicile-form > div {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;

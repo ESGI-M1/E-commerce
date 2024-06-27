@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Cart, Product, User, CartProduct, Image, Category } = require("../models");
+const { Cart, Product, User, CartProduct, Image, Category, AddressUser } = require("../models");
 const router = new Router();
 const crypto = require('crypto'); // Importer le module crypto pour générer des mots de passe aléatoires
 
@@ -51,33 +51,26 @@ router.get("/order/:id", async (req, res, next) => {
   }
 });
 
-
-
-// Fonction pour générer un mot de passe aléatoire qui répond aux critères de validation
 function generateRandomPassword(length) {
   const lowercaseLetters = 'abcdefghijklmnopqrstuvwxyz';
   const uppercaseLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const numbers = '0123456789';
   const specialChars = '!@#$%^&*()-_=+[{]}|;:,<.>/?';
 
-  // Concaténer tous les caractères autorisés dans le mot de passe
   const allChars = lowercaseLetters + uppercaseLetters + numbers + specialChars;
 
   let password = '';
   let charTypesCount = 0;
 
-  // Générer un mot de passe jusqu'à ce qu'il réponde à tous les critères de validation
   while (password.length < length || charTypesCount < 4) {
     password = '';
     charTypesCount = 0;
 
-    // Ajouter des caractères aléatoires au mot de passe
     for (let i = 0; i < length; i++) {
       const randomIndex = crypto.randomInt(allChars.length);
       password += allChars[randomIndex];
     }
 
-    // Vérifier la présence des différents types de caractères dans le mot de passe
     if (/[a-z]/.test(password)) charTypesCount++;
     if (/[A-Z]/.test(password)) charTypesCount++;
     if (/\d/.test(password)) charTypesCount++;
@@ -138,19 +131,35 @@ router.get("/:userId", async (req, res) => {
 
     const cartItems = await Cart.findAll({
       where: { userId, orderId: null },
-      include: [{
-        model: CartProduct,
-        as: 'CartProducts', // Utilisez l'alias correct défini dans le modèle CartProduct
-        include: [{ 
-          model: Product, 
-          as: 'product',
-          include: [Category, Image],
-        }]
-      }]
+      include: [
+        {
+          model: CartProduct,
+          as: 'CartProducts',
+          include: [{
+            model: Product,
+            as: 'product',
+            include: [Category, Image],
+          }]
+        },
+        {
+          model: User,
+          as: 'user',
+        }
+      ]
     });
 
-    if (cartItems || cartItems.length > 0) {
-    res.json(cartItems);
+    if (cartItems.length > 0) {
+      const user = cartItems[0].user;
+
+      const addresses = await AddressUser.findAll({
+        where: { userId: user.id },
+      });
+
+      user.dataValues.deliveryAddress = addresses;
+
+      res.json(cartItems);
+    } else {
+      res.status(404).json({ error: 'Cart items not found' });
     }
   } catch (error) {
     console.error('Error fetching cart details:', error);

@@ -9,6 +9,11 @@
     </header>
     <div v-if="order" class="order-details">
       <h2>Détails de la commande</h2>
+      <div v-if="order.adressOrder">
+      <p>
+        Adresse: {{ order.adressOrder.street }}, {{ order.adressOrder.postalCode }} {{ order.adressOrder.city }}, {{ order.adressOrder.country }}
+      </p>    
+    </div>
       <small v-if="order.deliveryDate">
       {{ isFutureDate(order.deliveryDate) ? 'Livraison prévu le' : 'Livré le' }} {{ formatDate(order.deliveryDate) }}
       {{ isFutureDate(order.deliveryDate) ? '' : 'à ' + formatHeure(order.deliveryDate)  }}
@@ -69,12 +74,11 @@ const order = ref<any>(null)
 const authToken = localStorage.getItem('authToken')
 
 const fetchOrder = async () => {
-  try {
     if (authToken) {
       const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`, {
       })
       order.value = response.data
-      console.log(order.value)
+
       for (const cart of order.value.Cart.CartProducts) {
         const returnProduct = await axios.get(`http://localhost:3000/return/${cart.product.id}`, {
           params: {
@@ -88,9 +92,6 @@ const fetchOrder = async () => {
         }
       }
     }
-  } catch (error) {
-    console.error('Erreur lors de la récupération des détails de la commande :', error)
-  }
 }
 
 const calculateDiscountedPrice = (price: number, discount: number) => {
@@ -139,13 +140,8 @@ const returnItem = (orderId: number, productId: number, quantity: number) => {
 };
 
 const formatDate = (dateStr: string) => {
-  try {
     const parsedDate = parseISO(dateStr)
     return format(parsedDate, 'dd/MM/yyyy')
-  } catch (error) {
-    console.error('Erreur lors du formatage de la date :', error)
-    return ''
-  }
 }
 
 const formatHeure = (dateStr: string) => {
@@ -154,7 +150,6 @@ const formatHeure = (dateStr: string) => {
 }
 
 const addToCart = async (id: number, quantity: number) => {
-  try {
     await axios.post('http://localhost:3000/carts', {
       userId: authToken,
       productId: id,
@@ -162,16 +157,12 @@ const addToCart = async (id: number, quantity: number) => {
     })
     alert('Produit ajouté au panier avec succès')
     router.push('/cart')
-  } catch (error) {
-    alert("Échec de l'ajout du produit au panier")
-  }
 }
 
 onMounted(() => {
   fetchOrder()
 })
 </script>
-
 
 <style scoped>
 .cart {

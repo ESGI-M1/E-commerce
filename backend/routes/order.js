@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AdressOrder } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
@@ -55,6 +55,10 @@ router.get('/', async (req, res) => {
             model: User,
             as: 'user',
           },
+          {
+            model: AdressOrder,
+            as: 'adressOrder',
+          }
         ],
         order: [['createdAt', 'DESC']],
       });
@@ -275,17 +279,22 @@ router.get('/invoice/:orderId', async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-      const {id} = req.params;
-      const order = await Order.findByPk(id);
+  const { id } = req.params;
+    const order = await Order.findByPk(id);
+    const addressId = order.deliveryMethod;
 
-      if (order) {
-      const deleted = await Order.destroy({ where: { id: id } });
-      if (deleted > 0) {
-        return res.sendStatus(204);
-      } else {
-        return res.sendStatus(404);
-      }
+    if (order) {
+    const deletedOrder = await Order.destroy({ where: { id } });
+    if (addressId) {
+      await AdressOrder.destroy({ where: { id: addressId } });
     }
-  });  
+    if (deletedOrder > 0) {
+      return res.sendStatus(204);
+    } else {
+      return res.sendStatus(404);
+    }
+  }
+});
+
 
 module.exports = router;

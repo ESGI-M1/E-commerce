@@ -13,6 +13,7 @@ const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
+const AdressOrderRouter = require("./routes/adressOrder");
 
 const app = express();
 const cors = require('cors')
@@ -38,6 +39,7 @@ app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
+app.use('/adressorders', AdressOrderRouter);
 app.use(SecurityRouter);
 
 app.listen(process.env.PORT, () => {

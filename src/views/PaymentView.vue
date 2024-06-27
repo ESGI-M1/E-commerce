@@ -25,24 +25,34 @@
         </div>
 
         <div class="point-relais-form" v-if="deliveryOption === 'pointRelais'">
-  <h3>Point relais</h3>
-  <label>
-    Code postal :
-    <input type="text" v-model="pointRelaisPostalCode" required>
-  </label>
-</div>
+          <h3>Point relais</h3>
+          <label>
+            Code postal :
+            <input type="text" v-model="pointRelaisPostalCode" required>
+          </label>
+        </div>
 
-<div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
-  <h3>Livraison à domicile</h3>
-  <label>
-    Adresse :
-    <input type="text" v-model="livraisonDomicileAddress" required>
-  </label>
-</div>
-
+        <div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
+          <h3>Livraison à domicile</h3>
+          <label>
+            Adresse :
+            <input type="text" v-model="livraisonDomicileAddress.street" placeholder="Rue" required>
+          </label>
+          <label>
+            Code postal :
+            <input type="text" v-model="livraisonDomicileAddress.postalCode" placeholder="Code postal" required>
+          </label>
+          <label>
+            Ville :
+            <input type="text" v-model="livraisonDomicileAddress.city" placeholder="Ville" required>
+          </label>
+          <label>
+            Pays :
+            <input type="text" v-model="livraisonDomicileAddress.country" placeholder="Pays" required>
+          </label>
+        </div>
 
       </div>
-
       <div class="cart-summary" v-if="carts && carts.length > 0">
         <h2>Récapitulatif</h2>
         <div class="totals">
@@ -122,8 +132,14 @@ const authToken = localStorage.getItem('authToken')
 const promo = ref(null)
 const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
-const livraisonDomicileAddress = ref('')
 const carts = ref(null)
+
+const livraisonDomicileAddress = ref({
+      street: '',
+      postalCode: '',
+      city: '',
+      country: '',
+    });
 
 const fetchCartItems = async () => {
   if (authToken) {
@@ -167,29 +183,82 @@ const showProductDetails = (id: string) => {
 }
 
 const handlePayment = async () => {
-  const deliveryDetails =
-      deliveryOption.value === 'pointRelais'
-        ? `Point Relais: ${pointRelaisPostalCode.value}`
-        : `Livraison à domicile: ${livraisonDomicileAddress.value}`;
+  let newAddress = null;
+  let adressorders = null;
 
-    const order = await axios.post('http://localhost:3000/orders', {
-      total: discountedTotal.value,
-      method: deliveryDetails,
-      userId: authToken,
-    });
+  if (deliveryOption.value === 'pointRelais') {
+    try {
+      const randomStreet = Math.random().toString(36).substring(7);
+      const response = await axios.post('http://localhost:3000/adressorders', {
+        street: randomStreet,
+        postalCode: pointRelaisPostalCode.value,
+        city: getCityFromPostalCode(pointRelaisPostalCode.value),
+        country: getCountryFromPostalCode(pointRelaisPostalCode.value),
+      });
 
-    const stripe = await stripePromise;
+      newAddress = response.data;
+    } catch (error) {
+      console.error('Error creating address (Point Relais):', error);
+    }
+  } else if (deliveryOption.value === 'livraisonDomicile') {
+    try {
+      const response = await axios.post('http://localhost:3000/adressorders', {
+        street: livraisonDomicileAddress.value.street,
+        postalCode: livraisonDomicileAddress.value.postalCode,
+        city: livraisonDomicileAddress.value.city,
+        country: livraisonDomicileAddress.value.country,
+      });
 
-    const stripeSession = await axios.post('http://localhost:3000/stripe', {
-      cartId: carts.value[0].id,
-      orderId: order.data.id,
-      items: carts.value[0].CartProducts,
-      promo: promo.value,
-    });
+      newAddress = response.data;
+    } catch (error) {
+      console.error('Error creating address (Livraison Domicile):', error);
+    }
+  }
 
-    const { sessionId } = stripeSession.data;
+  if (newAddress) {
+    try {
+      const order = await axios.post('http://localhost:3000/orders', {
+        total: discountedTotal.value,
+        method: newAddress.id,
+        userId: authToken,
+      });
 
-    const { error } = await stripe.redirectToCheckout({ sessionId });
+      const stripe = await stripePromise;
+      const stripeSession = await axios.post('http://localhost:3000/stripe', {
+        cartId: carts.value[0].id,
+        orderId: order.data.id,
+        items: carts.value[0].CartProducts,
+        promo: promo.value,
+      });
+
+      const { sessionId } = stripeSession.data;
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+
+      if (error) {
+        console.error('Error redirecting to checkout:', error);
+      }
+    } catch (error) {
+      console.error('Error handling payment:', error);
+    }
+  }
+};
+
+const getCityFromPostalCode = (postalCode) => {
+  const postalCodeData = {
+    '12345': 'Paris',
+    '67890': 'Berlin',
+  };
+
+  return postalCodeData[postalCode] || 'Ville inconnue';
+};
+
+const getCountryFromPostalCode = (postalCode) => {
+  const postalCodeCountryData = {
+    '12345': 'France',
+    '67890': 'Germany',
+  };
+
+  return postalCodeCountryData[postalCode] || 'Pays inconnu';
 };
 
 

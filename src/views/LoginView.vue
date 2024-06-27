@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { z } from 'zod'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
@@ -49,12 +49,11 @@ const login = () => {
       try {
         if (temporaryId) {
           const cartResponse = await axios.get(`http://localhost:3000/carts/${temporaryId}`)
-          const carts = cartResponse.data
-          for (const cart of carts) {
-            await axios.patch(`http://localhost:3000/carts/update/${cart.id}`, {
+          const cartId = cartResponse.data[0].id;
+            await axios.patch(`http://localhost:3000/carts/update-user/${cartId}`, {
               userId: response.data.id
             })
-          }
+          
           await axios.delete(`http://localhost:3000/users/${temporaryId}`)
           localStorage.removeItem('temporaryId')
         }
@@ -70,6 +69,14 @@ const login = () => {
       alert('Échec de la connexion')
     })
 }
+
+onMounted(() => {
+  const authToken = localStorage.getItem('authToken')
+  if (authToken) {
+    router.push('/')
+  }
+})
+
 </script>
 
 <template>

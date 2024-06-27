@@ -15,6 +15,7 @@ import ProductList from '../views/ProductListView.vue'
 import Order from '../views/OrderView.vue'
 import OrderDetail from '../views/OrderDetailView.vue'
 import ReturnProduct from '../views/ReturnProductView.vue'
+import ConfirmAdress from '../views/ConfirmAdress.vue'
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -24,6 +25,7 @@ import Ressources from '../views/admin/adminRessources.vue'
 import Locker from '../views/admin/adminLocker.vue'
 
 import axios from 'axios'
+import ResetPassword from '@/views/ResetPassword.vue'
 
 const isAdmin = async () => {
   const authToken = localStorage.getItem('authToken')
@@ -156,6 +158,16 @@ const routes = [
     name: 'Code promos',
     component: Promos,
     meta: { requiresAdmin: true }
+  },
+  {
+    path: '/users/confirm-address/:token',
+    name: 'ConfirmAdress',
+    component: ConfirmAdress
+  },
+  {
+    path: '/users/reset-password/:token',
+    name: 'ResetPassword',
+    component: ResetPassword
   }
 ]
 

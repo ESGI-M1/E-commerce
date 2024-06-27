@@ -42,6 +42,10 @@ router.post("/login", async (req, res) => {
     }
   );
 
+  if (!user.active) {
+    mailer.sendConnexionWithoutConfirmAccount(user);
+  }
+
   res.cookie("JWT", token, {
     httpOnly: true,
     signed: true,

@@ -7,11 +7,13 @@ module.exports = function (connection) {
     static addHooks() {
       User.addHook("beforeCreate", async (user) => {
         user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
+        user.lastPasswordUpdate = Date.now();
       });
     
       User.addHook("beforeUpdate", async (user, options) => {
         if (options.fields.includes("password")) {
           user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
+          user.lastPasswordUpdate = Date.now();
         }
       });
     }
@@ -54,11 +56,19 @@ module.exports = function (connection) {
           max: 32,
         },
       },
+      active: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
       role: {
         type: DataTypes.ENUM("user", "admin", "temp", "store"),
         allowNull: false,
         defaultValue: "user",
       },
+      lastPasswordUpdate: {
+        type: DataTypes.DATE
+      }
     },
     { sequelize: connection }
   );

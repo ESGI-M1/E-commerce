@@ -11,6 +11,10 @@ const PromoRouter = require("./routes/promo");
 const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
+var cron = require('node-cron');
+const mailer = require('./services/mailer');
+const { User } = require('./models')
+
 //const StripeRouter = require("./stripe/stripe");
 
 const app = express();
@@ -38,6 +42,23 @@ app.use('/return', ReturnRouter);
 
 //app.use('/stripe', StripeRouter);
 app.use(SecurityRouter);
+
+// every 1st day of month, check if users last password modification are later than 60 days
+cron.schedule('0 0 1 * *', async () => {
+  try {
+    const users = await User.findAll();
+    for (let user of users) {
+      let actualDate = new Date();
+      let lastUpdate = user.lastPasswordUpdate;
+      lastUpdate.setDate(lastUpdate.getDate() + 60);
+      if (lastUpdate < actualDate) {
+        await mailer.sendPasswordTooOld(user);
+      }
+    }
+  } catch (e) {
+    console.log("Error while getting users");
+  }
+})
 
 app.listen(process.env.PORT, () => {
   console.log("Server running on port " + process.env.PORT);

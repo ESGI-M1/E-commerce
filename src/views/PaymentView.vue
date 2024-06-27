@@ -193,8 +193,6 @@ const fetchCartItems = async () => {
     newLivraisonDomicileAddress.value.city = carts.value[0].user.deliveryAddress[0].city
     newLivraisonDomicileAddress.value.country = carts.value[0].user.deliveryAddress[0].country
       }
-      console.log(newLivraisonDomicileAddress.value.street)
-
 }
 
 const updateLivraisonDomicileAddress = (address) => {

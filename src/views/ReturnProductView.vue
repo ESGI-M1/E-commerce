@@ -69,12 +69,23 @@ const quantityOptions = computed(() => {
 
 const fetchProductDetails = async () => {
   try {
-    const responseQuantity = await axios.get(`http://localhost:3000/carts/product/${productId.value}`);
-    quantity.value = responseQuantity.data.quantity;
+    // Obtenir les détails du produit dans le panier associé à la commande
+    const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`);
+    const cartProducts = response.data.Cart.CartProducts;
 
+    // Trouver le produit spécifique dans le panier
+    const cartProduct = cartProducts.find(cp => cp.productId === parseInt(productId.value));
+    if (cartProduct) {
+      quantity.value = cartProduct.quantity;
+    } else {
+      quantity.value = 0;
+    }
+
+    // Obtenir les détails du produit
     const productResponse = await axios.get(`http://localhost:3000/products/${productId.value}`);
     product.value = productResponse.data;
 
+    // Obtenir les informations de retour existantes
     const returnResponse = await axios.get(`http://localhost:3000/return/${productId.value}`, {
       params: {
         orderId: orderId.value,
@@ -89,7 +100,6 @@ const fetchProductDetails = async () => {
       deliveryMethod.value = returnResponse.data.deliveryMethod;
       statut.value = returnResponse.data.status;
     }
-
   } catch (error) {
     console.error('Erreur lors de la récupération des détails du produit ou des informations de retour :', error);
   }

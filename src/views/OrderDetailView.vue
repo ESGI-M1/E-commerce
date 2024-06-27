@@ -1,7 +1,7 @@
 <template>
   <div class="cart">
     <header class="header">
-      <h1>Ma commande n°{{ order?.id }}</h1>
+      <h1>Ma commande n°{{ orderId }}</h1>
       <button v-if="order" @click="downloadInvoice(order.id)" class="button-order">
         Télécharger ma facture
       </button>
@@ -9,46 +9,46 @@
     </header>
     <div v-if="order" class="order-details">
       <h2>Détails de la commande</h2>
-      <small v-if="order.deliveryDate">Livré le {{ formatDate(order.deliveryDate) }}</small>
+      <small v-if="order.deliveryDate">
+      {{ isFutureDate(order.deliveryDate) ? 'Livraison prévu le' : 'Livré le' }} {{ formatDate(order.deliveryDate) }}
+      {{ isFutureDate(order.deliveryDate) ? '' : 'à ' + formatHeure(order.deliveryDate)  }}
+    </small>
       <div>
         Statut:
         <p :class="['order-status', order.status]">{{ order.status }}</p>
       </div>
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
-      <div v-for="cart in order.carts" :key="cart.id" class="cart-item">
-        <div class="product-image-container" v-if="cart.product.Images.length > 0">
+      <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
+        <div v-if="cartProduct.product" class="product-image-container">
           <img
-            :src="cart.product.Images[0].url"
-            :alt="cart.product.Images[0].description"
+            v-if="cartProduct.product.Images && cartProduct.product.Images.length > 0"
+            :src="cartProduct.product.Images[0].url"
+            :alt="cartProduct.product.Images[0].description"
             class="product-image"
           />
         </div>
-        <div class="item-details" @click="showProductDetails(cart.product.id)">
-          <h3>{{ cart.product.name }}</h3>
+        <div class="item-details" @click="showProductDetails(cartProduct.product.id)">
+          <h3>{{ cartProduct.product.name }}</h3>
           <p>
             Catégorie:
-            <span v-for="category in cart.product.Categories" :key="category.id">
+            <span v-for="category in cartProduct.product.Categories" :key="category.id">
               {{ category.name }}
             </span>
           </p>
-          <p>Quantité: {{ cart.quantity }}</p>
-          <div v-if="cart.promo" class="total"></div>
-          <div v-else>
-            <p>Prix: {{ cart.product.price }} €</p>
-          </div>
+          <p>Quantité: {{ cartProduct.quantity }}</p>
         </div>
         <div class="order-actions">
-          <div v-if="cart.promo">
-              <div class="first-price">
-                <p class="old-price">{{ cart.product.price }} €</p>
-                <span class="discount">(-{{ cart.promo.discountPercentage }}%)</span>
-              </div>
-              <p class="new-price text-left">{{ calculateDiscountedPrice(cart.product.price, cart.promo.discountPercentage) }} €</p>
+          <div v-if="order.Cart.promoCode">
+            <div class="first-price">
+              <p class="old-price">{{ cartProduct.product.price }} €</p>
+              <span class="discount">(-{{ order.Cart.promoCode.discountPercentage }}%)</span>
             </div>
-            <p v-else class="new-price">{{ cart.product.price }} €</p>
-          <button @click="addToCart(cart.product.id, 1)" class="button-order">Commander à nouveau</button>
-          <button v-if="!cart.product.returned" @click="returnItem(order.id, cart.product.id, cart.quantity)" class="button-order">Retourner l'article</button>
-          <button v-else @click="returnItem(order.id, cart.product.id, cart.quantity)" class="button-order">Voir les détails ({{ cart.product.returned.status }})</button>
+            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.Cart.promoCode.discountPercentage) }} €</p>
+          </div>
+          <p v-else class="new-price">{{ cartProduct.product.price }} €</p>
+          <button @click="addToCart(cartProduct.product.id, 1)" class="button-order">Commander à nouveau</button>
+          <button v-if="!cartProduct.product.returned" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="button-order">Retourner l'article</button>
+          <button v-else @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="button-order">Voir les détails ({{ cartProduct.product.returned.status }})</button>
         </div>
       </div>
     </div>
@@ -65,22 +65,17 @@ const route = useRoute()
 const router = useRouter()
 const orderId = ref(route.params.id as string)
 const order = ref<any>(null)
-/*
-NOT USED
-const returned = ref<any>(null)
-*/
 
 const authToken = localStorage.getItem('authToken')
 
 const fetchOrder = async () => {
   try {
     if (authToken) {
-      const response = await axios.get(`http://localhost:3000/orders/details/${authToken}`, {
-        params: { orderId: orderId.value }
+      const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`, {
       })
-      order.value = response.data[0]
-
-      for (const cart of order.value.carts) {
+      order.value = response.data
+      console.log(order.value)
+      for (const cart of order.value.Cart.CartProducts) {
         const returnProduct = await axios.get(`http://localhost:3000/return/${cart.product.id}`, {
           params: {
             orderId: orderId.value,
@@ -106,12 +101,20 @@ const showProductDetails = (id: string) => {
   router.push({ name: 'ProductDetail', params: { id } })
 }
 
+const isFutureDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const today = new Date();
+  return date.getTime() > today.getTime();
+}
+
 const downloadInvoice = async (orderId) => {
   try {
     const response = await axios.get(`http://localhost:3000/orders/invoice/${orderId}`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      headers: {
+        Authorization: `Bearer ${authToken}`
+      }
     })
-    console.log(response.data)
 
     const blob = new Blob([response.data], { type: 'application/pdf' })
     const url = window.URL.createObjectURL(blob)
@@ -132,7 +135,7 @@ const downloadInvoice = async (orderId) => {
 }
 
 const returnItem = (orderId: number, productId: number, quantity: number) => {
-  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } });
+  router.push({ name: 'ReturnProducts', params: { orderId, productId } });
 };
 
 const formatDate = (dateStr: string) => {
@@ -143,6 +146,11 @@ const formatDate = (dateStr: string) => {
     console.error('Erreur lors du formatage de la date :', error)
     return ''
   }
+}
+
+const formatHeure = (dateStr: string) => {
+    const parsedDate = parseISO(dateStr)
+    return format(parsedDate, 'HH:mm')
 }
 
 const addToCart = async (id: number, quantity: number) => {
@@ -159,29 +167,11 @@ const addToCart = async (id: number, quantity: number) => {
   }
 }
 
-/*
-NOT USED
-const returnedProduct = async (productId: number) => {
-  const userId = localStorage.getItem('authToken')
-  try {
-    const response = await axios.post(`http://localhost:3000/return/${orderId.value}`, {
-      orderId: orderId.value,
-      userId: userId,
-      productId: productId
-    })
-    returned.value = response.data
-    console.log('Retour du produit enregistré avec succès :', response.data)
-  } catch (error) {
-    console.error('Erreur lors de la soumission du retour du produit :', error)
-    alert('Erreur lors de la soumission du retour du produit')
-  }
-}
-*/
-
 onMounted(() => {
   fetchOrder()
 })
 </script>
+
 
 <style scoped>
 .cart {

@@ -9,35 +9,37 @@
     </header>
 
     <div class="cart-content">
-      <div class="cart-items" v-if="cartItems.length">
-        <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
-          <div class="item-details" @click="showProductDetails(item.product.id)">
-            <h3>{{ item.product.name }}</h3>
-            <img
-              :src="item.image[0]?.url ?? '../../produit_avatar.jpg'"
-              :alt="item.image[0]?.description"
-              class="product-image"
-            />
-          </div>
-          <div class="item-quantity">
-            <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
-              <option value="remove">Supprimer</option>
-              <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-              <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
-                {{ item.quantity }}
-              </option>
-            </select>
-          </div>
-          <div class="item-price">
-            <p>{{ item.product.price }} €</p>
-            <p>Total: {{ (item.product.price * item.quantity).toFixed(2) }} €</p>
+      <div class="cart-items" v-if="carts && carts.length > 0">
+        <div v-for="(cart, index) in carts" :key="index">
+          <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
+            <div class="item-details" @click="showProductDetails(item.product.id)">
+              <h3>{{ item.product.name }}</h3>
+              <img
+                :src="item.product.Images[0]?.url || require('../../assets/produit_avatar.jpg')"
+                :alt="item.product.Images[0]?.description || 'Produit'"
+                class="product-image"
+              />
+            </div>
+            <div class="item-quantity">
+              <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
+                <option value="remove">Supprimer</option>
+                <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
+                  {{ item.quantity }}
+                </option>
+              </select>
+            </div>
+            <div class="item-price">
+              <p>{{ item.product.price }} €</p>
+              <p>Total: {{ (item.product.price * item.quantity).toFixed(2) }} €</p>
+            </div>
           </div>
         </div>
       </div>
       <div v-else>
         <p>Il n'y a aucun article dans ton panier.</p>
       </div>
-      <div class="cart-summary" v-if="cartItems.length">
+      <div class="cart-summary" v-if="carts && carts.length > 0">
         <h2>Récapitulatif</h2>
         <div class="promo-code">
           <label for="promo">As-tu un code promo ?</label>
@@ -101,15 +103,14 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
-const cartItems = ref([])
+const carts = ref(null)
 const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId')
 const promo = ref(null)
 const promoCode = ref('')
 const promoError = ref('')
 
 const removePromo = async () => {
-  try {
-    const cartIds = cartItems.value.map((item) => item.id)
+    const cartIds = carts.value[0].id;
     const response = await axios.post(
       'http://localhost:3000/carts/remove-promo',
       { userId: authToken, cartIds },
@@ -125,9 +126,6 @@ const removePromo = async () => {
     } else {
       console.error('Erreur lors de la suppression du code promo :', response.data.error)
     }
-  } catch (error) {
-    console.error('Erreur lors de la suppression du code promo :', error)
-  }
 }
 
 const applyPromoCode = async () => {
@@ -151,77 +149,43 @@ const applyPromoCode = async () => {
 }
 
 const fetchCartItems = async () => {
-  try {
     if (authToken) {
       const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      })
-      const items = response.data
-
-      // Combiner les articles dupliqués et supprimer les doublons
-      const combinedItems = []
-      const itemMap = new Map()
-      for (const item of items) {
-        if (itemMap.has(item.productId)) {
-          itemMap.get(item.productId).quantity += item.quantity
-        } else {
-          itemMap.set(item.productId, item)
-          combinedItems.push(item)
-        }
-      }
-
-      for (const productId of itemMap.keys()) {
-        const duplicateItems = items.filter((i) => i.productId === productId)
-        if (duplicateItems.length > 1) {
-          for (let i = 1; i < duplicateItems.length; i++) {
-            await axios.delete(`http://localhost:3000/carts/${duplicateItems[i].id}`, {
-              params: { userId: authToken }
-            })
-          }
-        }
-      }
-
-      for (const item of combinedItems) {
-        const productId = item.productId
-        const imageResponse = await axios.get(`http://localhost:3000/products/${productId}/images`)
-        item.image = imageResponse.data
-      }
-
-      cartItems.value = combinedItems
-
-      // Vérifier s'il y a un code promo dans le panier et récupérer ses détails si nécessaire
-      if (cartItems.value[0].promoCodeId) {
-        const promoId = cartItems.value[0].promoCodeId
-        const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`)
-        promo.value = responsePromo.data
+      });
+      if (response.data) {
+      carts.value = response.data;
+      if (carts.value[0] && carts.value[0].promoCodeId) {
+        const promoId = carts.value[0].promoCodeId;
+        const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
+        promo.value = responsePromo.data;
       } else {
-        promo.value = null // Aucun code promo
+        promo.value = null;
       }
     }
-  } catch (error) {
-    console.error('Erreur lors de la récupération des articles du panier :', error)
-  }
-}
+    }
+};
 
 const updateCartQuantity = async (id, quantity) => {
   try {
     if (quantity === 'remove') {
-      await axios.delete(`http://localhost:3000/carts/${id}`, { params: { userId: authToken } })
-      cartItems.value = cartItems.value.filter((item) => item.id !== id)
+      await axios.delete(`http://localhost:3000/cartproducts/${id}`);
     } else {
-      await axios.patch(`http://localhost:3000/carts/update-quantity/${id}`, { quantity })
-      const item = cartItems.value.find((item) => item.id === id)
-      item.quantity = quantity
+      await axios.patch(`http://localhost:3000/cartproducts/${id}`, { quantity });
+
     }
+    fetchCartItems();
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du panier :', error)
+    console.error('Erreur lors de la mise à jour du panier :', error);
   }
-}
+};
 
 const subtotal = computed(() => {
-  return cartItems.value
-    .reduce((acc, item) => acc + item.product.price * item.quantity, 0)
-    .toFixed(2)
+  if (carts.value && carts.value[0]) {
+    return carts.value[0].CartProducts
+      .reduce((acc, item) => acc + item.product.price * item.quantity, 0)
+      .toFixed(2)
+  }
+  return '0.00';
 })
 
 const total = computed(() => {
@@ -229,7 +193,7 @@ const total = computed(() => {
 })
 
 const checkout = () => {
-  if (!authToken) {
+  if (!localStorage.getItem('authToken')) {
     router.push('/login')
   } else {
     router.push('/payment')
@@ -248,6 +212,7 @@ onMounted(() => {
   fetchCartItems()
 })
 </script>
+
 
 <style scoped>
 .cart {

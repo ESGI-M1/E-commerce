@@ -1,8 +1,9 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
+
 router.get('/', async (req, res) => {
     try {
       const orders = await Order.findAll({
@@ -22,66 +23,154 @@ router.get('/', async (req, res) => {
     }
   });
 
-router.get("/:idUser", async (req, res) => {
-    const { idUser } = req.params;
-
+  router.get('/:id', async (req, res) => {
     try {
-        const carts = await Cart.findAll({
-            where: { userId: idUser },
-            include: [
-                {
-                    model: Product,
-                    as: 'product',
-                    attributes: ['id', 'name', 'price'],
-                    include: [Category, Image],
-                },
-                {
-                    model: PromoCode,
-                    as: 'promoCode',
-                    attributes: ['discountPercentage']
-                }
-            ]
-        });
-
-        const orderMap = {};
-
-        for (const cart of carts) {
-            const orderId = cart.orderId;
-
-            if (!orderMap[orderId]) {
-                const order = await Order.findByPk(orderId);
-                if (order) {
-                    orderMap[orderId] = {
-                        id: order.id,
-                        userId: order.userId,
-                        totalAmount: order.totalAmount,
-                        status: order.status,
-                        createdAt: order.createdAt,
-                        updatedAt: order.updatedAt,
-                        carts: [] // Initialiser le tableau de paniers
-                    };
-                }
-            }
-
-            if (orderMap[orderId]) {
-                console.log('cart:', cart)
-                orderMap[orderId].carts.push({
-                    id: cart.id,
-                    quantity: cart.quantity,
-                    product: cart.product,
-                    promo: cart.promoCode,
-                });
-            }
-        }
-
-        const ordersWithCarts = Object.values(orderMap);
-
-        res.json(ordersWithCarts);
+      const cart = await Cart.findOne({
+        where: {
+          orderId: req.params.id
+        },
+        include: [
+          {
+            model: CartProduct,
+            as: 'CartProducts',
+            include: [{ 
+              model: Product, 
+              as: 'product',
+              include: [Category, Image],
+            }]
+          },
+          {
+            model: PromoCode,
+            as: 'promoCode',
+          }
+        ]
+      });      
+  
+      const order = await Order.findOne({
+        where: {
+          id: req.params.id
+        },
+        include: [
+          {
+            model: User,
+            as: 'user',
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+      });
+  
+      if (!order || !cart) {
+        return res.status(404).json({ error: 'Commande ou panier non trouvé' });
+      }
+      order.dataValues.Cart = cart;
+  
+      res.json(order);
     } catch (error) {
-        console.error('Erreur lors de la récupération des commandes et des paniers:', error);
-        res.status(500).json({ error: 'Erreur lors de la récupération des commandes et des paniers' });
+      console.error('Erreur lors de la récupération des commandes :', error);
+      res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
     }
+  });
+
+router.post('/', async (req, res) => {
+try {
+    const { userId, total, method } = req.body;
+    /*const exist = await Order.findAll({
+        where: { 
+            userId: userId,
+            totalAmount: total,
+            deliveryMethod: method
+        },
+    });
+*/
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + 3);
+
+    const newOrder = await Order.create({
+        userId: userId,
+        totalAmount: total,
+        deliveryDate: deliveryDate,
+        deliveryMethod: method,
+      });
+
+    res.status(201).json(newOrder);
+    
+} catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({ error: error.message });
+}
 });
+
+router.get("/user/:idUser", async (req, res) => {
+  const { idUser } = req.params;
+
+  try {
+      const carts = await Cart.findAll({
+          where: { userId: idUser },
+          include: [
+              {
+                  model: PromoCode,
+                  as: 'promoCode',
+                  attributes: ['discountPercentage']
+              },
+              {
+                  model: CartProduct,
+                  as: 'CartProducts', // Nom de l'association dans votre modèle Cart
+                  include: [
+                      {
+                          model: Product,
+                          as: 'product', // Nom de l'association dans votre modèle CartProduct
+                          attributes: ['id', 'name', 'price'],
+                          include: [Category, Image], // Incluez d'autres associations si nécessaire
+                      }
+                  ]
+              }
+          ]
+      });
+
+      // Transformez les résultats pour avoir une structure avec commandes et paniers
+      const orderMap = {};
+
+      for (const cart of carts) {
+          const orderId = cart.orderId;
+
+          if (!orderMap[orderId]) {
+              const order = await Order.findByPk(orderId);
+              if (order) {
+                  orderMap[orderId] = {
+                      id: order.id,
+                      userId: order.userId,
+                      totalAmount: order.totalAmount,
+                      status: order.status,
+                      createdAt: order.createdAt,
+                      updatedAt: order.updatedAt,
+                      carts: [] // Initialiser le tableau de paniers
+                  };
+              }
+          }
+
+          if (orderMap[orderId]) {
+              orderMap[orderId].carts.push({
+                  id: cart.id,
+                  quantity: cart.quantity,
+                  product: cart.CartProducts.map(cp => ({
+                      id: cp.productId,
+                      quantity: cp.quantity,
+                      product: cp.product,
+                  })),
+                  promo: cart.promoCode, // Associer le promoCode au niveau du cart
+              });
+          }
+      }
+
+      const ordersWithCarts = Object.values(orderMap);
+
+      res.json(ordersWithCarts);
+  } catch (error) {
+      console.error('Erreur lors de la récupération des commandes et des paniers:', error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des commandes et des paniers' });
+  }
+});
+
 
 router.get("/details/:idUser", async (req, res) => {
     const { idUser } = req.params;
@@ -184,5 +273,19 @@ router.get('/invoice/:orderId', async (req, res) => {
     res.status(500).json({ error: 'Failed to generate invoice' });
   }
 });
+
+router.delete("/:id", async (req, res) => {
+      const {id} = req.params;
+      const order = await Order.findByPk(id);
+
+      if (order) {
+      const deleted = await Order.destroy({ where: { id: id } });
+      if (deleted > 0) {
+        return res.sendStatus(204);
+      } else {
+        return res.sendStatus(404);
+      }
+    }
+  });  
 
 module.exports = router;

@@ -5,7 +5,7 @@
     </header>
 
     <div class="cart-content">
-      <div class="cart-items" v-if="cartItems.length">
+      <div class="cart-items" v-if="carts && carts.length > 0">
         <h2>Options de livraison</h2>
         <div class="delivery-options">
           <button
@@ -24,24 +24,26 @@
           </button>
         </div>
 
-        <div v-if="deliveryOption === 'pointRelais'" class="point-relais-form">
-          <h3>Point relais</h3>
-          <label>
-            Code postal :
-            <input type="text" v-model="pointRelaisPostalCode">
-          </label>
-        </div>
+        <div class="point-relais-form" v-if="deliveryOption === 'pointRelais'">
+  <h3>Point relais</h3>
+  <label>
+    Code postal :
+    <input type="text" v-model="pointRelaisPostalCode" required>
+  </label>
+</div>
 
-        <div v-else-if="deliveryOption === 'livraisonDomicile'" class="livraison-domicile-form">
-          <h3>Livraison à domicile</h3>
-          <label>
-            Adresse :
-            <input type="text" v-model="livraisonDomicileAddress">
-          </label>
-        </div>
+<div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
+  <h3>Livraison à domicile</h3>
+  <label>
+    Adresse :
+    <input type="text" v-model="livraisonDomicileAddress" required>
+  </label>
+</div>
+
+
       </div>
 
-      <div class="cart-summary" v-if="cartItems.length">
+      <div class="cart-summary" v-if="carts && carts.length > 0">
         <h2>Récapitulatif</h2>
         <div class="totals">
           <div class="subtotal">
@@ -53,6 +55,25 @@
             <p>Gratuit</p>
           </div>
           <div class="total">
+            <div v-for="(cart, index) in carts" :key="index">
+          <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
+            <div class="item-details" @click="showProductDetails(item.product.id)">
+              <h3>{{ item.product.name }}</h3>
+              <img
+                :src="item.product.Images[0]?.url ?? '../../produit_avatar.jpg'"
+                :alt="item.product.Images[0]?.description"
+                class="product-image"
+              />
+            </div>
+            <div class="item-quantity">
+              <label for="quantity">Quantité :</label>
+              <p>{{ item.quantity }}</p>
+            </div>
+            <div class="item-price">
+              <p>{{ item.product.price }} €</p>
+            </div>
+          </div>
+        </div>
             <div class="total-price">
               <p>Total</p>
               <div class="price-container">
@@ -69,25 +90,8 @@
               </div>
             </div>
             <p v-if="promo" class="new-price">
-              {{ (total - (total * promo.discountPercentage) / 100).toFixed(2) }} €
+              {{ discountedTotal }} €
             </p>
-          </div>
-        </div>
-        <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
-          <div class="item-details" @click="showProductDetails(item.product.id)">
-            <h3>{{ item.product.name }}</h3>
-            <img
-              :src="item.image[0]?.url ?? '../../produit_avatar.jpg'"
-              :alt="item.image[0]?.description"
-              class="product-image"
-            />
-          </div>
-          <div class="item-quantity">
-            <label for="quantity">Quantité :</label>
-            <p :value="item.quantity" :key="item.quantity">{{ item.quantity }}</p>
-          </div>
-          <div class="item-price">
-            <p :value="item.product.price" :key="item.product.price">{{ item.product.price }} €</p>
           </div>
         </div>
       </div>
@@ -97,7 +101,7 @@
       <div class="payment-form">
         <h2>Paiement sécurisé</h2>
         <button class="pay-button" @click="handlePayment">
-          {{ promo ? 'Payer ' + ((total - (total * promo.discountPercentage) / 100).toFixed(2)) + ' €' : 'Payer ' + total + ' €' }}
+          {{ promo ? 'Payer ' + discountedTotal + ' €' : 'Payer ' + total + ' €' }}
         </button>
       </div>
     </div>
@@ -114,74 +118,48 @@ const stripePromise = loadStripe(
   'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
 )
 const router = useRouter()
-const cartItems = ref([])
-const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId')
+const authToken = localStorage.getItem('authToken')
 const promo = ref(null)
 const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
 const livraisonDomicileAddress = ref('')
+const carts = ref(null)
 
 const fetchCartItems = async () => {
-  try {
-    if (authToken) {
-      const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      })
-      const items = response.data
+  if (authToken) {
+    const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    })
 
-      // Combine items and handle duplicates
-      const combinedItems = []
-      const itemMap = new Map()
-      for (const item of items) {
-        if (itemMap.has(item.productId)) {
-          itemMap.get(item.productId).quantity += item.quantity
-        } else {
-          itemMap.set(item.productId, item)
-          combinedItems.push(item)
-        }
-      }
+    carts.value = response.data
 
-      // Delete duplicate items from the server
-      for (const productId of itemMap.keys()) {
-        const duplicateItems = items.filter((i) => i.productId === productId)
-        if (duplicateItems.length > 1) {
-          for (let i = 1; i < duplicateItems.length; i++) {
-            await axios.delete(`http://localhost:3000/carts/${duplicateItems[i].id}`, {
-              params: { userId: authToken }
-            })
-          }
-        }
-      }
-
-      // Fetch images for each product
-      for (const item of combinedItems) {
-        const productId = item.productId
-        const imageResponse = await axios.get(`http://localhost:3000/products/${productId}/images`)
-        item.image = imageResponse.data
-      }
-
-      cartItems.value = combinedItems
-
-      // Fetch promo if available
-      if (cartItems.value[0].promoCodeId) {
-        const promoId = cartItems.value[0].promoCodeId
-        const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`)
-        promo.value = responsePromo.data
-      } else {
-        promo.value = null
-      }
+    if (carts.value[0].promoCodeId) {
+      const promoId = carts.value[0].promoCodeId
+      const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`)
+      promo.value = responsePromo.data
+    } else {
+      promo.value = null
     }
-  } catch (error) {
-    console.error('Error fetching cart items:', error)
   }
 }
 
 const subtotal = computed(() => {
-  return cartItems.value.reduce((acc, item) => acc + item.product.price * item.quantity, 0).toFixed(2)
+  return carts.value
+    ? carts.value.reduce(
+        (acc, cart) => acc + cart.CartProducts.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+        0
+      ).toFixed(2)
+    : 0
 })
 
 const total = computed(() => {
   return parseFloat(subtotal.value).toFixed(2)
+})
+
+const discountedTotal = computed(() => {
+  return promo.value
+    ? (total.value - (total.value * promo.value.discountPercentage) / 100).toFixed(2)
+    : total.value
 })
 
 const showProductDetails = (id: string) => {
@@ -189,23 +167,31 @@ const showProductDetails = (id: string) => {
 }
 
 const handlePayment = async () => {
-  try {
+  const deliveryDetails =
+      deliveryOption.value === 'pointRelais'
+        ? `Point Relais: ${pointRelaisPostalCode.value}`
+        : `Livraison à domicile: ${livraisonDomicileAddress.value}`;
+
+    const order = await axios.post('http://localhost:3000/orders', {
+      total: discountedTotal.value,
+      method: deliveryDetails,
+      userId: authToken,
+    });
+
     const stripe = await stripePromise;
-    const response = await axios.post('http://localhost:3000/stripe', {
-      items: cartItems.value,
-      promo: promo.value
-    })
-    const sessionId = response.data.id
 
-    const { error } = await stripe.redirectToCheckout({ sessionId })
+    const stripeSession = await axios.post('http://localhost:3000/stripe', {
+      cartId: carts.value[0].id,
+      orderId: order.data.id,
+      items: carts.value[0].CartProducts,
+      promo: promo.value,
+    });
 
-    if (error) {
-      console.error('Stripe redirection error:', error)
-    }
-  } catch (error) {
-    console.error('Stripe payment error:', error)
-  }
-}
+    const { sessionId } = stripeSession.data;
+
+    const { error } = await stripe.redirectToCheckout({ sessionId });
+};
+
 
 const selectDeliveryOption = (option: string) => {
   deliveryOption.value = option

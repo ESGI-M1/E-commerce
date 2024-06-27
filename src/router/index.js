@@ -112,12 +112,12 @@ const routes = [
     component: Payment
   },
   {
-    path: '/success',
+    path: '/success/:orderId/:cartId',
     name: 'Success',
     component: Success
-  },
+  },  
   {
-    path: '/error',
+    path: '/error/:orderId',
     name: 'Error',
     component: Error
   },

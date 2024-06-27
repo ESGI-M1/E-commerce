@@ -7,7 +7,12 @@ module.exports = function(connection) {
             Product.belongsToMany(models.Category, { through: 'ProductCategories' });
             models.Category.belongsToMany(Product, { through: 'ProductCategories' });
 
-            this.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
+            Product.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
+
+            Product.hasMany(models.CartProduct, {
+                foreignKey: 'productId',
+                as: 'CartProducts',
+            });
         }
 
         static addHooks(models) {
@@ -76,6 +81,8 @@ module.exports = function(connection) {
         },
         {
             sequelize: connection,
+            modelName: 'Product', // Assurez-vous que le nom du modèle est correct
+            tableName: 'Products', // Assurez-vous que le nom de la table est correct
             hooks: {
                 beforeCreate: (product) => {
                     const now = new Date();

@@ -14,6 +14,7 @@ const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
 const AdressOrderRouter = require("./routes/adressOrder");
+const AdressUserRouter = require("./routes/adressUser");
 
 const app = express();
 const cors = require('cors')
@@ -40,6 +41,7 @@ app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
 app.use('/adressorders', AdressOrderRouter);
+app.use('/adressusers', AdressUserRouter);
 app.use(SecurityRouter);
 
 app.listen(process.env.PORT, () => {

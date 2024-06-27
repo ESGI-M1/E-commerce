@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { User } = require("../models");
+const { User, AddressUser } = require("../models");
 const router = new Router();
 
 router.get("/", async (req, res) => {
@@ -29,16 +29,18 @@ router.post("/", async (req, res, next) => {
 });
 
 router.get("/:id", async (req, res, next) => {
-  try {
-    const user = await User.findByPk(req.params.id);
-    if (user) {
-      res.json(user);
-    } else {
-      res.sendStatus(404);
+    const userId = req.params.id;
+    const addresses = await AddressUser.findAll({
+      where: { userId: userId },
+    });
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.sendStatus(404);
     }
-  } catch (e) {
-    next(e);
-  }
+    user.dataValues.deliveryAddress = addresses;
+    res.json(user);
 });
 
 router.patch("/:id", async (req, res, next) => {

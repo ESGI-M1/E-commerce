@@ -22,11 +22,7 @@ router.post("/", async (req, res, next) => {
 router.get("/:id(\\d+)", async (req, res, next) => {
     try {
         const category = await Category.findByPk(parseInt(req.params.id));
-        if (category) {
-            res.json(category);
-        } else {
-            res.sendStatus(404);
-        }
+        if (category ? res.json(category) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }
@@ -54,13 +50,7 @@ router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
                 }
             ],
         });
-        if (category) {
-            console.log(req.params.slug, "category found");
-            res.json(category);
-        } else {
-            console.log(req.params.slug, "category not found");
-            res.sendStatus(404);
-        }
+        if (category ? res.json(category) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }
@@ -96,11 +86,7 @@ router.delete("/:id", async (req, res, next) => {
                 id: parseInt(req.params.id),
             },
         });
-        if (nbDeleted === 1) {
-            res.sendStatus(204);
-        } else {
-            res.sendStatus(404);
-        }
+        if (nbDeleted === 1 ? res.sendStatus(204) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }

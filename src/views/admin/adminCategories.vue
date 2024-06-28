@@ -2,7 +2,9 @@
   <div class="categories">
     <h1>Gestion des Catégories</h1>
     <div class="text-right">
-      <button @click="showAddCategoryModal" class="btn btn-success"><i class="fa fa-plus"></i> Ajouter Catégorie</button>
+      <button @click="showAddCategoryModal" class="btn btn-success">
+        <i class="fa fa-plus"></i> Ajouter Catégorie
+      </button>
     </div>
 
     <!-- Tableau des catégories -->
@@ -27,8 +29,12 @@
             <td>{{ findCategoryName(category.parentCategoryId) }}</td>
             <td>{{ category.Products.length }}</td>
             <td>
-              <button @click="showEditCategoryModal(category)" class="btn btn-primary"><i class="fa fa-edit"></i></button>
-              <button @click="deleteCategory(category)" class="btn btn-danger"><i class="fa fa-trash-alt"></i></button>
+              <button @click="showEditCategoryModal(category)" class="btn btn-primary">
+                <i class="fa fa-edit"></i>
+              </button>
+              <button @click="deleteCategory(category)" class="btn btn-danger">
+                <i class="fa fa-trash-alt"></i>
+              </button>
             </td>
           </tr>
         </tbody>
@@ -77,7 +83,9 @@
           </div>
 
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">{{ isEditing ? 'Modifier' : 'Ajouter' }}</button>
+            <button type="submit" class="btn btn-primary">
+              {{ isEditing ? 'Modifier' : 'Ajouter' }}
+            </button>
             <button type="button" class="btn btn-danger" @click="closeModal">Annuler</button>
           </div>
         </form>
@@ -143,7 +151,10 @@ const addCategory = async () => {
 const updateCategory = async () => {
   try {
     const parsedCategory = categorySchema.parse(currentCategory.value)
-    await axios.patch(`http://localhost:3000/categories/${currentCategory.value.id}`, parsedCategory)
+    await axios.patch(
+      `http://localhost:3000/categories/${currentCategory.value.id}`,
+      parsedCategory
+    )
     const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
     if (index !== -1) {
       categories.value[index] = currentCategory.value
@@ -190,7 +201,7 @@ const closeModal = () => {
 }
 
 const findCategoryName = (id) => {
-  const category = categories.value.find(cat => cat.id === id)
+  const category = categories.value.find((cat) => cat.id === id)
   return category ? category.name : ''
 }
 
@@ -226,9 +237,9 @@ form {
   margin-bottom: 5px;
 }
 
-.form-group input[type="text"],
-.form-group input[type="date"],
-.form-group input[type="number"],
+.form-group input[type='text'],
+.form-group input[type='date'],
+.form-group input[type='number'],
 .form-group textarea,
 .form-group select {
   width: 100%;

@@ -46,12 +46,12 @@ const confirmPasswordError = computed(() => {
   return 'Les mots de passe ne sont pas identiques'
 })
 
-
 const changePassword = () => {
+  if (!passwordSchema.safeParse(password.value).success || password.value !== confirmPassword.value)
+    return
 
-  if (!passwordSchema.safeParse(password.value).success || password.value !== confirmPassword.value) return
-
-  axios.post('http://localhost:3000/reset-password', {
+  axios
+    .post('http://localhost:3000/reset-password', {
       password: password.value,
       token: $route.params.token
     })
@@ -60,9 +60,8 @@ const changePassword = () => {
     })
     .catch((error) => {
       console.log(error)
-      alert("Échec de la réinitialisation du mot de passe")
+      alert('Échec de la réinitialisation du mot de passe')
     })
-    
 }
 </script>
 
@@ -70,20 +69,32 @@ const changePassword = () => {
   <div class="reset-password auth-form">
     <h1>Changez votre mot de passe</h1>
     <form v-if="!submited" @submit.prevent="changePassword">
-        <div>
-            <label for="password">Nouveau mot de passe</label>
-            <input type="password" placeholder="Nouveau mot de passe" v-model="password" required autocomplete="new-password" />
-            <small class="error" v-if="password && passwordError">
-                {{ passwordError }}
-            </small>
-        </div>
-        <div>
-            <label for="confirmPassword">Confirmer le mot de passe</label>
-            <input type="password" placeholder="Confirmer le mot de passe" v-model="confirmPassword" required autocomplete="new-password" />
-            <small class="error" v-if="confirmPassword && confirmPasswordError">
-                {{ confirmPasswordError }}
-            </small>
-        </div>
+      <div>
+        <label for="password">Nouveau mot de passe</label>
+        <input
+          type="password"
+          placeholder="Nouveau mot de passe"
+          v-model="password"
+          required
+          autocomplete="new-password"
+        />
+        <small class="error" v-if="password && passwordError">
+          {{ passwordError }}
+        </small>
+      </div>
+      <div>
+        <label for="confirmPassword">Confirmer le mot de passe</label>
+        <input
+          type="password"
+          placeholder="Confirmer le mot de passe"
+          v-model="confirmPassword"
+          required
+          autocomplete="new-password"
+        />
+        <small class="error" v-if="confirmPassword && confirmPasswordError">
+          {{ confirmPasswordError }}
+        </small>
+      </div>
       <button type="submit">Changer le mot de passe</button>
     </form>
     <div v-else>

@@ -23,9 +23,16 @@
         <tr v-for="product in products" :key="product.id">
           <td>
             <label class="image-upload">
-              <input type="file" @change="handleImageChange($event, product)" accept="image/*" style="display: none;" />
+              <input
+                type="file"
+                @change="handleImageChange($event, product)"
+                accept="image/*"
+                style="display: none"
+              />
               <img
-                :src="product.Images ? product.Images[0].url : require('@/assets/produit_avatar.jpg')"
+                :src="
+                  product.Images ? product.Images[0].url : require('@/assets/produit_avatar.jpg')
+                "
                 :alt="product.Images ? product.Images[0].description : 'Product image'"
                 @click="triggerFileInput"
               />
@@ -71,12 +78,23 @@
 
           <div class="form-group">
             <label for="description">Description</label>
-            <textarea v-model="currentProduct.description" id="description" rows="4" required></textarea>
+            <textarea
+              v-model="currentProduct.description"
+              id="description"
+              rows="4"
+              required
+            ></textarea>
           </div>
 
           <div class="form-group">
             <label for="price">Prix</label>
-            <input v-model.number="currentProduct.price" type="number" step="0.01" id="price" required />
+            <input
+              v-model.number="currentProduct.price"
+              type="number"
+              step="0.01"
+              id="price"
+              required
+            />
           </div>
 
           <template v-if="isEditing">
@@ -136,8 +154,8 @@ const isEditing = ref(false)
 const fetchProducts = async () => {
   try {
     const response = await axios.get('http://localhost:3000/products')
-    products.value = response.data;
-    console.log(products.value);
+    products.value = response.data
+    console.log(products.value)
   } catch (error) {
     console.error('Erreur lors de la récupération des produits :', error)
   }
@@ -222,40 +240,47 @@ const closeModal = () => {
 
 const updateProductImage = async (productId, newImage) => {
   try {
-    const formData = new FormData();
-    formData.append('image', newImage);
+    const formData = new FormData()
+    formData.append('image', newImage)
 
-    const response = await axios.post(`http://localhost:3000/products/${productId}/image`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
+    const response = await axios.post(
+      `http://localhost:3000/products/${productId}/image`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       }
-    });
+    )
 
     // Mettre à jour les images du produit dans la liste
-    const updatedProductIndex = products.value.findIndex((p) => p.id === productId);
+    const updatedProductIndex = products.value.findIndex((p) => p.id === productId)
     if (updatedProductIndex !== -1) {
-      products.value[updatedProductIndex].Images = response.data.Images;
+      products.value[updatedProductIndex].Images = response.data.Images
     }
   } catch (error) {
-    console.error('Erreur lors de la modification de l\'image du produit :', error);
+    console.error("Erreur lors de la modification de l'image du produit :", error)
   }
 }
 
 const triggerFileInput = () => {
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*';
-  fileInput.style.display = 'none';
+  const fileInput = document.createElement('input')
+  fileInput.type = 'file'
+  fileInput.accept = 'image/*'
+  fileInput.style.display = 'none'
   fileInput.addEventListener('change', (event) => {
-    const newImage = event.target.files[0];
-    updateProductImage(currentProduct.value.id, newImage);
-  });
-  fileInput.click();
+    const newImage = event.target.files[0]
+    updateProductImage(currentProduct.value.id, newImage)
+  })
+  fileInput.click()
 }
 
+/*
+NOT USED
 const handleImageChange = (event, product) => {
   // Ce gestionnaire peut être vide ici ou supprimé car on utilise `triggerFileInput` pour gérer le changement d'image.
 }
+*/
 
 onMounted(() => {
   fetchProducts()
@@ -289,9 +314,9 @@ form {
   margin-bottom: 5px;
 }
 
-.form-group input[type="text"],
-.form-group input[type="date"],
-.form-group input[type="number"],
+.form-group input[type='text'],
+.form-group input[type='date'],
+.form-group input[type='number'],
 .form-group textarea,
 .form-group select {
   width: 100%;

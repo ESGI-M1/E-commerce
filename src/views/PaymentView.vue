@@ -10,14 +10,14 @@
         <div class="delivery-options">
           <button
             class="delivery-option"
-            :class="{ 'active': deliveryOption === 'pointRelais' }"
+            :class="{ active: deliveryOption === 'pointRelais' }"
             @click="selectDeliveryOption('pointRelais')"
           >
             <i class="fas fa-map-marker-alt"></i> Point relais
           </button>
           <button
             class="delivery-option"
-            :class="{ 'active': deliveryOption === 'livraisonDomicile' }"
+            :class="{ active: deliveryOption === 'livraisonDomicile' }"
             @click="selectDeliveryOption('livraisonDomicile')"
           >
             <i class="fas fa-truck"></i> Livraison à domicile
@@ -28,7 +28,7 @@
           <h3>Point relais</h3>
           <label>
             Code postal :
-            <input type="text" v-model="pointRelaisPostalCode">
+            <input type="text" v-model="pointRelaisPostalCode" />
           </label>
         </div>
 
@@ -36,7 +36,7 @@
           <h3>Livraison à domicile</h3>
           <label>
             Adresse :
-            <input type="text" v-model="livraisonDomicileAddress">
+            <input type="text" v-model="livraisonDomicileAddress" />
           </label>
         </div>
       </div>
@@ -97,7 +97,11 @@
       <div class="payment-form">
         <h2>Paiement sécurisé</h2>
         <button class="pay-button" @click="handlePayment">
-          {{ promo ? 'Payer ' + ((total - (total * promo.discountPercentage) / 100).toFixed(2)) + ' €' : 'Payer ' + total + ' €' }}
+          {{
+            promo
+              ? 'Payer ' + (total - (total * promo.discountPercentage) / 100).toFixed(2) + ' €'
+              : 'Payer ' + total + ' €'
+          }}
         </button>
       </div>
     </div>
@@ -177,7 +181,9 @@ const fetchCartItems = async () => {
 }
 
 const subtotal = computed(() => {
-  return cartItems.value.reduce((acc, item) => acc + item.product.price * item.quantity, 0).toFixed(2)
+  return cartItems.value
+    .reduce((acc, item) => acc + item.product.price * item.quantity, 0)
+    .toFixed(2)
 })
 
 const total = computed(() => {
@@ -190,7 +196,7 @@ const showProductDetails = (id: string) => {
 
 const handlePayment = async () => {
   try {
-    const stripe = await stripePromise;
+    const stripe = await stripePromise
     const response = await axios.post('http://localhost:3000/stripe', {
       items: cartItems.value,
       promo: promo.value
@@ -251,7 +257,9 @@ header {
   border: 1px solid #ccc;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .delivery-option:hover {
@@ -293,7 +301,7 @@ input[type='text'] {
 .pay-button {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -382,5 +390,4 @@ input[type='text'] {
 .new-price {
   text-align: right;
 }
-
 </style>

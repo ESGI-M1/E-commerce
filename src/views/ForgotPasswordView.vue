@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue'
 import { z } from 'zod'
 import axios from 'axios'
-import { useRouter } from 'vue-router'
 
 const email = ref('')
 const emailSchema = z.string().email("L'email est invalide")
@@ -18,23 +17,20 @@ const emailError = computed(() => {
   return parsedEmail.error.issues[0].message
 })
 
-
 const forgotPassword = () => {
-
   if (!emailSchema.safeParse(email.value).success) return
 
-
-  axios.post('http://localhost:3000/forgot-password', {
-      email: email.value,
+  axios
+    .post('http://localhost:3000/forgot-password', {
+      email: email.value
     })
     .then(() => {
       submited.value = true
     })
     .catch((error) => {
       console.log(error)
-      alert("Échec de la réinitialisation du mot de passe")
+      alert('Échec de la réinitialisation du mot de passe')
     })
-    
 }
 </script>
 
@@ -42,7 +38,10 @@ const forgotPassword = () => {
   <div class="forgot-password auth-form">
     <h1>Mot de passe oublié</h1>
     <form v-if="!submited" @submit.prevent="forgotPassword">
-        <p>Mot de passe perdu ? Veuillez saisir votre votre adresse e-mail. Vous recevrez un lien par e-mail pour créer un nouveau mot de passe.</p>
+      <p>
+        Mot de passe perdu ? Veuillez saisir votre votre adresse e-mail. Vous recevrez un lien par
+        e-mail pour créer un nouveau mot de passe.
+      </p>
       <div>
         <label for="email">Email</label>
         <input type="email" placeholder="Email" v-model="email" required autocomplete="email" />

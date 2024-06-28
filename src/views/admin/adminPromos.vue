@@ -2,10 +2,10 @@
   <div class="promos">
     <h1>Codes Promos</h1>
     <div class="text-right">
-    <button class="btn btn-success" @click="showAddForm">
-      <i class="fa fa-plus"></i> Ajouter Code Promo
-    </button>
-  </div>
+      <button class="btn btn-success" @click="showAddForm">
+        <i class="fa fa-plus"></i> Ajouter Code Promo
+      </button>
+    </div>
     <table>
       <thead>
         <tr>
@@ -25,7 +25,9 @@
           <td>{{ formatDate(promo.endDate) }}</td>
           <td>{{ promo.discountPercentage }}</td>
           <td>
-            <button @click="editPromo(promo.id)" class="btn btn-primary"><i class="fa fa-edit"></i></button>
+            <button @click="editPromo(promo.id)" class="btn btn-primary">
+              <i class="fa fa-edit"></i>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -54,11 +56,18 @@
 
           <div class="form-group">
             <label for="discountPercentage">Pourcentage de réduction (%):</label>
-            <input type="number" id="discountPercentage" v-model="promo.discountPercentage" required />
+            <input
+              type="number"
+              id="discountPercentage"
+              v-model="promo.discountPercentage"
+              required
+            />
           </div>
 
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">{{ editMode ? 'Modifier' : 'Ajouter' }}</button>
+            <button type="submit" class="btn btn-primary">
+              {{ editMode ? 'Modifier' : 'Ajouter' }}
+            </button>
             <button type="button" class="btn btn-danger" @click="cancelEdit">Annuler</button>
           </div>
         </form>
@@ -66,7 +75,6 @@
     </div>
   </div>
 </template>
-
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
@@ -176,9 +184,9 @@ form {
   margin-bottom: 5px;
 }
 
-.form-group input[type="text"],
-.form-group input[type="date"],
-.form-group input[type="number"] {
+.form-group input[type='text'],
+.form-group input[type='date'],
+.form-group input[type='number'] {
   width: 100%;
   padding: 8px;
   font-size: 1rem;

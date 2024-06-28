@@ -5,25 +5,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from 'vue'
 
 const props = defineProps<{
   color: string
-}>();
+}>()
 
 const emit = defineEmits<{
   (e: 'click'): void
-}>();
+}>()
 
-const buttonClass = computed(() => `btn ${props.color}`);
+const buttonClass = computed(() => `btn ${props.color}`)
 
 const handleClick = () => {
-  emit('click');
-};
+  emit('click')
+}
 </script>
 
 <style scoped>
-
 .default {
   background-color: #007bff;
   color: white;

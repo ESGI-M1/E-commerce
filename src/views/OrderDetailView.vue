@@ -39,16 +39,32 @@
         </div>
         <div class="order-actions">
           <div v-if="cart.promo">
-              <div class="first-price">
-                <p class="old-price">{{ cart.product.price }} €</p>
-                <span class="discount">(-{{ cart.promo.discountPercentage }}%)</span>
-              </div>
-              <p class="new-price text-left">{{ calculateDiscountedPrice(cart.product.price, cart.promo.discountPercentage) }} €</p>
+            <div class="first-price">
+              <p class="old-price">{{ cart.product.price }} €</p>
+              <span class="discount">(-{{ cart.promo.discountPercentage }}%)</span>
             </div>
-            <p v-else class="new-price">{{ cart.product.price }} €</p>
-          <button @click="addToCart(cart.product.id, 1)" class="button-order">Commander à nouveau</button>
-          <button v-if="!cart.product.returned" @click="returnItem(order.id, cart.product.id, cart.quantity)" class="button-order">Retourner l'article</button>
-          <button v-else @click="returnItem(order.id, cart.product.id, cart.quantity)" class="button-order">Voir les détails ({{ cart.product.returned.status }})</button>
+            <p class="new-price text-left">
+              {{ calculateDiscountedPrice(cart.product.price, cart.promo.discountPercentage) }} €
+            </p>
+          </div>
+          <p v-else class="new-price">{{ cart.product.price }} €</p>
+          <button @click="addToCart(cart.product.id, 1)" class="button-order">
+            Commander à nouveau
+          </button>
+          <button
+            v-if="!cart.product.returned"
+            @click="returnItem(order.id, cart.product.id, cart.quantity)"
+            class="button-order"
+          >
+            Retourner l'article
+          </button>
+          <button
+            v-else
+            @click="returnItem(order.id, cart.product.id, cart.quantity)"
+            class="button-order"
+          >
+            Voir les détails ({{ cart.product.returned.status }})
+          </button>
         </div>
       </div>
     </div>
@@ -131,9 +147,9 @@ const downloadInvoice = async (orderId) => {
   }
 }
 
-const returnItem = (orderId: number, productId: number, quantity: number) => {
-  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } });
-};
+const returnItem = (orderId: number, productId: number) => {
+  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } })
+}
 
 const formatDate = (dateStr: string) => {
   try {

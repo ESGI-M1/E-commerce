@@ -20,8 +20,8 @@ import Order from '../views/OrderView.vue'
 import OrderDetail from '../views/OrderDetailView.vue'
 import ReturnProduct from '../views/ReturnProductView.vue'
 import ConfirmAdress from '../views/ConfirmAdress.vue'
-import Success from '../views/Success.vue'
-import Error from '../views/Error.vue'
+import Success from '../views/SuccessView.vue'
+import Error from '../views/ErrorView.vue'
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -97,7 +97,7 @@ const routes = [
   },
   {
     path: '/identifier',
-    name: "Identifier",
+    name: 'Identifier',
     component: Identifier
   },
   {
@@ -160,7 +160,7 @@ const routes = [
   {
     path: '/order/:orderId/returnProduct/:productId',
     name: 'ReturnProducts',
-    component: ReturnProduct,
+    component: ReturnProduct
   },
   {
     path: '/ressources',
@@ -202,7 +202,7 @@ const routes = [
     name: 'Retours',
     component: Returns,
     meta: { requiresAdmin: true }
-  },
+  }
 ]
 
 const router = createRouter({

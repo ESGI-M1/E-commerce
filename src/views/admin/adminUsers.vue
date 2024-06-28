@@ -2,10 +2,10 @@
   <div class="users">
     <h1>Utilisateurs</h1>
     <div class="text-right">
-    <button class="btn btn-success" @click="showAddUserModal">
-      <i class="fa fa-plus"></i> Ajouter Utilisateur
-    </button>
-  </div>
+      <button class="btn btn-success" @click="showAddUserModal">
+        <i class="fa fa-plus"></i> Ajouter Utilisateur
+      </button>
+    </div>
     <table>
       <thead>
         <tr>
@@ -25,9 +25,15 @@
           <td>{{ user.email }}</td>
           <td>{{ user.role }}</td>
           <td>
-            <button @click="showEditUserModal(user)" class="btn btn-primary"><i class="fa fa-edit"></i></button>
-            <button @click="resetPassword(user.id)" class="btn btn-warning">Réinitialiser MDP</button>
-            <button @click="deleteUser(user.id)" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+            <button @click="showEditUserModal(user)" class="btn btn-primary">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button @click="resetPassword(user.id)" class="btn btn-warning">
+              Réinitialiser MDP
+            </button>
+            <button @click="deleteUser(user.id)" class="btn btn-danger">
+              <i class="fa fa-trash"></i>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -61,7 +67,9 @@
           </div>
 
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">{{ isEditing ? 'Modifier' : 'Ajouter' }}</button>
+            <button type="submit" class="btn btn-primary">
+              {{ isEditing ? 'Modifier' : 'Ajouter' }}
+            </button>
             <button type="button" class="btn btn-danger" @click="closeModal">Annuler</button>
           </div>
         </form>
@@ -117,9 +125,12 @@ const addUser = async () => {
 const updateUser = async () => {
   try {
     const parsedUser = userSchema.parse(currentUser.value)
-    const response = await axios.patch(`http://localhost:3000/users/${currentUser.value.id}`, parsedUser)
+    const response = await axios.patch(
+      `http://localhost:3000/users/${currentUser.value.id}`,
+      parsedUser
+    )
     const updatedUser = response.data
-    const index = users.value.findIndex(u => u.id === updatedUser.id)
+    const index = users.value.findIndex((u) => u.id === updatedUser.id)
     if (index !== -1) {
       users.value.splice(index, 1, updatedUser)
     }
@@ -131,7 +142,7 @@ const updateUser = async () => {
 
 const deleteUser = async (userId: number) => {
   try {
-    await axios.delete(`http://localhost:3000/users/${userId}`);
+    await axios.delete(`http://localhost:3000/users/${userId}`)
   } catch (error) {
     console.error("Erreur lors de la suppression de l'utilisateur :", error)
   }
@@ -163,7 +174,6 @@ onMounted(() => {
   fetchUsers()
 })
 </script>
-
 
 <style scoped>
 .modal-overlay {
@@ -209,9 +219,9 @@ onMounted(() => {
   margin-bottom: 5px;
 }
 
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="password"] {
+.form-group input[type='text'],
+.form-group input[type='email'],
+.form-group input[type='password'] {
   width: 100%;
   padding: 8px;
   font-size: 1rem;

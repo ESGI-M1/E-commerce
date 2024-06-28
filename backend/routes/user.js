@@ -35,11 +35,7 @@ router.post("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
   try {
     const user = await User.findByPk(req.params.id);
-    if (user) {
-      res.json(user);
-    } else {
-      res.sendStatus(404);
-    }
+    if (user ? res.json(user) : res.sendStatus(404));
   } catch (e) {
     next(e);
   }
@@ -54,8 +50,7 @@ router.patch("/:id", async (req, res, next) => {
       individualHooks: true,
       returning: true,
     });
-    if (nbUpdated) res.json(users[0]);
-    else res.sendStatus(404);
+    if (nbUpdated ? res.json(users[0]) : res.sendStatus(404));
   } catch (e) {
     next(e);
   }
@@ -68,7 +63,7 @@ router.delete("/:id", async (req, res, next) => {
         id: parseInt(req.params.id, 10),
       },
     });
-    res.json({ success: true });
+    if (nbDeleted === 1 ? res.sendStatus(204) : res.sendStatus(404));
   } catch (e) {
     next(e);
   }
@@ -91,7 +86,7 @@ router.put("/:id", async (req, res, next) => {
   }
 });
 
-router.get("/confirm-address/:token", async (req, res, next) => {
+router.get("/confirm-address/:token", async (req, res) => {
   try {
     const token = req.params.token;
     const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -110,7 +105,7 @@ router.get("/confirm-address/:token", async (req, res, next) => {
   }
 });
 
-router.post("/reset-password", async (req, res, next) => {
+router.post("/reset-password", async (req, res) => {
   try {
     const token = req.body.token;
     const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);

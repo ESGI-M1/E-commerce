@@ -15,11 +15,7 @@ router.get("/product/:id", async (req, res, next) => {
         productId: req.params.id
       }
     });
-    if (cart) {
-      res.json(cart);
-    } else {
-      res.sendStatus(404);
-    }
+    if (cart ? res.json(cart) : res.sendStatus(404));
   } catch (e) {
     next(e);
   }
@@ -215,11 +211,7 @@ router.delete("/:id", async (req, res) => {
   try {
     const deleted = await Cart.destroy({ where: { id: cartItemId, userId } });
 
-    if (deleted) {
-      res.sendStatus(204);
-    } else {
-      res.sendStatus(404);
-    }
+    if (deleted ? res.sendStatus(204) : res.sendStatus(404));
   } catch (error) {
     res.status(500).json({ error: 'Unable to delete cart item' });
   }
@@ -231,7 +223,7 @@ router.post('/remove-promo', async (req, res) => {
   try {
     await Cart.update({ promoCodeId: null }, { where: { userId, id: cartIds } });
 
-    res.json({ success: true });
+    res.sendStatus(200);
   } catch (error) {
     res.status(500).json({ success: false, error: 'Erreur lors de la suppression du code promo.' });
   }

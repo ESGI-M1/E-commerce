@@ -15,11 +15,14 @@ const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
 const AdressOrderRouter = require("./routes/adressOrder");
 const AdressUserRouter = require("./routes/adressUser");
+const rateLimiter = require('./rateLimiter');
 
 const app = express();
 const cors = require('cors')
 require ("./migrate");
 require("./mongo/db");
+require('./services/cron');
+
 
 const options = {
   origin: ['http://localhost:5173'],
@@ -42,7 +45,7 @@ app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
 app.use('/adressorders', AdressOrderRouter);
 app.use('/adressusers', AdressUserRouter);
-app.use(SecurityRouter);
+app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {
   console.log("Server running on port " + process.env.PORT);

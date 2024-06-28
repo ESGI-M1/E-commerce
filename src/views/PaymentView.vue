@@ -309,7 +309,6 @@ const getCountryFromPostalCode = (postalCode) => {
   return postalCodeCountryData[postalCode] || 'Pays inconnu';
 };
 
-
 const selectDeliveryOption = (option: string) => {
   deliveryOption.value = option
 }
@@ -354,7 +353,9 @@ header {
   border: 1px solid #ccc;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .delivery-option:hover {
@@ -403,7 +404,7 @@ input[type='text'] {
 .pay-button {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -492,5 +493,4 @@ input[type='text'] {
 .new-price {
   text-align: right;
 }
-
 </style>

@@ -24,11 +24,7 @@ router.get("/:id", async (req, res, next) => {
         const product = await Product.findByPk(req.params.id, {
             include: Image
         });
-        if (product) {
-            res.json(product.Image.url);
-        } else {
-            res.sendStatus(404);
-        }
+        if (product ? res.json(product) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }
@@ -42,11 +38,7 @@ router.patch("/:id", async (req, res, next) => {
             },
             returning: true,
         });
-        if (nbUpdated === 1) {
-            res.json(images[0]);
-        } else {
-            res.sendStatus(404);
-        }
+        if (nbUpdated === 1 ? res.json(images[0]) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }
@@ -59,11 +51,7 @@ router.delete("/:id", async (req, res, next) => {
                 id: parseInt(req.params.id),
             },
         });
-        if (nbDeleted === 1) {
-            res.sendStatus(204);
-        } else {
-            res.sendStatus(404);
-        }
+        if (nbDeleted === 1 ? res.sendStatus(204) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }

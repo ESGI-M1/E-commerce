@@ -81,8 +81,8 @@ module.exports = function(connection) {
         },
         {
             sequelize: connection,
-            modelName: 'Product', // Assurez-vous que le nom du modèle est correct
-            tableName: 'Products', // Assurez-vous que le nom de la table est correct
+            modelName: 'Product',
+            tableName: 'Products',
             hooks: {
                 beforeCreate: (product) => {
                     const now = new Date();

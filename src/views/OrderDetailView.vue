@@ -135,9 +135,9 @@ const downloadInvoice = async (orderId) => {
   }
 }
 
-const returnItem = (orderId: number, productId: number, quantity: number) => {
-  router.push({ name: 'ReturnProducts', params: { orderId, productId } });
-};
+const returnItem = (orderId: number, productId: number) => {
+  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } })
+}
 
 const formatDate = (dateStr: string) => {
     const parsedDate = parseISO(dateStr)

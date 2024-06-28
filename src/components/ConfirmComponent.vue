@@ -15,43 +15,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, computed } from 'vue';
-import Button from './button/ButtonComponent.vue';
+import { ref, computed } from 'vue'
+import Button from './button/ButtonComponent.vue'
 
 const props = defineProps<{
-  buttonText: string;
-  confirmationMessage: string;
-  class: string;
-}>();
+  buttonText: string
+  confirmationMessage: string
+  class: string
+}>()
 
 const emit = defineEmits<{
-  (e: 'confirmed'): void;
-}>();
+  (e: 'confirmed'): void
+}>()
 
-const showModal = ref(false);
+const showModal = ref(false)
 
-const buttonClass = computed(() => `btn ${props.class}`);
+const buttonClass = computed(() => `btn ${props.class}`)
 
 const confirmAction = () => {
-  showModal.value = true;
-  document.body.style.overflow = 'hidden';
-};
+  showModal.value = true
+  document.body.style.overflow = 'hidden'
+}
 
 const cancelAction = () => {
-  showModal.value = false;
-  document.body.style.overflow = '';
-};
+  showModal.value = false
+  document.body.style.overflow = ''
+}
 
 const confirm = () => {
-  emit('confirmed');
-  showModal.value = false;
-  document.body.style.overflow = '';
-};
+  emit('confirmed')
+  showModal.value = false
+  document.body.style.overflow = ''
+}
 </script>
 
-
 <style scoped>
-
 .modal-buttons {
   text-align: center;
 }

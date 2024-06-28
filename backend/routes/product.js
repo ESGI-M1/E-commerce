@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const { Op } = require("sequelize");
 const { Product, Category, Image } = require("../models");
+
 const router = new Router();
 
 router.get("/", async (req, res) => {
@@ -8,6 +9,7 @@ router.get("/", async (req, res) => {
         where: req.query,
         include: [Category, Image],
     });
+
     res.json(products);
 });
 
@@ -65,13 +67,7 @@ router.get("/:id", async (req, res, next) => {
             ]
         });
 
-        if (product) {
-            console.log('Product found:', product);
-            res.json(product);
-        } else {
-            console.log('Product not found');
-            res.sendStatus(404);
-        }
+        if (product ? res.json(product) : res.sendStatus(404));
     } catch (e) {
         console.error('Error fetching product by ID:', e);
         next(e);
@@ -109,11 +105,7 @@ router.delete("/:id", async (req, res, next) => {
                 id: parseInt(req.params.id),
             },
         });
-        if (nbDeleted === 1) {
-            res.sendStatus(204);
-        } else {
-            res.sendStatus(404);
-        }
+        if (nbDeleted === 1 ? res.sendStatus(204) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }

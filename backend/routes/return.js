@@ -80,7 +80,7 @@ router.get("/:productId", async (req, res, next) => {
     }
   });
 
-  router.delete("/", async (req, res, next) => {
+  router.delete("/", async (req, res) => {
     const { productId, orderId, userId } = req.query;
       const deleted = await ReturnProduct.destroy({ where: { productId: productId, userId: userId, orderId: orderId } });
   

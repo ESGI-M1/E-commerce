@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Dashboard from '../views/DashboardView.vue'
 import About from '../views/AboutView.vue'
+
 import Login from '../views/LoginView.vue'
 import Signup from '../views/SignupView.vue'
+import ForgotPassword from '../views/ForgotPasswordView.vue'
+import Identifier from '../views/IdentifyView.vue'
+import ResetPassword from '../views/ResetPasswordView.vue'
+
 import Category from '../views/CategoryView.vue'
 import Search from '../views/SearchView.vue'
 import Cart from '../views/CartView.vue'
 import ProductDetail from '../views/ProductDetailView.vue'
-import Identifier from '../views/IdentifyView.vue'
 import Payment from '../views/PaymentView.vue'
 import Favoris from '../views/FavoriteView.vue'
 import Profile from '../views/ProfileView.vue'
@@ -15,8 +19,9 @@ import ProductList from '../views/ProductListView.vue'
 import Order from '../views/OrderView.vue'
 import OrderDetail from '../views/OrderDetailView.vue'
 import ReturnProduct from '../views/ReturnProductView.vue'
-import Success from '../views/Success.vue'
-import Error from '../views/Error.vue'
+import ConfirmAdress from '../views/ConfirmAdress.vue'
+import Success from '../views/SuccessView.vue'
+import Error from '../views/ErrorView.vue'
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -77,12 +82,22 @@ const routes = [
   },
   {
     path: '/signup',
-    name: 'Sign up',
+    name: 'Signup',
     component: Signup
   },
   {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword
+  },
+  {
+    path: '/reset-password/:token',
+    name: 'ResetPassword',
+    component: ResetPassword
+  },
+  {
     path: '/identifier',
-    name: "S'identifier",
+    name: 'Identifier',
     component: Identifier
   },
   {
@@ -145,7 +160,7 @@ const routes = [
   {
     path: '/order/:orderId/returnProduct/:productId',
     name: 'ReturnProducts',
-    component: ReturnProduct,
+    component: ReturnProduct
   },
   {
     path: '/ressources',
@@ -170,6 +185,11 @@ const routes = [
     name: 'Code promos',
     component: Promos,
     meta: { requiresAdmin: true }
+  },
+  {
+    path: '/users/confirm-address/:token',
+    name: 'ConfirmAdress',
+    component: ConfirmAdress
   },
   {
     path: '/orders',

@@ -1,6 +1,9 @@
 const { Router } = require("express");
 const { User, AddressUser } = require("../models");
 const router = new Router();
+const mailer = require('../services/mailer');
+const jwt = require("jsonwebtoken");
+
 
 router.get("/", async (req, res) => {
   try {
@@ -19,6 +22,7 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res, next) => {
   try {
     const user = await User.create(req.body);
+    mailer.sendValidateInscription(user);
     res.status(201).json(user);
   } catch (e) {
     if (e.name === 'SequelizeUniqueConstraintError') {
@@ -52,8 +56,7 @@ router.patch("/:id", async (req, res, next) => {
       individualHooks: true,
       returning: true,
     });
-    if (nbUpdated) res.json(users[0]);
-    else res.sendStatus(404);
+    if (nbUpdated ? res.json(users[0]) : res.sendStatus(404));
   } catch (e) {
     next(e);
   }
@@ -87,6 +90,46 @@ router.put("/:id", async (req, res, next) => {
     res.status(nbDeleted ? 200 : 201).json(user);
   } catch (e) {
     next(e);
+  }
+});
+
+router.get("/confirm-address/:token", async (req, res) => {
+  try {
+    const token = req.params.token;
+    const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!tokenDecoded || tokenDecoded.operation !== "confirm_address") {
+      return res.sendStatus(406);
+    } else {
+      User.update({active: true}, {
+        where: {
+          id: tokenDecoded.id,
+        }
+      });
+      return res.sendStatus(201);
+    }
+  } catch (e) {
+    return res.sendStatus(406);
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const token = req.body.token;
+    const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!tokenDecoded || tokenDecoded.operation !== "reset-password") {
+      return res.sendStatus(406);
+    } else {
+      await User.update({password: req.body.password },
+        {
+          where: {
+            id: tokenDecoded.id
+          },
+          individualHooks: true
+        });
+      return res.sendStatus(201);
+    }
+  } catch (e) {
+    return res.sendStatus(406);
   }
 });
 

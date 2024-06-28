@@ -202,7 +202,7 @@ const routes = [
     name: 'Retours',
     component: Returns,
     meta: { requiresAdmin: true }
-  }
+  },
 ]
 
 const router = createRouter({

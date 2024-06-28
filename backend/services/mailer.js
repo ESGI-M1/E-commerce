@@ -2,7 +2,6 @@ const nodemailer = require('nodemailer');
 //import { config } from '@vue-email/compiler';
 const compiler = require('@vue-email/compiler');
 const jwt = require('jsonwebtoken')
-const { User } = require('../models');
 
 const vueEmail = compiler.config('./services/emails');
 

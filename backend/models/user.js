@@ -68,7 +68,7 @@ module.exports = function (connection) {
       },
       lastPasswordUpdate: {
         type: DataTypes.DATE
-      },
+      }
     },
     { sequelize: connection }
   );

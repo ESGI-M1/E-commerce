@@ -1,37 +1,8 @@
 <template>
   <div class="categories">
     <h1>Gestion des Catégories</h1>
-
-    <!-- Ajouter une nouvelle catégorie -->
-    <div class="add-category">
-      <h2>Ajouter une Catégorie</h2>
-      <form @submit.prevent="addCategory">
-        <label for="name">Nom</label>
-        <input v-model="newCategory.name" type="text" id="name" required />
-
-        <label for="slug">Slug</label>
-        <input v-model="newCategory.slug" type="text" id="slug" required />
-
-        <label for="description">Description</label>
-        <textarea v-model="newCategory.description" id="description"></textarea>
-
-        <label for="parentCategoryId">Catégorie Parent</label>
-        <select v-model="newCategory.parentCategoryId" id="parentCategoryId">
-          <option value="">Aucune</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ category.name }}
-          </option>
-        </select>
-
-        <label for="products">Produits</label>
-        <select v-model="newCategory.Products" id="products" multiple>
-          <option v-for="product in products" :key="product.id" :value="product.id">
-            {{ product.name }}
-          </option>
-        </select>
-
-        <button type="submit" class="btn add-btn"><i class="fas fa-plus"></i> Ajouter</button>
-      </form>
+    <div class="text-right">
+      <button @click="showAddCategoryModal" class="btn btn-success"><i class="fa fa-plus"></i> Ajouter Catégorie</button>
     </div>
 
     <!-- Tableau des catégories -->
@@ -50,36 +21,67 @@
         </thead>
         <tbody>
           <tr v-for="category in categories" :key="category.id">
-            <td><input v-model="category.name" type="text" required /></td>
-            <td><input v-model="category.slug" type="text" required /></td>
-            <td><input v-model="category.description" type="text" /></td>
+            <td>{{ category.name }}</td>
+            <td>{{ category.slug }}</td>
+            <td>{{ category.description }}</td>
+            <td>{{ findCategoryName(category.parentCategoryId) }}</td>
+            <td>{{ category.Products.length }}</td>
             <td>
-              <select v-model="category.parentCategoryId">
-                <option value="">Aucune</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                  {{ cat.name }}
-                </option>
-              </select>
-            </td>
-            <td>
-              {{ category.Products.length }}
-              <select v-model="category.Products" multiple>
-                <option v-for="product in products" :key="product.id" :value="product.id">
-                  {{ product.name }}
-                </option>
-              </select>
-            </td>
-            <td>
-              <button @click="updateCategory(category)" class="btn edit-btn">
-                <i class="fas fa-edit"></i> Modifier
-              </button>
-              <button @click="deleteCategory(category)" class="btn delete-btn">
-                <i class="fas fa-trash-alt"></i> Supprimer
-              </button>
+              <button @click="showEditCategoryModal(category)" class="btn btn-primary"><i class="fa fa-edit"></i></button>
+              <button @click="deleteCategory(category)" class="btn btn-danger"><i class="fa fa-trash-alt"></i></button>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Modal pour ajouter/modifier une catégorie -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
+        <span class="close" @click="closeModal">&times;</span>
+        <h2 v-if="isEditing">Modifier Catégorie</h2>
+        <h2 v-else>Ajouter Catégorie</h2>
+        <form @submit.prevent="isEditing ? updateCategory() : addCategory()">
+          <div class="form-group">
+            <label for="name">Nom</label>
+            <input v-model="currentCategory.name" type="text" id="name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="slug">Slug</label>
+            <input v-model="currentCategory.slug" type="text" id="slug" required />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea v-model="currentCategory.description" id="description"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="parentCategoryId">Catégorie Parent</label>
+            <select v-model="currentCategory.parentCategoryId" id="parentCategoryId">
+              <option value="">Aucune</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="products">Produits</label>
+            <select v-model="currentCategory.Products" id="products" multiple>
+              <option v-for="product in products" :key="product.id" :value="product.id">
+                {{ product.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="buttons">
+            <button type="submit" class="btn btn-primary">{{ isEditing ? 'Modifier' : 'Ajouter' }}</button>
+            <button type="button" class="btn btn-danger" @click="closeModal">Annuler</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
@@ -99,13 +101,15 @@ const categorySchema = z.object({
 })
 
 const categories = ref([])
-const newCategory = ref({
+const currentCategory = ref({
   name: '',
   slug: '',
   description: '',
   parentCategoryId: null,
   Products: []
 })
+const showModal = ref(false)
+const isEditing = ref(false)
 
 const fetchCategories = async () => {
   try {
@@ -116,22 +120,35 @@ const fetchCategories = async () => {
   }
 }
 
+const fetchProducts = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/products')
+    products.value = response.data
+  } catch (error) {
+    console.error('Erreur lors de la récupération des produits :', error)
+  }
+}
+
 const addCategory = async () => {
   try {
-    const parsedCategory = categorySchema.parse(newCategory.value)
+    const parsedCategory = categorySchema.parse(currentCategory.value)
     const response = await axios.post('http://localhost:3000/categories', parsedCategory)
     categories.value.push(response.data)
-    clearNewCategory()
+    closeModal()
   } catch (error) {
     console.error("Erreur lors de l'ajout de la catégorie :", error)
   }
 }
 
-const updateCategory = async (category) => {
+const updateCategory = async () => {
   try {
-    console.log(category)
-    const parsedCategory = categorySchema.parse(category)
-    await axios.patch(`http://localhost:3000/categories/${category.id}`, parsedCategory)
+    const parsedCategory = categorySchema.parse(currentCategory.value)
+    await axios.patch(`http://localhost:3000/categories/${currentCategory.value.id}`, parsedCategory)
+    const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
+    if (index !== -1) {
+      categories.value[index] = currentCategory.value
+    }
+    closeModal()
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('ZOD : Erreur lors de la modification de la catégorie :', error.errors)
@@ -150,24 +167,31 @@ const deleteCategory = async (category) => {
   }
 }
 
-const products = ref([])
-const fetchProducts = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/products')
-    products.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des produits :', error)
-  }
-}
-
-const clearNewCategory = () => {
-  newCategory.value = {
+const showAddCategoryModal = () => {
+  isEditing.value = false
+  currentCategory.value = {
     name: '',
     slug: '',
     description: '',
     parentCategoryId: null,
     Products: []
   }
+  showModal.value = true
+}
+
+const showEditCategoryModal = (category) => {
+  isEditing.value = true
+  currentCategory.value = { ...category }
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+}
+
+const findCategoryName = (id) => {
+  const category = categories.value.find(cat => cat.id === id)
+  return category ? category.name : ''
 }
 
 onMounted(() => {
@@ -181,71 +205,44 @@ onMounted(() => {
   padding: 20px;
 }
 
-.add-category,
-.category-table {
-  margin-bottom: 20px;
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
 form {
-  margin-bottom: 10px;
+  margin-top: 20px;
 }
 
-input,
-textarea,
-select {
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
   width: 100%;
   padding: 8px;
-  margin-bottom: 10px;
+  font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 14px;
 }
 
-.btn {
-  cursor: pointer;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
+.buttons {
+  margin-top: 20px;
 }
 
-.add-btn {
-  background-color: #42b983;
-  color: white;
-}
-
-.add-btn:hover {
-  background-color: #36a67d;
-}
-
-.edit-btn {
-  background-color: #f0ad4e;
-  color: white;
-}
-
-.edit-btn:hover {
-  background-color: #eea236;
-}
-
-.delete-btn {
-  background-color: #d9534f;
-  color: white;
-}
-
-.delete-btn:hover {
-  background-color: #c9302c;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
+.buttons button {
+  margin-right: 10px;
 }
 </style>

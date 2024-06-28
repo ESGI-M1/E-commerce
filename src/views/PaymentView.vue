@@ -7,7 +7,40 @@
     <div class="cart-content">
       <div class="cart-items" v-if="cartItems.length">
         <h2>Options de livraison</h2>
+        <div class="delivery-options">
+          <button
+            class="delivery-option"
+            :class="{ 'active': deliveryOption === 'pointRelais' }"
+            @click="selectDeliveryOption('pointRelais')"
+          >
+            <i class="fas fa-map-marker-alt"></i> Point relais
+          </button>
+          <button
+            class="delivery-option"
+            :class="{ 'active': deliveryOption === 'livraisonDomicile' }"
+            @click="selectDeliveryOption('livraisonDomicile')"
+          >
+            <i class="fas fa-truck"></i> Livraison à domicile
+          </button>
+        </div>
+
+        <div v-if="deliveryOption === 'pointRelais'" class="point-relais-form">
+          <h3>Point relais</h3>
+          <label>
+            Code postal :
+            <input type="text" v-model="pointRelaisPostalCode">
+          </label>
+        </div>
+
+        <div v-else-if="deliveryOption === 'livraisonDomicile'" class="livraison-domicile-form">
+          <h3>Livraison à domicile</h3>
+          <label>
+            Adresse :
+            <input type="text" v-model="livraisonDomicileAddress">
+          </label>
+        </div>
       </div>
+
       <div class="cart-summary" v-if="cartItems.length">
         <h2>Récapitulatif</h2>
         <div class="totals">
@@ -59,12 +92,12 @@
         </div>
       </div>
     </div>
+
     <div class="payment">
       <div class="payment-form">
         <h2>Paiement sécurisé</h2>
-        <div id="card-element" class="card-element"></div>
-        <button v-if="promo" @click="handlePayment" :disabled="!stripe">
-          Payer {{ (total - (total * promo.discountPercentage) / 100).toFixed(2) }} €
+        <button class="pay-button" @click="handlePayment">
+          {{ promo ? 'Payer ' + ((total - (total * promo.discountPercentage) / 100).toFixed(2)) + ' €' : 'Payer ' + total + ' €' }}
         </button>
       </div>
     </div>
@@ -79,11 +112,14 @@ import { loadStripe } from '@stripe/stripe-js'
 
 const stripePromise = loadStripe(
   'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
-) // Remplacez par votre clé publique
+)
 const router = useRouter()
 const cartItems = ref([])
 const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId')
 const promo = ref(null)
+const deliveryOption = ref('pointRelais')
+const pointRelaisPostalCode = ref('')
+const livraisonDomicileAddress = ref('')
 
 const fetchCartItems = async () => {
   try {
@@ -93,7 +129,7 @@ const fetchCartItems = async () => {
       })
       const items = response.data
 
-      // Combiner les articles dupliqués et supprimer les doublons
+      // Combine items and handle duplicates
       const combinedItems = []
       const itemMap = new Map()
       for (const item of items) {
@@ -105,6 +141,7 @@ const fetchCartItems = async () => {
         }
       }
 
+      // Delete duplicate items from the server
       for (const productId of itemMap.keys()) {
         const duplicateItems = items.filter((i) => i.productId === productId)
         if (duplicateItems.length > 1) {
@@ -116,6 +153,7 @@ const fetchCartItems = async () => {
         }
       }
 
+      // Fetch images for each product
       for (const item of combinedItems) {
         const productId = item.productId
         const imageResponse = await axios.get(`http://localhost:3000/products/${productId}/images`)
@@ -124,6 +162,7 @@ const fetchCartItems = async () => {
 
       cartItems.value = combinedItems
 
+      // Fetch promo if available
       if (cartItems.value[0].promoCodeId) {
         const promoId = cartItems.value[0].promoCodeId
         const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`)
@@ -133,14 +172,12 @@ const fetchCartItems = async () => {
       }
     }
   } catch (error) {
-    console.error('Erreur lors de la récupération des articles du panier :', error)
+    console.error('Error fetching cart items:', error)
   }
 }
 
 const subtotal = computed(() => {
-  return cartItems.value
-    .reduce((acc, item) => acc + item.product.price * item.quantity, 0)
-    .toFixed(2)
+  return cartItems.value.reduce((acc, item) => acc + item.product.price * item.quantity, 0).toFixed(2)
 })
 
 const total = computed(() => {
@@ -153,7 +190,7 @@ const showProductDetails = (id: string) => {
 
 const handlePayment = async () => {
   try {
-    const stripe = await stripePromise
+    const stripe = await stripePromise;
     const response = await axios.post('http://localhost:3000/stripe', {
       items: cartItems.value,
       promo: promo.value
@@ -163,11 +200,15 @@ const handlePayment = async () => {
     const { error } = await stripe.redirectToCheckout({ sessionId })
 
     if (error) {
-      console.error('Erreur de redirection Stripe:', error)
+      console.error('Stripe redirection error:', error)
     }
   } catch (error) {
-    console.error('Erreur de paiement Stripe:', error)
+    console.error('Stripe payment error:', error)
   }
+}
+
+const selectDeliveryOption = (option: string) => {
+  deliveryOption.value = option
 }
 
 onMounted(() => {
@@ -197,38 +238,119 @@ header {
   padding-bottom: 20px;
 }
 
-.cart-item {
+.delivery-options {
   display: flex;
-  align-items: center;
+  gap: 10px;
   margin-bottom: 20px;
-  background-color: #f9f9f9;
-  padding: 10px;
-  border-radius: 8px;
 }
 
-.product-image {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  margin-right: 20px;
+.delivery-option {
+  display: inline-block;
+  padding: 15px 20px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.delivery-option:hover {
+  background-color: #e0e0e0;
+}
+
+.delivery-option.active {
+  background-color: #ccc;
+}
+
+.point-relais-form,
+.livraison-domicile-form {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff; /* Background color set to white */
+  margin-top: 10px;
+}
+
+.point-relais-form h3,
+.livraison-domicile-form h3 {
+  margin-top: 0;
+}
+
+.point-relais-form label,
+.livraison-domicile-form label {
+  display: block;
+  margin-top: 10px;
+}
+
+input[type='text'] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.pay-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.pay-button:hover {
+  background-color: #45a049;
+}
+
+.pay-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.fa {
+  margin-right: 5px;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #ccc;
 }
 
 .item-details {
-  cursor: pointer;
-  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
-.item-details h3 {
-  margin: 0;
+.product-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  margin-left: 10px;
 }
 
-.item-quantity select {
-  width: 100px;
-  margin-right: 20px;
+.item-quantity {
+  display: flex;
+  align-items: center;
 }
 
 .item-price {
   text-align: right;
+}
+
+.totals {
+  margin-bottom: 20px;
+}
+
+.totals > div {
+  margin-bottom: 10px;
 }
 
 .cart-summary {
@@ -242,89 +364,14 @@ header {
   margin-top: 0;
 }
 
-.promo-code {
-  margin-bottom: 20px;
-}
-
-.promo-input {
+.price-container {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
-input[type='text'] {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-top: 5px;
-}
-
-.apply-button {
-  padding: 10px 20px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.apply-button:hover {
-  background-color: #f0f0f0;
-}
-
-.totals {
-  margin-bottom: 20px;
-}
-
-.totals > div {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.total p {
-  font-weight: bold;
-}
-
-.checkout-button {
-  padding: 10px 20px;
-  background-color: #000;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.checkout-button:hover {
-  background-color: #333;
-}
-
-.paypal-button {
-  padding: 10px 20px;
-  background-color: #0070ba;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-  width: 100%;
-}
-
-.paypal-button:hover {
-  background-color: #005ea6;
-}
-
-.fa-paypal {
+.discount {
+  color: green;
   margin-left: 5px;
-}
-
-.total {
-  display: block !important;
-}
-
-.total p:first-child {
-  text-align: left;
 }
 
 .total-price {
@@ -332,27 +379,8 @@ input[type='text'] {
   justify-content: space-between;
 }
 
-.price-container {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.old-price {
-  margin-right: 10px;
-}
-
-.discount {
-  color: green;
-}
-
 .new-price {
   text-align: right;
-  margin-top: 5px;
 }
 
-.error-message {
-  color: red;
-  text-align: left;
-}
 </style>

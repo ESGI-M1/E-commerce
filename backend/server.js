@@ -11,12 +11,17 @@ const PromoRouter = require("./routes/promo");
 const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
-//const StripeRouter = require("./stripe/stripe");
+
+const StripeRouter = require("./stripe/stripe");
+
+const rateLimiter = require('./rateLimiter');
 
 const app = express();
 const cors = require('cors')
 require ("./migrate");
 require("./mongo/db");
+require('./services/cron');
+
 
 const options = {
   origin: ['http://localhost:5173'],
@@ -36,8 +41,8 @@ app.use('/favorites', FavoriteRouter);
 app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 
-//app.use('/stripe', StripeRouter);
-app.use(SecurityRouter);
+app.use('/stripe', StripeRouter);
+app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {
   console.log("Server running on port " + process.env.PORT);

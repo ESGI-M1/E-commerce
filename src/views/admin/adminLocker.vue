@@ -1,13 +1,17 @@
 <template>
   <div class="products">
     <h1>Produits</h1>
-    <button @click="showAddProductModal" class="btn btn-success">Ajouter Produit</button>
-
+    <div class="text-right">
+      <button @click="showAddProductModal" class="btn btn-success">
+        <i class="fa fa-plus"></i> Ajouter Produit
+      </button>
+    </div>
     <table>
       <thead>
         <tr>
+          <th>Images</th>
           <th>Nom</th>
-          <th>Reference</th>
+          <th>Référence</th>
           <th>Description</th>
           <th>Prix</th>
           <th>Catégories</th>
@@ -17,10 +21,20 @@
       </thead>
       <tbody>
         <tr v-for="product in products" :key="product.id">
+          <td>
+            <label class="image-upload">
+              <input type="file" @change="handleImageChange($event, product)" accept="image/*" style="display: none;" />
+              <img
+                :src="product.Images ? product.Images[0].url : require('@/assets/produit_avatar.jpg')"
+                :alt="product.Images ? product.Images[0].description : 'Product image'"
+                @click="triggerFileInput"
+              />
+            </label>
+          </td>
           <td>{{ product.name }}</td>
           <td>{{ product.reference }}</td>
           <td>{{ product.description }}</td>
-          <td>{{ product.price }}</td>
+          <td>{{ product.price }} €</td>
           <td>
             <ul>
               <li v-for="category in product.Categories" :key="category.id">{{ category.name }}</li>
@@ -28,51 +42,65 @@
           </td>
           <td>{{ product.active ? 'Oui' : 'Non' }}</td>
           <td>
-            <button @click="showEditProductModal(product)" class="btn btn-primary">Modifier</button>
-            <button @click="deleteProduct(product)" class="btn btn-danger">Supprimer</button>
+            <button @click="showEditProductModal(product)" class="btn btn-primary">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button @click="deleteProduct(product)" class="btn btn-danger">
+              <i class="fa fa-trash"></i>
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <div v-if="showModal" class="modal">
-      <div class="modal-content">
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
         <span class="close" @click="closeModal">&times;</span>
         <h2 v-if="isEditing">Modifier Produit</h2>
         <h2 v-else>Ajouter Produit</h2>
         <form @submit.prevent="isEditing ? updateProduct() : addProduct()">
-          <label for="name">Nom</label>
-          <input v-model="currentProduct.name" type="text" id="name" required />
+          <div class="form-group">
+            <label for="name">Nom</label>
+            <input v-model="currentProduct.name" type="text" id="name" required />
+          </div>
 
-          <label for="reference">Reference</label>
-          <input v-model="currentProduct.reference" type="text" id="reference" required />
+          <div class="form-group">
+            <label for="reference">Référence</label>
+            <input v-model="currentProduct.reference" type="text" id="reference" required />
+          </div>
 
-          <label for="description">Description</label>
-          <textarea
-            v-model="currentProduct.description"
-            id="description"
-            rows="4"
-            required
-          ></textarea>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea v-model="currentProduct.description" id="description" rows="4" required></textarea>
+          </div>
 
-          <label for="price">Prix</label>
-          <input v-model="currentProduct.price" type="number" step="0.01" id="price" required />
+          <div class="form-group">
+            <label for="price">Prix</label>
+            <input v-model.number="currentProduct.price" type="number" step="0.01" id="price" required />
+          </div>
 
           <template v-if="isEditing">
-            <label for="categories">Catégories</label>
-            <select v-model="currentProduct.Categories" id="categories" multiple>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </select>
+            <div class="form-group">
+              <label for="categories">Catégories</label>
+              <select v-model="currentProduct.Categories" id="categories" multiple>
+                <option v-for="category in categories" :key="category.id" :value="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
           </template>
 
-          <label for="active">Actif</label>
-          <input v-model="currentProduct.active" type="checkbox" id="active" />
+          <div class="form-group">
+            <label for="active">Actif</label>
+            <input v-model="currentProduct.active" type="checkbox" id="active" />
+          </div>
 
-          <button type="submit" class="btn btn-primary">
-            {{ isEditing ? 'Modifier' : 'Ajouter' }}
-          </button>
+          <div class="buttons">
+            <button type="submit" class="btn btn-primary">
+              {{ isEditing ? 'Modifier' : 'Ajouter' }}
+            </button>
+            <button type="button" class="btn btn-danger" @click="closeModal">Annuler</button>
+          </div>
         </form>
       </div>
     </div>
@@ -108,7 +136,8 @@ const isEditing = ref(false)
 const fetchProducts = async () => {
   try {
     const response = await axios.get('http://localhost:3000/products')
-    products.value = response.data
+    products.value = response.data;
+    console.log(products.value);
   } catch (error) {
     console.error('Erreur lors de la récupération des produits :', error)
   }
@@ -116,7 +145,10 @@ const fetchProducts = async () => {
 
 const addProduct = async () => {
   try {
-    const parsedProduct = productSchema.parse(currentProduct.value)
+    const parsedProduct = productSchema.parse({
+      ...currentProduct.value,
+      price: parseFloat(currentProduct.value.price)
+    })
     const response = await axios.post('http://localhost:3000/products', parsedProduct)
     products.value.push(response.data)
     closeModal()
@@ -127,7 +159,10 @@ const addProduct = async () => {
 
 const updateProduct = async () => {
   try {
-    const parsedProduct = productSchema.parse(currentProduct.value)
+    const parsedProduct = productSchema.parse({
+      ...currentProduct.value,
+      price: parseFloat(currentProduct.value.price)
+    })
     console.log(parsedProduct)
     await axios.patch(`http://localhost:3000/products/${currentProduct.value.id}`, parsedProduct)
     const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
@@ -185,6 +220,43 @@ const closeModal = () => {
   showModal.value = false
 }
 
+const updateProductImage = async (productId, newImage) => {
+  try {
+    const formData = new FormData();
+    formData.append('image', newImage);
+
+    const response = await axios.post(`http://localhost:3000/products/${productId}/image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    // Mettre à jour les images du produit dans la liste
+    const updatedProductIndex = products.value.findIndex((p) => p.id === productId);
+    if (updatedProductIndex !== -1) {
+      products.value[updatedProductIndex].Images = response.data.Images;
+    }
+  } catch (error) {
+    console.error('Erreur lors de la modification de l\'image du produit :', error);
+  }
+}
+
+const triggerFileInput = () => {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.style.display = 'none';
+  fileInput.addEventListener('change', (event) => {
+    const newImage = event.target.files[0];
+    updateProductImage(currentProduct.value.id, newImage);
+  });
+  fileInput.click();
+}
+
+const handleImageChange = (event, product) => {
+  // Ce gestionnaire peut être vide ici ou supprimé car on utilise `triggerFileInput` pour gérer le changement d'image.
+}
+
 onMounted(() => {
   fetchProducts()
   fetchCategories()
@@ -192,89 +264,61 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.modal {
-  display: block;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal-content {
-  background-color: #fefefe;
-  margin: 10% auto;
+.products {
   padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
 }
 
 .close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
   cursor: pointer;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+form {
   margin-top: 20px;
 }
 
-th,
-td {
-  border: 1px solid #ddd;
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
   padding: 8px;
-  text-align: left;
-}
-
-th {
-  background-color: #f2f2f2;
-}
-
-.btn {
-  padding: 5px 10px;
-  border: none;
+  font-size: 1rem;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 14px;
-  text-transform: uppercase;
 }
 
-.btn-primary {
-  background-color: #007bff;
-  color: white;
+.buttons {
+  margin-top: 20px;
 }
 
-.btn-primary:hover {
-  background-color: #0069d9;
+.buttons button {
+  margin-right: 10px;
 }
 
-.btn-success {
-  background-color: #28a745;
-  color: white;
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
-.btn-success:hover {
-  background-color: #218838;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
+img {
+  max-width: 25%;
+  cursor: pointer;
 }
 </style>

@@ -1,15 +1,26 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
-
-router.get("/", async (req, res) => {
-    const orders = await Order.findAll({
+router.get('/', async (req, res) => {
+    try {
+      const orders = await Order.findAll({
         where: req.query,
-    });
-    res.json(orders);
-});
+        include: [
+          {
+            model: User,
+            as: 'user',
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+      });
+      res.json(orders);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des commandes :', error);
+      res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
+    }
+  });
 
 router.get("/:idUser", async (req, res) => {
     const { idUser } = req.params;

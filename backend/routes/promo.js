@@ -5,7 +5,9 @@ const { PromoCode, Cart } = require('../models');
 //get
 router.get('/', async (req, res) => {
   try {
-    const promos = await PromoCode.findAll();
+    const promos = await PromoCode.findAll({
+      order: [['code', 'ASC']]
+    });
     res.status(200).json(promos);
   } catch (error) {
     res.status(500).json({ error: 'Une erreur est survenue lors de la récupération des codes promos.' });
@@ -83,8 +85,16 @@ router.post('/:code/apply', async (req, res) => {
       const currentDate = new Date();
       const startDate = new Date(promo.startDate);
       const endDate = new Date(promo.endDate);
+
+      const extractDate = (date) => {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      };
+      
+      const currentDateOnly = extractDate(currentDate);
+      const startDateOnly = extractDate(startDate);
+      const endDateOnly = extractDate(endDate);
   
-      if (currentDate >= startDate && currentDate <= endDate) {
+      if (currentDateOnly >= startDateOnly && currentDateOnly <= endDateOnly) {
         await Cart.update({ promoCodeId: promo.id }, { where: { userId } });
         res.status(200).json({ success: true, discountPercentage: promo.discountPercentage, code: promoCode });
       } else {

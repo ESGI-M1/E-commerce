@@ -1,10 +1,11 @@
 <template>
   <div class="promos">
     <h1>Codes Promos</h1>
+    <div class="text-right">
     <button class="btn btn-success" @click="showAddForm">
       <i class="fa fa-plus"></i> Ajouter Code Promo
     </button>
-
+  </div>
     <table>
       <thead>
         <tr>
@@ -24,44 +25,48 @@
           <td>{{ formatDate(promo.endDate) }}</td>
           <td>{{ promo.discountPercentage }}</td>
           <td>
-            <button @click="editPromo(promo.id)" class="btn btn-primary">Modifier</button>
+            <button @click="editPromo(promo.id)" class="btn btn-primary"><i class="fa fa-edit"></i></button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <div v-if="showAddEditForm" class="modal">
-      <div class="modal-content">
+    <div v-if="showAddEditForm" class="modal-overlay">
+      <div class="modal">
         <span class="close" @click="cancelEdit">&times;</span>
         <h2 v-if="editMode">Modifier Code Promo</h2>
         <h2 v-else>Ajouter Code Promo</h2>
         <form @submit.prevent="handleSubmit">
-          <label for="code">Code:</label>
-          <input type="text" id="code" v-model="promo.code" required />
+          <div class="form-group">
+            <label for="code">Code:</label>
+            <input type="text" id="code" v-model="promo.code" required />
+          </div>
 
-          <label for="startDate">Date de début:</label>
-          <input type="date" id="startDate" v-model="promo.startDate" required />
+          <div class="form-group">
+            <label for="startDate">Date de début:</label>
+            <input type="date" id="startDate" v-model="promo.startDate" required />
+          </div>
 
-          <label for="endDate">Date de fin:</label>
-          <input type="date" id="endDate" v-model="promo.endDate" required />
+          <div class="form-group">
+            <label for="endDate">Date de fin:</label>
+            <input type="date" id="endDate" v-model="promo.endDate" required />
+          </div>
 
-          <label for="discountPercentage">Pourcentage de réduction (%):</label>
-          <input
-            type="number"
-            id="discountPercentage"
-            v-model="promo.discountPercentage"
-            required
-          />
+          <div class="form-group">
+            <label for="discountPercentage">Pourcentage de réduction (%):</label>
+            <input type="number" id="discountPercentage" v-model="promo.discountPercentage" required />
+          </div>
 
-          <button type="submit" class="btn btn-primary">
-            {{ editMode ? 'Modifier' : 'Ajouter' }}
-          </button>
-          <button type="button" class="btn btn-danger" @click="cancelEdit">Annuler</button>
+          <div class="buttons">
+            <button type="submit" class="btn btn-primary">{{ editMode ? 'Modifier' : 'Ajouter' }}</button>
+            <button type="button" class="btn btn-danger" @click="cancelEdit">Annuler</button>
+          </div>
         </form>
       </div>
     </div>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
@@ -150,91 +155,42 @@ onMounted(fetchPromos)
   padding: 20px;
 }
 
-.modal {
-  display: block;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal-content {
-  background-color: #fefefe;
-  margin: 10% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 600px;
-}
-
 .close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
   cursor: pointer;
 }
 
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
+form {
   margin-top: 20px;
 }
 
-th,
-td {
-  border: 1px solid #ddd;
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="number"] {
+  width: 100%;
   padding: 8px;
-  text-align: left;
-}
-
-th {
-  background-color: #f2f2f2;
-}
-
-.btn {
-  padding: 8px 12px;
-  border: none;
+  font-size: 1rem;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  cursor: pointer;
-  text-transform: uppercase;
-  margin-right: 5px;
 }
 
-.btn-primary {
-  background-color: #007bff;
-  color: white;
+.buttons {
+  margin-top: 20px;
 }
 
-.btn-primary:hover {
-  background-color: #0069d9;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.btn-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #218838;
+.buttons button {
+  margin-right: 10px;
 }
 </style>

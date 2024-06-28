@@ -16,7 +16,7 @@ import { ref } from 'vue'
 import Signup from './SignupView.vue'
 import Login from './LoginView.vue'
 
-const showSignup = ref(true)
+const showSignup = ref(false)
 
 const toggleForms = () => {
   showSignup.value = !showSignup.value

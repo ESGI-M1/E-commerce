@@ -23,11 +23,11 @@ module.exports = function(connection) {
         unique: true
       },
       startDate: {
-        type: DataTypes.DATE,
+        type: DataTypes.DATEONLY,
         allowNull: false
       },
       endDate: {
-        type: DataTypes.DATE,
+        type: DataTypes.DATEONLY,
         allowNull: false
       },
       discountPercentage: {

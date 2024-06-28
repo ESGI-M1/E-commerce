@@ -1,10 +1,17 @@
 const { Router } = require("express");
 const { User } = require("../models");
 const router = new Router();
+const mailer = require('../services/mailer');
+const jwt = require("jsonwebtoken");
+
 
 router.get("/", async (req, res) => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+    order: [
+        ['lastname', 'ASC'],
+        ['firstname', 'ASC']
+      ],  });
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -15,6 +22,7 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res, next) => {
   try {
     const user = await User.create(req.body);
+    mailer.sendValidateInscription(user);
     res.status(201).json(user);
   } catch (e) {
     if (e.name === 'SequelizeUniqueConstraintError') {
@@ -37,7 +45,7 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-router.patch("/users/:id", async (req, res, next) => {
+router.patch("/:id", async (req, res, next) => {
   try {
     const [nbUpdated, users] = await User.update(req.body, {
       where: {
@@ -57,14 +65,10 @@ router.delete("/:id", async (req, res, next) => {
   try {
     const nbDeleted = await User.destroy({
       where: {
-        id: parseInt(req.params.id),
+        id: parseInt(req.params.id, 10),
       },
     });
-    if (nbDeleted === 1) {
-      res.sendStatus(204);
-    } else {
-      res.sendStatus(404);
-    }
+    res.json({ success: true });
   } catch (e) {
     next(e);
   }
@@ -84,6 +88,46 @@ router.put("/:id", async (req, res, next) => {
     res.status(nbDeleted ? 200 : 201).json(user);
   } catch (e) {
     next(e);
+  }
+});
+
+router.get("/confirm-address/:token", async (req, res, next) => {
+  try {
+    const token = req.params.token;
+    const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!tokenDecoded || tokenDecoded.operation !== "confirm_address") {
+      return res.sendStatus(406);
+    } else {
+      User.update({active: true}, {
+        where: {
+          id: tokenDecoded.id,
+        }
+      });
+      return res.sendStatus(201);
+    }
+  } catch (e) {
+    return res.sendStatus(406);
+  }
+});
+
+router.post("/reset-password", async (req, res, next) => {
+  try {
+    const token = req.body.token;
+    const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!tokenDecoded || tokenDecoded.operation !== "reset-password") {
+      return res.sendStatus(406);
+    } else {
+      await User.update({password: req.body.password },
+        {
+          where: {
+            id: tokenDecoded.id
+          },
+          individualHooks: true
+        });
+      return res.sendStatus(201);
+    }
+  } catch (e) {
+    return res.sendStatus(406);
   }
 });
 

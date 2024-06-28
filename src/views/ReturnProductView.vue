@@ -30,7 +30,7 @@
         <fancy-confirm
         v-else
         :buttonText="'Annuler'"
-        :class="'danger'"
+        :class="'btn-danger'"
         :confirmationMessage="'Etes-vous sûr de vouloir annuler le retour du produit ?'"
         @confirmed="deleteReturn">
       </fancy-confirm>

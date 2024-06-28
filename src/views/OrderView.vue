@@ -24,7 +24,7 @@
       <h2>Détails de la commande n°{{ selectedOrder.id }}</h2>
       <div class="order-status">Statut: {{ selectedOrder.status }}</div>
       <div class="order-total">Total: {{ calculateOrderTotal(selectedOrder) }} €</div>
-      <div v-for="cart in selectedOrder.carts" :key="cart.id" class="cart-item">
+      <div v-for="cart in selectedOrder.carts.CartProducts" :key="cart.id" class="cart-item">
         <div class="item-details">
           <h3>{{ cart.product.name }}</h3>
           <p>Quantité: {{ cart.quantity }}</p>
@@ -41,40 +41,16 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
-/*
-NOT USED
-const cartItems = ref([])
-*/
 const authToken = localStorage.getItem('authToken')
 
 const orders = ref([])
 
 const fetchOrders = async () => {
-  try {
     if (authToken) {
-      const response = await axios.get(`http://localhost:3000/orders/${authToken}`)
+      const response = await axios.get(`http://localhost:3000/orders/user/${authToken}`)
       orders.value = response.data
-      console.log(orders.value)
     }
-  } catch (error) {
-    console.error('Erreur lors de la récupération des commandes :', error)
-  }
 }
-
-/*
-NOT USED
-const subtotal = computed(() => {
-  return cartItems.value
-    .reduce((acc, item) => acc + item.product.price * item.quantity, 0)
-    .toFixed(2)
-})
-
-
-NOT USED
-const total = computed(() => {
-  return parseFloat(subtotal.value).toFixed(2)
-})
-*/
 
 const showOrderDetails = (id: string) => {
   router.push({ name: 'OrderDetail', params: { id } })

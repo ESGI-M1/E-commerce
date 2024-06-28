@@ -44,13 +44,8 @@ import { ref, onMounted } from 'vue'
 const returnProducts = ref([])
 
 const fetchReturnProducts = async () => {
-  try {
     const response = await axios.get('http://localhost:3000/return')
     returnProducts.value = response.data
-    console.log('Retours de produits :', returnProducts.value)
-  } catch (error) {
-    console.error('Erreur lors de la récupération des retours de produits :', error)
-  }
 }
 
 // Fonction pour formater la date de retour

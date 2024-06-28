@@ -13,7 +13,7 @@ const productId = ref(route.params.id as string)
 const product = ref({
   id: '',
   name: '',
-  imageSrc: '', // Utilisation de imageSrc pour stocker l'URL de l'image
+  imageSrc: '',
   description: '',
   price: 0,
   reference: '',

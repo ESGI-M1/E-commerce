@@ -82,8 +82,6 @@ router.get("/:productId", async (req, res, next) => {
 
   router.delete("/", async (req, res) => {
     const { productId, orderId, userId } = req.query;
-  
-    try {
       const deleted = await ReturnProduct.destroy({ where: { productId: productId, userId: userId, orderId: orderId } });
   
       if (deleted) {
@@ -91,10 +89,6 @@ router.get("/:productId", async (req, res, next) => {
       } else {
         res.sendStatus(404);
       }
-    } catch (error) {
-      console.error('Erreur lors de la suppression du produit retourné :', error);
-      res.status(500).json({ error: 'Unable to delete return product' });
-    }
   });
   
 

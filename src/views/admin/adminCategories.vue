@@ -201,7 +201,7 @@ const closeModal = () => {
 }
 
 const findCategoryName = (id) => {
-  const category = categories.value.find((cat) => cat.id === id)
+  const category = categories.value.find(cat => cat.id === id)
   return category ? category.name : ''
 }
 

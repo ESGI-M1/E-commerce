@@ -2,8 +2,10 @@ const { Model, DataTypes } = require("sequelize");
 const bcrypt = require("bcryptjs");
 
 module.exports = function (connection) {
-
   class User extends Model {
+    static associate(models) {
+      User.hasOne(models.AddressUser, { foreignKey: "userId", as: "deliveryAddress" });
+    }
     static addHooks() {
       User.addHook("beforeCreate", async (user) => {
         user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));

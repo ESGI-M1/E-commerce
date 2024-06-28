@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { User } = require("../models");
+const { User, AddressUser } = require("../models");
 const router = new Router();
 const mailer = require('../services/mailer');
 const jwt = require("jsonwebtoken");
@@ -33,12 +33,18 @@ router.post("/", async (req, res, next) => {
 });
 
 router.get("/:id", async (req, res, next) => {
-  try {
-    const user = await User.findByPk(req.params.id);
-    if (user ? res.json(user) : res.sendStatus(404));
-  } catch (e) {
-    next(e);
-  }
+    const userId = req.params.id;
+    const addresses = await AddressUser.findAll({
+      where: { userId: userId },
+    });
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.sendStatus(404);
+    }
+    user.dataValues.deliveryAddress = addresses;
+    res.json(user);
 });
 
 router.patch("/:id", async (req, res, next) => {
@@ -57,13 +63,14 @@ router.patch("/:id", async (req, res, next) => {
 });
 
 router.delete("/:id", async (req, res, next) => {
+  const { id } = req.params;
   try {
     const nbDeleted = await User.destroy({
       where: {
-        id: parseInt(req.params.id, 10),
+        id: id,
       },
     });
-    if (nbDeleted === 1 ? res.sendStatus(204) : res.sendStatus(404));
+    res.json({ success: true });
   } catch (e) {
     next(e);
   }

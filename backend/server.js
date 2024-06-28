@@ -6,14 +6,15 @@ const ProductRouter = require("./routes/product");
 const CategoryRouter = require("./routes/category");
 const ImageRouter = require("./routes/image");
 const CartRouter = require("./routes/cart");
+const CartProductsRouter = require("./routes/cartProducts");
 const SecurityRouter = require("./routes/security");
 const PromoRouter = require("./routes/promo");
 const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
-
 const StripeRouter = require("./stripe/stripe");
-
+const AdressOrderRouter = require("./routes/adressOrder");
+const AdressUserRouter = require("./routes/adressUser");
 const rateLimiter = require('./rateLimiter');
 
 const app = express();
@@ -40,8 +41,10 @@ app.use('/promos', PromoRouter);
 app.use('/favorites', FavoriteRouter);
 app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
-
+app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
+app.use('/adressorders', AdressOrderRouter);
+app.use('/adressusers', AdressUserRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

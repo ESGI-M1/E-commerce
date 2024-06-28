@@ -11,6 +11,11 @@ module.exports = function (connection) {
         foreignKey: 'orderId',
         as: 'carts',
       });
+      Order.belongsTo(models.AdressOrder, {
+        foreignKey: 'deliveryMethod',
+        as: 'adressOrder',
+        allowNull: false,
+      });
     }
   }
 
@@ -38,8 +43,12 @@ module.exports = function (connection) {
         allowNull: false,
       },
       deliveryMethod: {
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'AdressOrders',
+          key: 'id',
+        },
       },
     },
     {

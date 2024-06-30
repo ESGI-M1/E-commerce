@@ -7,20 +7,32 @@
       <table>
         <thead>
           <tr>
+            <th>Commande</th>
             <th>Date</th>
             <th>Client</th>
             <th>Statut</th>
             <th>Total</th>
             <th>Adresse</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="order in orders" :key="order.id">
+            <td>n°{{ order.id }}</td>
             <td>{{ formatDate(order.deliveryDate) }}</td>
             <td>#{{ order.user.id }} {{ order.user.lastname }} {{ order.user.firstname }}</td>
             <td>{{ order.status }}</td>
             <td>{{ order.totalAmount }} €</td>
-            <td>{{ order.deliveryMethod }}</td>
+            <td v-if="order.adressOrder">{{ order.adressOrder.street }}, {{ order.adressOrder.postalCode }} {{ order.adressOrder.city }}, {{ order.adressOrder.country }}</td>
+            <td>
+              <fancy-confirm v-if="order.status === 'pending'"
+          :buttonText="'Valider'"
+          :class="'btn-success'"
+          :confirmationMessage="'Etes-vous sûr de vouloir valider la commande ?'"
+          @confirmed="validate(order.id)"
+        >
+        </fancy-confirm>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -32,20 +44,22 @@
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { format, parseISO } from 'date-fns'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const orders = ref([])
 
 const fetchOrders = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/orders')
-    orders.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des commandes :', error)
-  }
+  const response = await axios.get('http://localhost:3000/orders')
+  orders.value = response.data
 }
 
 const formatDate = (dateStr) => {
   return format(parseISO(dateStr), 'dd/MM/yyyy HH:mm')
+}
+
+const validate = async (id:number) => {
+    await axios.patch(`http://localhost:3000/orders/${id}`)
+    fetchOrders() 
 }
 
 onMounted(() => {

@@ -52,8 +52,8 @@
           </div>
           <p v-else class="new-price">{{ cartProduct.product.price }} €</p>
           <button @click="addToCart(cartProduct.product.id, 1)" class="button-order">Commander à nouveau</button>
-          <button v-if="!cartProduct.product.returned" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="button-order">Retourner l'article</button>
-          <button v-else @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="button-order">Voir les détails ({{ cartProduct.product.returned.status }})</button>
+          <button v-if="!cartProduct.product.returned && order.status == 'completed'" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="button-order">Retourner l'article</button>
+          <button v-else-if="cartProduct.product.returned" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="button-order">Voir les détails ({{ cartProduct.product.returned.status }})</button>
         </div>
       </div>
     </div>

@@ -13,6 +13,10 @@ router.get('/', async (req, res) => {
             model: User,
             as: 'user',
           },
+          {
+            model: AdressOrder,
+            as: 'adressOrder',
+          }
         ],
         order: [['createdAt', 'DESC']],
       });
@@ -293,6 +297,18 @@ router.delete("/:id", async (req, res) => {
     } else {
       return res.sendStatus(404);
     }
+  }
+});
+
+router.patch("/:id", async (req, res, next) => {
+  const order = await Order.findByPk(req.params.id);
+
+  if (order) {
+    order.status = 'completed';
+    await order.save();
+      res.json(order);
+  } else {
+      res.sendStatus(404);
   }
 });
 

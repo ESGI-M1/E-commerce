@@ -13,6 +13,7 @@
             <th>Statut</th>
             <th>Raison</th>
             <th>Methode de retour</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -24,12 +25,21 @@
               {{ returnProduct.user.firstname }}
             </td>
             <td class="product-info">
-              <span class="product-name">{{ returnProduct.product.name }}</span>
+              <span class="product-name">#{{ returnProduct.product.id }} {{ returnProduct.product.name }}</span>
               <span class="product-quantity">x{{ returnProduct.quantity }}</span>
             </td>
             <td>{{ returnProduct.status }}</td>
             <td>{{ returnProduct.reason }}</td>
             <td>{{ returnProduct.deliveryMethod }}</td>
+            <td>
+              <fancy-confirm v-if="returnProduct.status === 'processing'"
+          :buttonText="'Valider'"
+          :class="'btn-success'"
+          :confirmationMessage="'Etes-vous sûr de vouloir valider le retour du produit ?'"
+          @confirmed="validate(returnProduct.id)"
+        >
+        </fancy-confirm>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -40,6 +50,7 @@
 <script setup lang="ts">
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const returnProducts = ref([])
 
@@ -60,6 +71,11 @@ const formatReturnDate = (returnDate) => {
   }
   const formattedDate = new Date(returnDate).toLocaleDateString('fr-FR', options)
   return formattedDate
+}
+
+const validate = async (id:number) => {
+    await axios.patch(`http://localhost:3000/return/${id}`)
+    fetchReturnProducts() 
 }
 
 onMounted(() => {

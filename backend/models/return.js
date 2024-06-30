@@ -37,7 +37,7 @@ module.exports = function (connection) {
         },
         },
       status: {
-        type: DataTypes.ENUM('returned', 'processing', 'cancelled'),
+        type: DataTypes.ENUM('returned', 'processing'),
         allowNull: false,
         defaultValue: 'processing',
       },

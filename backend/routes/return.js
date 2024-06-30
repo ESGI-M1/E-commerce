@@ -80,6 +80,18 @@ router.get("/:productId", async (req, res, next) => {
     }
   });
 
+  router.patch("/:id", async (req, res, next) => {
+      const returned = await ReturnProduct.findByPk(req.params.id);
+
+      if (returned) {
+        returned.status = 'returned';
+        await returned.save();
+          res.json(returned);
+      } else {
+          res.sendStatus(404);
+      }
+});
+
   router.delete("/", async (req, res) => {
     const { productId, orderId, userId } = req.query;
       const deleted = await ReturnProduct.destroy({ where: { productId: productId, userId: userId, orderId: orderId } });
@@ -91,5 +103,4 @@ router.get("/:productId", async (req, res, next) => {
       }
   });
   
-
     module.exports = router;

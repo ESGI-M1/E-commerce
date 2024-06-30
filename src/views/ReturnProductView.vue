@@ -41,7 +41,7 @@
           Valider le retour
         </button>
         <fancy-confirm
-          v-else
+          v-else-if="statut === 'processing' && existingReturn"
           :buttonText="'Annuler'"
           :class="'btn-danger'"
           :confirmationMessage="'Etes-vous sûr de vouloir annuler le retour du produit ?'"
@@ -83,8 +83,12 @@ const quantityOptions = computed(() => {
 
 const fetchProductDetails = async () => {
   try {
-    // Obtenir les détails du produit dans le panier associé à la commande
     const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`);
+    console.log('response', response.data)
+    if (response.data.status == 'pending') {
+      router.push(`/order/${orderId.value}`) ;
+    }
+
     const cartProducts = response.data.Cart.CartProducts;
 
     // Trouver le produit spécifique dans le panier

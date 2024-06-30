@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const { Cart, Product, User, CartProduct, Image, Category, AddressUser } = require("../models");
 const router = new Router();
-const crypto = require('crypto'); // Importer le module crypto pour générer des mots de passe aléatoires
+const crypto = require('crypto');
 
 router.get("/", async (req, res) => {
     const cartItems = await Cart.findAll({ include: [{ model: Product, as: 'product' }] });

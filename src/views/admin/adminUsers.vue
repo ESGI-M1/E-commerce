@@ -39,7 +39,6 @@
       </tbody>
     </table>
 
-    <!-- Modal pour Ajouter/Modifier Utilisateur -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal">
         <span class="close" @click="closeModal">&times;</span>
@@ -83,25 +82,32 @@ import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
 
+// Définition du schéma de validation des utilisateurs avec Zod
 const userSchema = z.object({
   id: z.number().optional(),
   firstname: z.string().min(1, 'Le prénom est requis'),
   lastname: z.string().min(1, 'Le nom est requis'),
   email: z.string().email('Adresse email invalide'),
-  role: z.string()
+  role: z.string(),
+  password: z.string().optional()
 })
 
-const users = ref([])
-const currentUser = ref({
-  id: null,
+// Définition des types d'utilisateur et de la liste des utilisateurs
+type User = z.infer<typeof userSchema>
+
+const users = ref<User[]>([])
+const currentUser = ref<User>({
   firstname: '',
   lastname: '',
   email: '',
-  role: ''
+  role: '',
+  password: generateRandomPassword(12)
 })
+
 const showModal = ref(false)
 const isEditing = ref(false)
 
+// Fonction pour récupérer la liste des utilisateurs
 const fetchUsers = async () => {
   try {
     const response = await axios.get('http://localhost:3000/users')
@@ -111,19 +117,47 @@ const fetchUsers = async () => {
   }
 }
 
+function generateRandomPassword(length: number): string {
+  const lowercaseLetters = 'abcdefghijklmnopqrstuvwxyz';
+  const uppercaseLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  const specialChars = '!@#$%^&*()-_=+[{]}|;:,<.>/?';
+
+  const allChars = lowercaseLetters + uppercaseLetters + numbers + specialChars;
+
+  let password = '';
+  let charTypesCount = 0;
+
+  while (password.length < length || charTypesCount < 4) {
+    password = '';
+    charTypesCount = 0;
+
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * allChars.length);
+      password += allChars[randomIndex];
+    }
+
+    if (/[a-z]/.test(password)) charTypesCount++;
+    if (/[A-Z]/.test(password)) charTypesCount++;
+    if (/\d/.test(password)) charTypesCount++;
+    if (/[^a-zA-Z\d]/.test(password)) charTypesCount++;
+  }
+
+  return password;
+}
+
+
+// Fonction pour ajouter un utilisateur
 const addUser = async () => {
-  try {
     const parsedUser = userSchema.parse(currentUser.value)
+    parsedUser.password = generateRandomPassword(12)
     const response = await axios.post('http://localhost:3000/users', parsedUser)
     users.value.push(response.data)
     closeModal()
-  } catch (error) {
-    console.error("Erreur lors de l'ajout de l'utilisateur :", error)
-  }
 }
 
+// Fonction pour mettre à jour un utilisateur
 const updateUser = async () => {
-  try {
     const parsedUser = userSchema.parse(currentUser.value)
     const response = await axios.patch(
       `http://localhost:3000/users/${currentUser.value.id}`,
@@ -135,23 +169,18 @@ const updateUser = async () => {
       users.value.splice(index, 1, updatedUser)
     }
     closeModal()
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour de l'utilisateur :", error)
-  }
 }
 
+// Fonction pour supprimer un utilisateur
 const deleteUser = async (userId: number) => {
-  try {
     await axios.delete(`http://localhost:3000/users/${userId}`)
-  } catch (error) {
-    console.error("Erreur lors de la suppression de l'utilisateur :", error)
-  }
+    users.value = users.value.filter(user => user.id !== userId)
 }
 
+// Fonction pour afficher le modal d'ajout d'utilisateur
 const showAddUserModal = () => {
   isEditing.value = false
   currentUser.value = {
-    id: null,
     firstname: '',
     lastname: '',
     email: '',
@@ -160,21 +189,28 @@ const showAddUserModal = () => {
   showModal.value = true
 }
 
-const showEditUserModal = (user) => {
+// Fonction pour afficher le modal de modification d'utilisateur
+const showEditUserModal = (user: User) => {
   isEditing.value = true
   currentUser.value = { ...user }
   showModal.value = true
 }
 
+// Fonction pour fermer le modal
 const closeModal = () => {
   showModal.value = false
+}
+
+// Fonction pour réinitialiser le mot de passe d'un utilisateur
+const resetPassword = async (userId: number) => {
+    await axios.post(`http://localhost:3000/users/${userId}/reset-password`)
+    alert('Le mot de passe a été réinitialisé.')
 }
 
 onMounted(() => {
   fetchUsers()
 })
 </script>
-
 
 <style scoped>
 .modal-overlay {

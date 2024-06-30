@@ -20,6 +20,8 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res, next) => {
+  const { code, startDate, endDate, discountPercentage } = req.body;
+
   try {
     const user = await User.create(req.body);
     mailer.sendValidateInscription(user);

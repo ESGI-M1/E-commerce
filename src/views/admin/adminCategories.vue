@@ -7,7 +7,6 @@
       </button>
     </div>
 
-    <!-- Tableau des catégories -->
     <div class="category-table">
       <h2>Liste des Catégories</h2>
       <table>
@@ -27,7 +26,7 @@
             <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
             <td>{{ findCategoryName(category.parentCategoryId) }}</td>
-            <td>{{ category.Products.length }}</td>
+            <td><p v-if="category.Products">{{ category.Products.length }}</p></td>
             <td>
               <button @click="showEditCategoryModal(category)" class="btn btn-primary">
                 <i class="fa fa-edit"></i>
@@ -99,6 +98,20 @@ import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
 
+interface Category {
+  id?: number
+  name: string
+  slug: string
+  description?: string
+  parentCategoryId?: number | null
+  Products: number[]
+}
+
+interface Product {
+  id: number
+  name: string
+}
+
 const categorySchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Le nom est requis'),
@@ -108,14 +121,15 @@ const categorySchema = z.object({
   Products: z.array(z.number())
 })
 
-const categories = ref([])
-const currentCategory = ref({
+const categories = ref<Category[]>([])
+const currentCategory = ref<Category>({
   name: '',
   slug: '',
   description: '',
   parentCategoryId: null,
   Products: []
 })
+const products = ref<Product[]>([])
 const showModal = ref(false)
 const isEditing = ref(false)
 
@@ -169,7 +183,7 @@ const updateCategory = async () => {
   }
 }
 
-const deleteCategory = async (category) => {
+const deleteCategory = async (category: Category) => {
   try {
     await axios.delete(`http://localhost:3000/categories/${category.id}`)
     categories.value = categories.value.filter((cat) => cat.id !== category.id)
@@ -190,7 +204,7 @@ const showAddCategoryModal = () => {
   showModal.value = true
 }
 
-const showEditCategoryModal = (category) => {
+const showEditCategoryModal = (category: Category) => {
   isEditing.value = true
   currentCategory.value = { ...category }
   showModal.value = true
@@ -200,7 +214,7 @@ const closeModal = () => {
   showModal.value = false
 }
 
-const findCategoryName = (id) => {
+const findCategoryName = (id: number | undefined) => {
   const category = categories.value.find(cat => cat.id === id)
   return category ? category.name : ''
 }

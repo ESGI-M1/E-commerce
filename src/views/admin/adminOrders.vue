@@ -2,7 +2,6 @@
   <div class="orders">
     <h1>Liste des Commandes</h1>
 
-    <!-- Tableau des commandes -->
     <div class="order-table">
       <table>
         <thead>
@@ -21,17 +20,19 @@
             <td>n°{{ order.id }}</td>
             <td>{{ formatDate(order.deliveryDate) }}</td>
             <td>#{{ order.user.id }} {{ order.user.lastname }} {{ order.user.firstname }}</td>
-            <td>{{ order.status }}</td>
+            <td>
+              <i :class="order.status === 'completed' ? 'fas fa-check-circle status-completed' : 'fas fa-hourglass-half status-pending'"></i>
+            </td>
             <td>{{ order.totalAmount }} €</td>
             <td v-if="order.adressOrder">{{ order.adressOrder.street }}, {{ order.adressOrder.postalCode }} {{ order.adressOrder.city }}, {{ order.adressOrder.country }}</td>
             <td>
               <fancy-confirm v-if="order.status === 'pending'"
-          :buttonText="'Valider'"
-          :class="'btn-success'"
-          :confirmationMessage="'Etes-vous sûr de vouloir valider la commande ?'"
-          @confirmed="validate(order.id)"
-        >
-        </fancy-confirm>
+                :buttonText="'Valider'"
+                :class="'btn-success'"
+                :confirmationMessage="'Etes-vous sûr de vouloir valider la commande ?'"
+                @confirmed="validate(order.id)"
+              >
+              </fancy-confirm>
             </td>
           </tr>
         </tbody>
@@ -46,20 +47,42 @@ import { ref, onMounted } from 'vue'
 import { format, parseISO } from 'date-fns'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
-const orders = ref([])
+interface User {
+  id: number
+  lastname: string
+  firstname: string
+}
+
+interface Address {
+  street: string
+  postalCode: string
+  city: string
+  country: string
+}
+
+interface Order {
+  id: number
+  deliveryDate: string
+  user: User
+  status: string
+  totalAmount: number
+  adressOrder?: Address
+}
+
+const orders = ref<Order[]>([])
 
 const fetchOrders = async () => {
   const response = await axios.get('http://localhost:3000/orders')
   orders.value = response.data
 }
 
-const formatDate = (dateStr) => {
+const formatDate = (dateStr: string) => {
   return format(parseISO(dateStr), 'dd/MM/yyyy HH:mm')
 }
 
-const validate = async (id:number) => {
-    await axios.patch(`http://localhost:3000/orders/${id}`)
-    fetchOrders() 
+const validate = async (id: number) => {
+  await axios.patch(`http://localhost:3000/orders/${id}`)
+  fetchOrders()
 }
 
 onMounted(() => {
@@ -74,5 +97,13 @@ onMounted(() => {
 
 .order-table {
   margin-top: 20px;
+}
+
+.status-completed {
+  color: green;
+}
+
+.status-pending {
+  color: orange;
 }
 </style>

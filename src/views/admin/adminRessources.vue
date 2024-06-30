@@ -1,6 +1,5 @@
 <template>
   <div class="resource-grid">
-    <!-- Onglets pour la navigation -->
     <div class="resource-item" @click="navigateToUsers">
       <h1>Utilisateurs</h1>
     </div>
@@ -60,7 +59,7 @@ const navigateToPromos = () => {
 <style scoped>
 .resource-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Trois éléments par ligne */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
 }
 

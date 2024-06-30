@@ -82,8 +82,16 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { format, parseISO } from 'date-fns'
 
-const promos = ref([])
-const promo = ref({
+interface Promo {
+  id?: number
+  code: string
+  startDate: string
+  endDate: string
+  discountPercentage: number
+}
+
+const promos = ref<Promo[]>([])
+const promo = ref<Promo>({
   code: '',
   startDate: '',
   endDate: '',
@@ -126,7 +134,7 @@ const addPromo = async () => {
   }
 }
 
-const editPromo = async (promoId) => {
+const editPromo = async (promoId: number) => {
   try {
     const response = await axios.put(`http://localhost:3000/promos/${promoId}`)
     promo.value = response.data
@@ -148,7 +156,7 @@ const showAddForm = () => {
   showAddEditForm.value = true
 }
 
-const formatDate = (dateStr) => {
+const formatDate = (dateStr: string) => {
   return format(parseISO(dateStr), 'dd/MM/yyyy')
 }
 

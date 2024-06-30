@@ -3,8 +3,8 @@ const { AddressUser, User } = require("../models");
 const router = new Router();
 
 router.get("/", async (req, res) => {
-    const adress = await AddressUser.findAll();
-    res.json(adress);
+    const address = await AddressUser.findAll();
+    res.json(address);
 });
 
 router.post("/:id", async (req, res, next) => {

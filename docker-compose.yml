@@ -30,6 +30,9 @@ services:
       - ./backend:/home/node/app
     working_dir: /home/node/app
     command: bash -c "npm install && npm run dev"
+    depends_on:
+      - mongo
+      - postgres
 
   postgres:
     image: postgres

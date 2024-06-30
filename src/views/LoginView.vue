@@ -31,6 +31,20 @@ const passwordError = computed(() => {
   return parsedPassword.error.issues[0].message
 })
 
+// Verify is user is logged in
+const isAuthenticated = () => {
+  axios.get('http://localhost:3000/users')
+    .then((response) => {
+      console.log('User response:', response)
+      if (response.data.length > 0) {
+        router.push('/')
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+    })
+}
+
 const login = () => {
   if (
     !emailSchema.safeParse(email.value).success ||
@@ -45,6 +59,7 @@ const login = () => {
       password: password.value
     })
     .then(async (response) => {
+      console.log('Login response:', response)
       const temporaryId = localStorage.getItem('temporaryId')
       try {
         if (temporaryId) {
@@ -57,7 +72,6 @@ const login = () => {
           await axios.delete(`http://localhost:3000/users/${temporaryId}`)
           localStorage.removeItem('temporaryId')
         }
-        localStorage.setItem('authToken', response.data.id)
         router.push('/')
       } catch (error) {
         console.error('Error updating carts:', error)
@@ -70,19 +84,12 @@ const login = () => {
     })
 }
 
-onMounted(() => {
-  const authToken = localStorage.getItem('authToken')
-  if (authToken) {
-    router.push('/')
-  }
-})
-
 </script>
 
 <template>
   <div class="login auth-form">
     <h1>Connexion</h1>
-    <form @submit.prevent="login">
+    <form @submit.prevent="login" v-if="!isAuthenticated">
       <div>
         <label for="email">Email</label>
         <input type="email" placeholder="Email" v-model="email" required />
@@ -105,6 +112,9 @@ onMounted(() => {
       </div>
       <button type="submit">Connexion</button>
     </form>
+    <div v-else>
+      <h2>Vous êtes déjà connecté</h2>
+    </div>
     <RouterLink to="/forgot-password">Mot de passe oublié ?</RouterLink>
   </div>
 </template>

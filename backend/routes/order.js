@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AdressOrder } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
@@ -56,8 +56,8 @@ router.get('/', async (req, res) => {
             as: 'user',
           },
           {
-            model: AdressOrder,
-            as: 'adressOrder',
+            model: AddressOrder,
+            as: 'addressOrder',
           }
         ],
         order: [['createdAt', 'DESC']],
@@ -286,7 +286,7 @@ router.delete("/:id", async (req, res) => {
     if (order) {
     const deletedOrder = await Order.destroy({ where: { id } });
     if (addressId) {
-      await AdressOrder.destroy({ where: { id: addressId } });
+      await AddressOrder.destroy({ where: { id: addressId } });
     }
     if (deletedOrder > 0) {
       return res.sendStatus(204);

@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 const mailer = require('../services/mailer');
+const { se, id } = require("date-fns/locale");
 
 const router = new Router();
 
@@ -10,6 +11,7 @@ let loginAttempt = {};
 router.post("/login", async (req, res) => {
 
   const user = await User.findOne({
+    attributes: ['id', 'firstname', 'email', 'password', 'role', 'active'],
     where: {
       email: req.body.email,
     },
@@ -56,9 +58,14 @@ router.post("/login", async (req, res) => {
   res.cookie("JWT", token, {
     httpOnly: true,
     signed: true,
-  });
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    sameSite: "strict",
+    secure: process.env.NODE_ENV !== "development",
+  })
 
-  res.json(user);
+  return res.json({ id: user.id, role: user.role });
+
+
 });
 
 router.post("/forgot-password", async (req, res) => {
@@ -109,6 +116,5 @@ router.post('/reset-password', async (req, res) => {
     res.sendStatus(400);
   }
 });
-
 
 module.exports = router;

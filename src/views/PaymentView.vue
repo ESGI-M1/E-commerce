@@ -233,12 +233,12 @@ const showProductDetails = (id: string) => {
 
 const handlePayment = async () => {
   let newAddress = null;
-  let adressorders = null;
+  let addressorders = null;
 
   if (deliveryOption.value === 'pointRelais') {
     try {
       const randomStreet = Math.random().toString(36).substring(7);
-      const response = await axios.post('http://localhost:3000/adressorders', {
+      const response = await axios.post('http://localhost:3000/addressorders', {
         street: randomStreet,
         postalCode: pointRelaisPostalCode.value,
         city: getCityFromPostalCode(pointRelaisPostalCode.value),
@@ -253,7 +253,7 @@ const handlePayment = async () => {
     if (livraisonDomicileAddress.value.street != '') {
       newLivraisonDomicileAddress.value = livraisonDomicileAddress.value
     } 
-      const response = await axios.post('http://localhost:3000/adressorders', {
+      const response = await axios.post('http://localhost:3000/addressorders', {
         street: newLivraisonDomicileAddress.value.street,
         postalCode: newLivraisonDomicileAddress.value.postalCode,
         city: newLivraisonDomicileAddress.value.city,

@@ -1,10 +1,11 @@
 const { Router } = require("express");
 const { Op } = require("sequelize");
 const { Product, Category, Image } = require("../models");
+const checkAuth = require("../middlewares/checkAuth");
 
 const router = new Router();
 
-router.get("/", async (req, res) => {
+router.get("/", checkAuth, async (req, res) => {
     const products = await Product.findAll({
         where: req.query,
         include: [Category, Image],
@@ -13,7 +14,7 @@ router.get("/", async (req, res) => {
     res.json(products);
 });
 
-router.get("/search", async (req, res) => {
+router.get("/search", checkAuth, async (req, res) => {
 
     try{
         const { q } = req.query;

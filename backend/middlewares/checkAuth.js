@@ -1,16 +1,29 @@
 const jwt = require("jsonwebtoken");
+const { User } = require("../models");
 
 module.exports = (req, res, next) => {
-  const token = req.signedCookies.JWT;
+  const token = req.cookies.JWT;
+  console.log(token);
+
   if (!token) return res.sendStatus(401);
-  const user = jwt.verify(token, process.env.JWT_SECRET);
+
+  try{
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded);
+ 
+    if (!decoded || decoded.purpose !== 'authentication') {
+      res.clearCookie("JWT");
+      return res.sendStatus(401);
+    }
   
-  if (!user) {
+    const user = User.findByPk(decoded.id);
+  
+    req.user = user;
+  }
+  catch(err){
     res.clearCookie("JWT");
     return res.sendStatus(401);
   }
-
-  req.user = user;
 
   next();
 };

@@ -32,7 +32,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", async (req, res) => {
     const userId = req.params.id;
     const addresses = await AddressUser.findAll({
       where: { userId: userId },
@@ -70,7 +70,7 @@ router.delete("/:id", async (req, res, next) => {
         id: id,
       },
     });
-    res.json({ success: true });
+    res.sendStatus(nbDeleted === 1 ? 200 : 404);
   } catch (e) {
     next(e);
   }

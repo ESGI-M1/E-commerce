@@ -9,9 +9,9 @@
     </header>
     <div v-if="order" class="order-details">
       <h2>Détails de la commande</h2>
-      <div v-if="order.adressOrder">
+      <div v-if="order.addressOrder">
       <p>
-        Adresse: {{ order.adressOrder.street }}, {{ order.adressOrder.postalCode }} {{ order.adressOrder.city }}, {{ order.adressOrder.country }}
+        Adresse: {{ order.addressOrder.street }}, {{ order.addressOrder.postalCode }} {{ order.addressOrder.city }}, {{ order.addressOrder.country }}
       </p>    
     </div>
       <small v-if="order.deliveryDate">

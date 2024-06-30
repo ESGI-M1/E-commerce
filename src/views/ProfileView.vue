@@ -114,7 +114,7 @@ const closeModal = () => {
 
 const deleteAddress = async (id) => {
   try {
-    await axios.delete(`http://localhost:3000/adressusers/${id}`);
+    await axios.delete(`http://localhost:3000/addressusers/${id}`);
     user.value.deliveryAddress = user.value.deliveryAddress.filter(address => address.id !== id);
   } catch (error) {
     console.error('Erreur lors de la suppression de l\'adresse :', error);
@@ -130,10 +130,10 @@ const handleSubmit = async () => {
   try {
     let response;
     if (mode.value === 'add') {
-      response = await axios.post(`http://localhost:3000/adressusers/${authToken}`, form.value);
+      response = await axios.post(`http://localhost:3000/addressusers/${authToken}`, form.value);
       user.value.deliveryAddress.push(response.data);
     } else if (mode.value === 'edit' && editingAddress) {
-      response = await axios.put(`http://localhost:3000/adressusers/${authToken}`, form.value);
+      response = await axios.put(`http://localhost:3000/addressusers/${authToken}`, form.value);
       Object.assign(editingAddress, response.data);
     }
 

@@ -167,7 +167,7 @@ const addProduct = async () => {
       ...currentProduct.value,
       price: parseFloat(currentProduct.value.price)
     })
-    const response = await axios.post('http://localhost:3000/products', parsedProduct)
+    const response = await axios.post('http://localhost:3000/products', parsedProduct, { withCredentials: true })
     products.value.push(response.data)
     closeModal()
   } catch (error) {
@@ -182,7 +182,7 @@ const updateProduct = async () => {
       price: parseFloat(currentProduct.value.price)
     })
     console.log(parsedProduct)
-    await axios.patch(`http://localhost:3000/products/${currentProduct.value.id}`, parsedProduct)
+    await axios.patch(`http://localhost:3000/products/${currentProduct.value.id}`, parsedProduct, { withCredentials: true })
     const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
     if (index !== -1) {
       products.value[index] = currentProduct.value
@@ -199,7 +199,7 @@ const updateProduct = async () => {
 
 const deleteProduct = async (product) => {
   try {
-    await axios.delete(`http://localhost:3000/products/${product.id}`)
+    await axios.delete(`http://localhost:3000/products/${product.id}`, { withCredentials: true })
     products.value = products.value.filter((p) => p.id !== product.id)
   } catch (error) {
     console.error('Erreur lors de la suppression du produit :', error)

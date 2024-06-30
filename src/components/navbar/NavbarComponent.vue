@@ -75,13 +75,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
+import Cookies from 'js-cookie'
 
 import axios from 'axios'
 
-const isAuthenticated = ref(false)
 const isAdmin = ref(false)
 const router = useRouter()
 const search = ref('')
@@ -102,10 +102,12 @@ const searchProducts = async () => {
   }
 }
 
+const isAuthenticated = computed(() => {
+  return Cookies.get('USER') !== undefined
+})  
+
 const logout = () => {
-  // Logique de déconnexion
-  localStorage.removeItem('authToken')
-  isAuthenticated.value = false
+  Cookies.remove('USER')
   router.push('/')
 }
 </script>

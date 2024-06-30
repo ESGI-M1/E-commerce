@@ -24,8 +24,10 @@ const cors = require('cors')
 require('./services/cron');
 
 const options = {
-  origin: ['http://localhost:5173'],
-}
+  origin: 'http://localhost:5173',
+  credentials: true,
+};
+
 
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));

@@ -63,8 +63,15 @@ router.post("/login", async (req, res) => {
     secure: process.env.NODE_ENV !== "development",
   })
 
-  return res.json({ id: user.id, role: user.role });
+  res.cookie("USER", { id: user.id, role: user.role },
+    {
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      sameSite: "strict",
+      secure: process.env.NODE_ENV !== "development",
+    }
+  );
 
+  return res.sendStatus(200);
 
 });
 

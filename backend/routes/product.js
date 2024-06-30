@@ -1,11 +1,11 @@
 const { Router } = require("express");
 const { Op } = require("sequelize");
 const { Product, Category, Image } = require("../models");
-const checkAuth = require("../middlewares/checkAuth");
+const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
-router.get("/", checkAuth, async (req, res) => {
+router.get("/", async (req, res) => {
     const products = await Product.findAll({
         where: req.query,
         include: [Category, Image],
@@ -14,7 +14,7 @@ router.get("/", checkAuth, async (req, res) => {
     res.json(products);
 });
 
-router.get("/search", checkAuth, async (req, res) => {
+router.get("/search", async (req, res) => {
 
     try{
         const { q } = req.query;
@@ -45,7 +45,7 @@ router.get("/:id/images", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { ...productData } = req.body;
         const product = await Product.create(productData);
@@ -77,7 +77,7 @@ router.get("/:id", async (req, res, next) => {
 
 
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;
         const product = await Product.findByPk(parseInt(req.params.id));
@@ -99,7 +99,7 @@ router.patch("/:id", async (req, res, next) => {
     }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const nbDeleted = await Product.destroy({
             where: {
@@ -112,7 +112,7 @@ router.delete("/:id", async (req, res, next) => {
     }
 });
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;
         await Product.destroy({

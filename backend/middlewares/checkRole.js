@@ -1,15 +1,48 @@
+const jwt = require("jsonwebtoken");
+const { User } = require("../models");
+
 module.exports = function (options = {}) {
 
    const allowedRoles = Array.isArray(options.role) ? options.role : [options.role];
 
    return function (req, res, next) {
-      const user = req.user;
-      if (!user) res.sendStatus(401);
-      
-      if (allowedRoles.includes(user.role)) {
-         req.roles = [user.role];
+      const token = req.signedCookies.JWT;
+
+      if (!token) return res.sendStatus(401);
+
+      console.log(token);
+
+      try {
+         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+         console.log(decoded);
+
+         if (!decoded || decoded.purpose !== 'authentication') {
+            res.clearCookie("JWT");
+            return res.sendStatus(401);
+         }
+
+         const user = User.findByPk(decoded.id);
+
+         console.log(user, allowedRoles);
+
+         if (!user) {
+            res.clearCookie("JWT");
+            return res.sendStatus(401);
+         }
+
+         if (!allowedRoles.includes(user.role)) {
+            return res.sendStatus(403);
+         }
+
+         req.user = user;
          next();
-      } 
-      else res.sendStatus(403);
+         return res.sendStatus(401);
+      }
+      catch (err) {
+         console.log(err);
+         res.clearCookie("JWT");
+         return res.sendStatus(401);
+      }
    }
 };

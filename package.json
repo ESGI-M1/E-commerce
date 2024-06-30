@@ -21,6 +21,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "emailjs": "^4.0.3",
+    "js-cookie": "^3.0.5",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",
     "pdf-lib": "^1.17.1",

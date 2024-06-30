@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { z } from 'zod'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import Cookies from 'js-cookie'
 
 const email = ref('')
 const password = ref('')
@@ -31,19 +32,9 @@ const passwordError = computed(() => {
   return parsedPassword.error.issues[0].message
 })
 
-// Verify is user is logged in
-const isAuthenticated = () => {
-  axios.get('http://localhost:3000/users')
-    .then((response) => {
-      console.log('User response:', response)
-      if (response.data.length > 0) {
-        router.push('/')
-      }
-    })
-    .catch((error) => {
-      console.error(error)
-    })
-}
+const isAuthenticated = computed(() => {
+  return Cookies.get('USER') !== undefined
+})
 
 const login = () => {
   if (
@@ -57,9 +48,10 @@ const login = () => {
     .post('http://localhost:3000/login', {
       email: email.value,
       password: password.value
+    }, {
+      withCredentials: true
     })
     .then(async (response) => {
-      console.log('Login response:', response)
       const temporaryId = localStorage.getItem('temporaryId')
       try {
         if (temporaryId) {

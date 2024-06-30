@@ -2,14 +2,12 @@ const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 
 module.exports = (req, res, next) => {
-  const token = req.cookies.JWT;
-  console.log(token);
+  const token = req.signedCookies.JWT;
 
   if (!token) return res.sendStatus(401);
 
   try{
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded);
  
     if (!decoded || decoded.purpose !== 'authentication') {
       res.clearCookie("JWT");
@@ -18,12 +16,17 @@ module.exports = (req, res, next) => {
   
     const user = User.findByPk(decoded.id);
   
+    if (!user) {
+      res.clearCookie("JWT");
+      return res.sendStatus(401);
+    }
+
     req.user = user;
+    next();
   }
   catch(err){
+    console.log(err);
     res.clearCookie("JWT");
     return res.sendStatus(401);
   }
-
-  next();
 };

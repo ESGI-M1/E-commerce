@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Cookies from 'js-cookie'
+
 import Dashboard from '../views/DashboardView.vue'
 import About from '../views/AboutView.vue'
 
@@ -47,7 +49,8 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: Dashboard
+    component: Dashboard,
+    meta: { requiresAdmin: true }
   },
   {
     path: '/about',
@@ -116,30 +119,35 @@ const routes = [
     component: Error
   },
   {
-    path: '/favorite',
+    path: '/favorites',
     name: 'Favoris',
-    component: Favoris
+    component: Favoris,
+    meta: { requiresAuth: true }
   },
   {
     path: '/profile',
     name: 'Profile',
-    component: Profile
+    component: Profile,
+    meta: { requiresAuth: true }
   },
   {
     path: '/order',
     name: 'Historique des commandes',
-    component: Order
+    component: Order,
+    meta: { requiresAuth: true }
   },
   {
     path: '/order/:id',
     name: 'OrderDetail',
     component: OrderDetail,
-    props: true
+    props: true,
+    meta: { requiresAuth: true }
   },
   {
     path: '/order/:orderId/returnProduct/:productId',
     name: 'ReturnProducts',
-    component: ReturnProduct
+    component: ReturnProduct,
+    meta: { requiresAuth: true }
   },
   {
     path: '/ressources',
@@ -168,7 +176,8 @@ const routes = [
   {
     path: '/users/confirm-address/:token',
     name: 'ConfirmAddress',
-    component: ConfirmAddress
+    component: ConfirmAddress,
+    meta: { requiresAuth: true }
   },
   {
     path: '/orders',
@@ -189,24 +198,39 @@ const router = createRouter({
   routes
 })
 
-const isAdmin = () => {
-  const authToken = localStorage.getItem('authToken')
-  if (!authToken) {
-    return false
-  }
-  console.log('isAdmin', authToken)
-  return true
+const isLogged = () => {
+  const userCookie = Cookies.get('USER');
+  if (!userCookie) return null;
 
+  const userObject = JSON.parse(userCookie.substring(2));
+  return userObject;
 }
 
-/*router.beforeEach( async (to, from) => {
-  console.log('beforeEach')
+const isAuthenticated = () => {
+  return isLogged() !== null;
+}
 
-  if (to.matched.some((record) => record.meta.requiresAdmin)) {
-    if(!isAdmin()) return '/login'
+const isAdmin = () => {
+  const user = isLogged();
+  if (!user || !user.role) return false;
+
+  return user.role === 'admin';
+}
+
+
+router.beforeEach(async (to, from) => {
+  console.log('beforeEach');
+
+  if (to.matched.some(record => record.meta.requiresAdmin)) {
+    if (!isAdmin()) return '/login';
   }
-  return true
-})
-  */
+
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!isAuthenticated()) return '/login';
+  }
+
+  return true;
+});
+  
 
 export default router

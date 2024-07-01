@@ -104,7 +104,7 @@ const form = ref({
   firstname: '',
   email: ''
 });
-const modeLabel = ref('');
+let modeLabel = ref('');
 let editingAddress = null;
 
 const fetchUserProfile = async () => {
@@ -121,18 +121,21 @@ const fetchUserProfile = async () => {
 
 const openeditFirstnameModal = (firstname: string) => {
   isOpen.value = true;
+  modeLabel = 'le prénom'
   mode.value = 'firstname';
   form.value.firstname = firstname;
 };
 
 const openeditLastnameModal = (lastname: string) => {
   isOpen.value = true;
+  modeLabel = 'le nom'
   mode.value = 'lastname';
   form.value.lastname = lastname;
 };
 
 const openeditEmailModal = (email: string) => {
   isOpen.value = true;
+  modeLabel = 'l\'e-mail'
   mode.value = 'email';
   form.value.email = email;
 };
@@ -260,28 +263,6 @@ onMounted(async () => {
   border-radius: 4px;
   cursor: pointer;
   margin-top: 10px;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
 }
 
 .close {

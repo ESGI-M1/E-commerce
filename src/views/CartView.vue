@@ -118,14 +118,9 @@ const removePromo = async () => {
         headers: { Authorization: `Bearer ${authToken}` }
       }
     )
-
-    if (response.data.success) {
-      promo.value = null
-      fetchCartItems()
-      promoError.value = ''
-    } else {
-      console.error('Erreur lors de la suppression du code promo :', response.data.error)
-    }
+    promo.value = null
+    fetchCartItems()
+    promoError.value = ''
 }
 
 const applyPromoCode = async () => {

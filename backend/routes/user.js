@@ -29,9 +29,9 @@ router.post("/", async (req, res, next) => {
 
 router.get("/:id", checkAuth, async (req, res) => {
 
-    const userId = parseInt(req.params.id, 10);
+    const userId = parseInt(req.params.id);
 
-    if(!userId || ( userId !== req.user.id || req.user.role !== 'admin')) return res.sendStatus(403);
+    if(!userId || userId !== req.user.id && req.user.role !== 'admin') return res.sendStatus(403);
 
     const addresses = await AddressUser.findAll({
       where: { userId: userId },
@@ -50,7 +50,7 @@ router.patch("/:id", checkAuth, async (req, res, next) => {
   try {
     const userId = parseInt(req.params.id);
     
-    if(!userId || ( userId !== req.user.id || req.user.role !== 'admin')) return res.sendStatus(403);
+    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
 
     const [nbUpdated, users] = await User.update(req.body, {
       where: {
@@ -85,7 +85,7 @@ router.put("/:id", checkAuth, async (req, res, next) => {
   try {
     const userId = parseInt(req.params.id);
     
-    if(!userId || ( userId !== req.user.id || req.user.role !== 'admin')) return res.sendStatus(403);
+    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
 
     const nbDeleted = await User.destroy({
       where: {

@@ -10,17 +10,14 @@ router.get("/", checkAuth, async (req, res) => {
     res.json(address);
 });
 
-router.post("/:id", checkAuth, async (req, res, next) => { // TODO remove id
+router.post("/", checkAuth, async (req, res, next) => {
   try {
-    const user = await User.findByPk(req.user.id);
-    if (!user) return res.sendStatus(404);
-
     const newAddress = await AddressUser.create({
       street: req.body.street,
       postalCode: req.body.postalCode,
       city: req.body.city,
       country: req.body.country,
-      userId: user.id,
+      userId: req.user.id,
     });
 
     res.status(201).json(newAddress);
@@ -29,22 +26,13 @@ router.post("/:id", checkAuth, async (req, res, next) => { // TODO remove id
   }
 });
   
-router.put("/:id", checkAuth, async (req, res, next) => { // TODO remove id
+router.put("/:id", checkAuth, async (req, res, next) => {
+  const id = parseInt(req.params.id);
   try {
-    const user = await User.findByPk(req.user.id);
-    if (!user) return res.sendStatus(404);
-
-    const address = await AddressUser.findOne({
-      where: { userId: user.id } // Utilisation de userId au lieu de UserId
-    });
-
-    if (!address) {
-      return res.sendStatus(404);
-    }
-
     const [nbUpdated, updatedAddress] = await AddressUser.update(req.body, {
       where: {
-        id: address.id,
+        id: id,
+        userId: req.user.id,
       },
       returning: true,
     });
@@ -55,11 +43,13 @@ router.put("/:id", checkAuth, async (req, res, next) => { // TODO remove id
   }
 });
   
-router.delete("/:id", checkAuth, async (req, res) => { // TODO remove id
+router.delete("/:id", checkAuth, async (req, res) => { 
+  const id = parseInt(req.params.id);
   try {
     const deletedAddress = await AddressUser.destroy({
       where: {
-        id: req.user.id,
+        id: id,
+        userId: req.user.id,
       },
     });
 

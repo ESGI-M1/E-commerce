@@ -7,15 +7,23 @@
       <p><strong>Email:</strong> {{ user.email }}</p>
 
       <div v-if="user.deliveryAddress && user.deliveryAddress.length > 0">
-        <div v-for="(address, index) in user.deliveryAddress" :key="address.id" class="delivery-address">
+        <div
+          v-for="(address, index) in user.deliveryAddress"
+          :key="address.id"
+          class="delivery-address"
+        >
           <div class="address-info" @click="openModal('edit', address)">
-            <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
+            <p>
+              <strong>Adresse de livraison {{ index + 1 }} :</strong>
+            </p>
             <p>{{ address.street }}</p>
             <p>{{ address.postalCode }} {{ address.city }}</p>
             <p>{{ address.country }}</p>
           </div>
           <div class="address-actions">
-            <button class="btn-delete" @click="deleteAddress(address.id)"><i class="fa fa-trash"></i></button>
+            <button class="btn-delete" @click="deleteAddress(address.id)">
+              <i class="fa fa-trash"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -24,7 +32,9 @@
         <p>Aucune adresse de livraison enregistrée.</p>
       </div>
 
-      <button class="btn-add" @click="openModal('add')"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
+      <button class="btn-add" @click="openModal('add')">
+        <i class="fa fa-plus"></i> Ajouter une adresse de livraison
+      </button>
     </div>
 
     <div v-if="isOpen" class="modal-overlay">
@@ -35,22 +45,24 @@
         <form @submit.prevent="handleSubmit" class="modal-form">
           <div class="form-group">
             <label for="street">Rue</label>
-            <input v-model="form.street" type="text" id="street" required />
+            <input v-model="form.street" type="text" id="street" required autocomplete="street-address" />
           </div>
           <div class="form-group">
             <label for="postalCode">Code Postal</label>
-            <input v-model="form.postalCode" type="text" id="postalCode" required />
+            <input v-model="form.postalCode" type="text" id="postalCode" required autocomplete="postal-code" />
           </div>
           <div class="form-group">
             <label for="city">Ville</label>
-            <input v-model="form.city" type="text" id="city" required />
+            <input v-model="form.city" type="text" id="city" required autocomplete="address-level2" />
           </div>
           <div class="form-group">
             <label for="country">Pays</label>
-            <input v-model="form.country" type="text" id="country" required />
+            <input v-model="form.country" type="text" id="country" required autocomplete="country" />
           </div>
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">{{ mode === 'edit' ? 'Modifier' : 'Ajouter' }}</button>
+            <button type="submit" class="btn btn-primary">
+              {{ mode === 'edit' ? 'Modifier' : 'Ajouter' }}
+            </button>
           </div>
         </form>
       </div>
@@ -59,93 +71,99 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
-const user = ref(null);
-const isOpen = ref(false);
-const mode = ref('');
+const user = ref(null)
+const isOpen = ref(false)
+const mode = ref('')
 const form = ref({
   street: '',
   postalCode: '',
   city: '',
   country: ''
-});
-let editingAddress = null;
+})
+let editingAddress = null
 
 const fetchUserProfile = async () => {
-  const authToken = localStorage.getItem('authToken');
+  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
-    return router.push('/');
+    return router.push('/')
   }
 
   try {
     const response = await axios.get(`http://localhost:3000/users/${authToken}`, {
       withCredentials: true
-    });
-    user.value = response.data;
+    })
+    user.value = response.data
   } catch (error) {
-    console.error('Erreur lors du chargement du profil :', error);
+    console.error('Erreur lors du chargement du profil :', error)
   }
-};
+}
 
 const openModal = (modeType, address = null) => {
-  isOpen.value = true;
-  mode.value = modeType; // 'add' ou 'edit'
+  isOpen.value = true
+  mode.value = modeType // 'add' ou 'edit'
 
   if (modeType === 'edit' && address) {
-    editingAddress = address;
-    form.value.street = address.street;
-    form.value.postalCode = address.postalCode;
-    form.value.city = address.city;
-    form.value.country = address.country;
+    editingAddress = address
+    form.value.street = address.street
+    form.value.postalCode = address.postalCode
+    form.value.city = address.city
+    form.value.country = address.country
   } else {
-    editingAddress = null;
-    form.value.street = '';
-    form.value.postalCode = '';
-    form.value.city = '';
-    form.value.country = '';
+    editingAddress = null
+    form.value.street = ''
+    form.value.postalCode = ''
+    form.value.city = ''
+    form.value.country = ''
   }
-};
+}
 
 const closeModal = () => {
-  isOpen.value = false;
-};
+  isOpen.value = false
+}
 
 const deleteAddress = async (id) => {
   try {
-    await axios.delete(`http://localhost:3000/addressusers/${id}`);
-    user.value.deliveryAddress = user.value.deliveryAddress.filter(address => address.id !== id);
+    await axios.delete(`http://localhost:3000/addressusers/${id}`, {
+      withCredentials: true
+    })
+    user.value.deliveryAddress = user.value.deliveryAddress.filter((address) => address.id !== id)
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'adresse :', error);
+    console.error("Erreur lors de la suppression de l'adresse :", error)
   }
-};
+}
 
 const handleSubmit = async () => {
-  const authToken = localStorage.getItem('authToken');
+  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
-    return router.push('/');
+    return router.push('/')
   }
 
   try {
-    let response;
+    let response
     if (mode.value === 'add') {
-      response = await axios.post(`http://localhost:3000/addressusers/${authToken}`, form.value);
-      user.value.deliveryAddress.push(response.data);
+      response = await axios.post(`http://localhost:3000/addressusers`, form.value, {
+        withCredentials: true
+      })
+      user.value.deliveryAddress.push(response.data)
     } else if (mode.value === 'edit' && editingAddress) {
-      response = await axios.put(`http://localhost:3000/addressusers/${authToken}`, form.value);
-      Object.assign(editingAddress, response.data);
+      response = await axios.put(`http://localhost:3000/addressusers/${authToken}`, form.value, {
+        withCredentials: true
+      })
+      Object.assign(editingAddress, response.data)
     }
 
-    closeModal();
+    closeModal()
   } catch (error) {
-    console.error('Erreur lors de la soumission du formulaire :', error);
+    console.error('Erreur lors de la soumission du formulaire :', error)
   }
-};
+}
 
 onMounted(async () => {
-  await fetchUserProfile();
-});
+  await fetchUserProfile()
+})
 </script>
 
 <style scoped>
@@ -258,7 +276,7 @@ onMounted(async () => {
   font-weight: bold;
 }
 
-.modal-form input[type="text"] {
+.modal-form input[type='text'] {
   width: calc(100% - 16px);
   padding: 8px;
   border: 1px solid #ccc;

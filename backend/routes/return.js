@@ -29,7 +29,7 @@ router.post('/', checkAuth, async (req, res) => {
   try {
     const { userId, orderId, productId, quantityReturned, reason, deliveryMethod } = req.body; // TODO add parseInt
 
-    if(!userId || ( userId !== req.user.id || req.user.role !== 'admin')) return res.sendStatus(403);
+    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
 
     const existingReturn = await ReturnProduct.findOne({
       where: {
@@ -61,7 +61,7 @@ router.get("/:productId", async (req, res, next) => {
   const productId = req.params.productId;
   const { userId, orderId } = req.query;
 
-  if(!userId || ( userId !== req.user.id || req.user.role !== 'admin')) return res.sendStatus(403);
+  if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
 
   try {
     const returnProduct = await ReturnProduct.findOne({
@@ -81,7 +81,7 @@ router.get("/:productId", async (req, res, next) => {
 router.delete("/", async (req, res) => {
   const { productId, orderId, userId } = req.query;
 
-  if(!userId || ( userId !== req.user.id || req.user.role !== 'admin')) return res.sendStatus(403);
+  if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
 
   const deleted = await ReturnProduct.destroy({
      where: {

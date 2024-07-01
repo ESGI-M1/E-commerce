@@ -53,7 +53,7 @@ router.patch("/:id", async (req, res, next) => {
   try {
     const [nbUpdated, users] = await User.update(req.body, {
       where: {
-        id: parseInt(req.params.id, 10),
+        id: req.params.id,
       },
       individualHooks: true,
       returning: true,

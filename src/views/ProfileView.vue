@@ -2,20 +2,38 @@
   <div class="profile-container" v-if="user">
     <h1>Mon Profil</h1>
     <div class="profile-details">
-      <p><strong>Nom:</strong> {{ user.lastname }}</p>
-      <p><strong>Prénom:</strong> {{ user.firstname }}</p>
-      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p>
+        <strong>Nom:</strong> {{ user.lastname }}
+        <a @click="openeditLastnameModal(user.lastname)"><i class="fa fa-edit edit-icon" ></i></a>
+      </p>
+      <p>
+        <strong>Prénom:</strong> {{ user.firstname }}
+        <a @click="openeditFirstnameModal(user.firstname)"><i class="fa fa-edit edit-icon" ></i></a>
+      </p>
+      <p>
+        <strong>Email:</strong> {{ user.email }}
+        <a @click="openeditEmailModal(user.email)"><i class="fa fa-edit edit-icon" ></i></a>
+
+      </p>
 
       <div v-if="user.deliveryAddress && user.deliveryAddress.length > 0">
         <div v-for="(address, index) in user.deliveryAddress" :key="address.id" class="delivery-address">
-          <div class="address-info" @click="openModal('edit', address)">
+          <div class="address-info" @click="openEditAddressModal(address)">
             <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
             <p>{{ address.street }}</p>
             <p>{{ address.postalCode }} {{ address.city }}</p>
             <p>{{ address.country }}</p>
           </div>
           <div class="address-actions">
-            <button class="btn-delete" @click="deleteAddress(address.id)"><i class="fa fa-trash"></i></button>
+            <fancy-confirm
+              :class="'btn-danger'"
+              :confirmationMessage="'Etes-vous sûr de vouloir supprimer l\'adresse ?'"
+              @confirmed="deleteAddress(address.id)"
+            >
+              <template #buttonText>
+                <i class="fa fa-trash"></i>
+              </template>
+            </fancy-confirm>
           </div>
         </div>
       </div>
@@ -24,33 +42,42 @@
         <p>Aucune adresse de livraison enregistrée.</p>
       </div>
 
-      <button class="btn-add" @click="openModal('add')"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
+      <button class="btn-add" @click="openAddAddressModal"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
     </div>
 
     <div v-if="isOpen" class="modal-overlay">
       <div class="modal">
         <span class="close" @click="closeModal">&times;</span>
-        <h2 v-if="mode === 'edit'">Modifier l'adresse de livraison</h2>
-        <h2 v-else>Ajouter une adresse de livraison</h2>
+        <h2 v-if="mode === 'editAddress'">Modifier l'adresse de livraison</h2>
+        <h2 v-else-if="mode === 'addAddress'">Ajouter une adresse de livraison</h2>
+        <h2 v-else>Modifier {{ modeLabel }}</h2>
         <form @submit.prevent="handleSubmit" class="modal-form">
-          <div class="form-group">
-            <label for="street">Rue</label>
-            <input v-model="form.street" type="text" id="street" required />
+          <div v-if="mode === 'editAddress' || mode === 'addAddress'">
+            <div class="form-group">
+              <label for="street">Rue</label>
+              <input v-model="form.street" type="text" id="street" required />
+            </div>
+            <div class="form-group">
+              <label for="postalCode">Code Postal</label>
+              <input v-model="form.postalCode" type="text" id="postalCode" required />
+            </div>
+            <div class="form-group">
+              <label for="city">Ville</label>
+              <input v-model="form.city" type="text" id="city" required />
+            </div>
+            <div class="form-group">
+              <label for="country">Pays</label>
+              <input v-model="form.country" type="text" id="country" required />
+            </div>
           </div>
-          <div class="form-group">
-            <label for="postalCode">Code Postal</label>
-            <input v-model="form.postalCode" type="text" id="postalCode" required />
-          </div>
-          <div class="form-group">
-            <label for="city">Ville</label>
-            <input v-model="form.city" type="text" id="city" required />
-          </div>
-          <div class="form-group">
-            <label for="country">Pays</label>
-            <input v-model="form.country" type="text" id="country" required />
+          <div v-else>
+            <div class="form-group">
+              <label :for="mode">{{mode === 'email' ? 'Email' : mode === 'firstname' ? 'Prénom' : 'Nom'}}</label>
+              <input v-model="form[mode]" :type="mode === 'email' ? 'email' : 'text'" :id="mode" required />
+            </div>
           </div>
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">{{ mode === 'edit' ? 'Modifier' : 'Ajouter' }}</button>
+            <button type="submit" class="btn btn-primary">{{ mode.includes('add') ? 'Ajouter' : 'Modifier' }}</button>
           </div>
         </form>
       </div>
@@ -58,9 +85,12 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import FancyConfirm from '../components/ConfirmComponent.vue';
+import { last } from 'pdf-lib';
 
 const user = ref(null);
 const isOpen = ref(false);
@@ -69,8 +99,12 @@ const form = ref({
   street: '',
   postalCode: '',
   city: '',
-  country: ''
+  country: '',
+  lastname: '',
+  firstname: '',
+  email: ''
 });
+const modeLabel = ref('');
 let editingAddress = null;
 
 const fetchUserProfile = async () => {
@@ -89,23 +123,41 @@ const fetchUserProfile = async () => {
   }
 };
 
-const openModal = (modeType, address = null) => {
+const openeditFirstnameModal = (firstname: string) => {
   isOpen.value = true;
-  mode.value = modeType; // 'add' ou 'edit'
+  mode.value = 'firstname';
+  form.value.firstname = firstname;
+};
 
-  if (modeType === 'edit' && address) {
-    editingAddress = address;
-    form.value.street = address.street;
-    form.value.postalCode = address.postalCode;
-    form.value.city = address.city;
-    form.value.country = address.country;
-  } else {
-    editingAddress = null;
-    form.value.street = '';
-    form.value.postalCode = '';
-    form.value.city = '';
-    form.value.country = '';
-  }
+const openeditLastnameModal = (lastname: string) => {
+  isOpen.value = true;
+  mode.value = 'lastname';
+  form.value.lastname = lastname;
+};
+
+const openeditEmailModal = (email: string) => {
+  isOpen.value = true;
+  mode.value = 'email';
+  form.value.email = email;
+};
+
+const openAddAddressModal = () => {
+  isOpen.value = true;
+  mode.value = 'addAddress';
+  form.value.street = '';
+  form.value.postalCode = '';
+  form.value.city = '';
+  form.value.country = '';
+};
+
+const openEditAddressModal = (address) => {
+  isOpen.value = true;
+  mode.value = 'editAddress';
+  editingAddress = address;
+  form.value.street = address.street;
+  form.value.postalCode = address.postalCode;
+  form.value.city = address.city;
+  form.value.country = address.country;
 };
 
 const closeModal = () => {
@@ -129,12 +181,16 @@ const handleSubmit = async () => {
 
   try {
     let response;
-    if (mode.value === 'add') {
+    if (mode.value === 'addAddress') {
       response = await axios.post(`http://localhost:3000/adressusers/${authToken}`, form.value);
       user.value.deliveryAddress.push(response.data);
-    } else if (mode.value === 'edit' && editingAddress) {
+    } else if (mode.value === 'editAddress' && editingAddress) {
       response = await axios.put(`http://localhost:3000/adressusers/${authToken}`, form.value);
       Object.assign(editingAddress, response.data);
+    } else {
+      const field = mode.value;
+      response = await axios.patch(`http://localhost:3000/users/${authToken}`, { [field]: form.value[field] });
+      user.value[field] = response.data[field];
     }
 
     closeModal();
@@ -173,25 +229,25 @@ onMounted(async () => {
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
-  cursor: pointer; /* Ajout d'un curseur pointer pour indiquer l'interaction */
-  transition: background-color 0.3s ease; /* Transition de couleur de fond pour un effet visuel */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .delivery-address:hover {
-  background-color: #f0f0f0; /* Couleur de fond au survol */
+  background-color: #f0f0f0;
 }
 
 .address-info {
-  flex: 1; /* Prend toute la largeur disponible */
+  flex: 1;
 }
 
 .address-info p {
-  margin: 5px 0; /* Marge interne pour les paragraphes */
+  margin: 5px 0;
 }
 
 .address-actions {
   display: flex;
-  align-items: center; /* Centrer verticalement */
+  align-items: center;
 }
 
 .btn-delete {
@@ -201,11 +257,11 @@ onMounted(async () => {
   padding: 6px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Transition pour l'effet de survol */
+  transition: background-color 0.3s ease;
 }
 
 .btn-delete:hover {
-  background-color: #c82333; /* Couleur de fond au survol */
+  background-color: #c82333;
 }
 
 .btn-add {
@@ -258,7 +314,8 @@ onMounted(async () => {
   font-weight: bold;
 }
 
-.modal-form input[type="text"] {
+.modal-form input[type="text"],
+.modal-form input[type="email"] {
   width: calc(100% - 16px);
   padding: 8px;
   border: 1px solid #ccc;
@@ -268,5 +325,11 @@ onMounted(async () => {
 .buttons {
   margin-top: 20px;
   text-align: right;
+}
+
+.edit-icon {
+  cursor: pointer;
+  margin-left: 10px;
+  color: #007bff;
 }
 </style>

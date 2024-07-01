@@ -11,7 +11,9 @@
       </div>
     </div>
   </div>
-  <button :class="buttonClass" @click="confirmAction">{{ buttonText }}</button>
+  <button :class="buttonClass" @click="confirmAction">
+    <slot name="buttonText">{{ buttonText }}</slot>
+  </button>
 </template>
 
 <script setup lang="ts">

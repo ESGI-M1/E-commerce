@@ -42,3 +42,22 @@
 .btn-warning:hover {
   background-color: #e0a800;
 }
+
+.btn-details {
+  padding: 10px 20px;
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 20px;
+  cursor: pointer;
+  transition:
+    background-color 0.3s,
+    transform 0.3s,
+    box-shadow 0.3s;
+}
+
+.btn-details:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

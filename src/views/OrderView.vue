@@ -14,6 +14,9 @@
           <h2>Commande n°{{ order.id }}</h2>
           <div :class="['order-status', order.status]">{{ order.status }}</div>
           <div class="order-total">Total: {{ order.totalAmount }} €</div>
+          <button v-if="order.status === 'pending'" @click.stop="showLivraisonOrder(order.id)" class="btn-details">
+            Voir ma Livraison
+          </button>
         </div>
       </div>
       <div v-else>
@@ -50,6 +53,10 @@ const fetchOrders = async () => {
       const response = await axios.get(`http://localhost:3000/orders/user/${authToken}`)
       orders.value = response.data
     }
+}
+
+const showLivraisonOrder = (id: string) => {
+  router.push({ name: 'LivraisonOrder', params: { id } })
 }
 
 const showOrderDetails = (id: string) => {

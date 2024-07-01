@@ -21,6 +21,7 @@ import ReturnProduct from '../views/ReturnProductView.vue'
 import ConfirmAdress from '../views/ConfirmAdress.vue'
 import Success from '../views/SuccessView.vue'
 import Error from '../views/ErrorView.vue'
+import Livraison from '../views/OrderLivraisonView.vue'
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -144,6 +145,11 @@ const routes = [
     path: '/order',
     name: 'Historique des commandes',
     component: Order
+  },
+  {
+    path: '/order/livraison/:id',
+    name: 'LivraisonOrder',
+    component: Livraison
   },
   {
     path: '/order/:id',

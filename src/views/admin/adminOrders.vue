@@ -12,7 +12,7 @@
             <th>Statut</th>
             <th>Total</th>
             <th>Adresse</th>
-            <th></th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -20,7 +20,7 @@
             <td>n°{{ order.id }}</td>
             <td>{{ formatDate(order.deliveryDate) }}</td>
             <td>#{{ order.user.id }} {{ order.user.lastname }} {{ order.user.firstname }}</td>
-            <td>
+            <td :title="order.status === 'completed' ? 'Terminé' : 'En cours'">
               <i :class="order.status === 'completed' ? 'fas fa-check-circle status-completed' : 'fas fa-hourglass-half status-pending'"></i>
             </td>
             <td>{{ order.totalAmount }} €</td>

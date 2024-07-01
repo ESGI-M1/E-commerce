@@ -28,7 +28,7 @@
               <span class="product-name">#{{ returnProduct.product.id }} {{ returnProduct.product.name }}</span>
               <span class="product-quantity">x{{ returnProduct.quantity }}</span>
             </td>
-            <td>
+            <td :title="returnProduct.status === 'returned' ? 'Terminé' : 'En attente'">
               <i :class="returnProduct.status === 'returned' ? 'fas fa-check-circle status-returned' : 'fas fa-hourglass-half status-processing'"></i>
             </td>
             <td>{{ returnProduct.reason }}</td>

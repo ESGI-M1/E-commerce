@@ -27,7 +27,6 @@ router.get("/search", async (req, res) => {
         res.json(products);
         
     } catch (error) {
-        console.error("Error fetching products by search query:", error);
         res.status(500).json({ error: "Failed to fetch products by search query" });
     }
 
@@ -69,12 +68,9 @@ router.get("/:id", async (req, res, next) => {
 
         if (product ? res.json(product) : res.sendStatus(404));
     } catch (e) {
-        console.error('Error fetching product by ID:', e);
         next(e);
     }
 });
-
-
 
 router.patch("/:id", async (req, res, next) => {
     try {

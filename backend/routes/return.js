@@ -20,7 +20,6 @@ router.get('/', async (req, res) => {
     });
     res.json(returns);
   } catch (error) {
-    console.error('Erreur lors de la récupération des commandes :', error);
     res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
   }
 });
@@ -53,7 +52,6 @@ router.post('/', async (req, res) => {
         res.status(201).json(newReturn);
         }
     } catch (error) {
-        console.error('Error creating return:', error);
         res.status(500).json({ error: 'Unable to create return' });
     }
 });

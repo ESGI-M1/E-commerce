@@ -9,7 +9,6 @@ router.get('/', async (req, res) => {
       });
       res.json(orders);
     } catch (error) {
-      console.error('Erreur lors de la récupération des commandes :', error);
       res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
     }
   });
@@ -29,7 +28,6 @@ router.patch("/:id", async (req, res) => {
   
       res.status(200).json({ message: 'CartProduct quantity updated successfully' });
     } catch (error) {
-      console.error('Error updating cartProduct quantity:', error);
       res.status(500).json({ error: 'Unable to update cartProduct quantity' });
     }
   });

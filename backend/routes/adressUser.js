@@ -36,7 +36,7 @@ router.post("/:id", async (req, res, next) => {
       }
   
       const address = await AddressUser.findOne({
-        where: { userId: user.id } // Utilisation de userId au lieu de UserId
+        where: { userId: user.id }
       });
   
       if (!address) {
@@ -57,22 +57,16 @@ router.post("/:id", async (req, res, next) => {
   
   router.delete("/:id", async (req, res) => {
     const id = req.params.id;
-  
-    try {
       const deletedAddress = await AddressUser.destroy({
-        where: {
-          id: id,
-        },
-      });
-  
-      if (deletedAddress === 1) {
-        res.status(204).send(); // 204 No Content si la suppression réussit
-      } else {
-        res.status(404).send({ error: "Adresse non trouvée" });
-      }
-    } catch (error) {
-      console.error("Erreur lors de la suppression de l'adresse :", error);
-      res.status(500).send({ error: "Erreur lors de la suppression de l'adresse" });
+      where: {
+        id: id,
+      },
+    });
+
+    if (deletedAddress === 1) {
+      res.status(204).send();
+    } else {
+      res.status(404).send({ error: "Adresse non trouvée" });
     }
   });
 

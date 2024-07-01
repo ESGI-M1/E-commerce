@@ -4,7 +4,6 @@ const router = new Router();
 const mailer = require('../services/mailer');
 const jwt = require("jsonwebtoken");
 
-
 router.get("/", async (req, res) => {
   try {
     const users = await User.findAll({

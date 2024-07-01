@@ -22,7 +22,6 @@ router.get('/', async (req, res) => {
       });
       res.json(orders);
     } catch (error) {
-      console.error('Erreur lors de la récupération des commandes :', error);
       res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
     }
   });
@@ -74,7 +73,6 @@ router.get('/', async (req, res) => {
   
       res.json(order);
     } catch (error) {
-      console.error('Erreur lors de la récupération des commandes :', error);
       res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
     }
   });
@@ -103,7 +101,6 @@ try {
     res.status(201).json(newOrder);
     
 } catch (error) {
-    console.error('Error creating order:', error);
     res.status(500).json({ error: error.message });
 }
 });
@@ -174,7 +171,6 @@ router.get("/user/:idUser", async (req, res) => {
 
       res.json(ordersWithCarts);
   } catch (error) {
-      console.error('Erreur lors de la récupération des commandes et des paniers:', error);
       res.status(500).json({ error: 'Erreur lors de la récupération des commandes et des paniers' });
   }
 });
@@ -238,7 +234,6 @@ router.get("/details/:idUser", async (req, res) => {
 
         res.json(ordersWithCarts);
     } catch (error) {
-        console.error('Erreur lors de la récupération des commandes et des paniers:', error);
         res.status(500).json({ error: 'Erreur lors de la récupération des commandes et des paniers' });
     }
 });
@@ -277,7 +272,6 @@ router.get('/invoice/:orderId', async (req, res) => {
     res.send(pdfBytes);
   
   } catch (error) {
-    console.error('Error generating invoice:', error);
     res.status(500).json({ error: 'Failed to generate invoice' });
   }
 });

@@ -188,13 +188,39 @@ router.patch("/update-user/:cartId", async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const cart = await Cart.findByPk(cartId);
+    // Récupère le panier en cours de traitement avec les produits associés
+    const cart = await Cart.findByPk(cartId, { include: 'CartProducts' });
     if (!cart) {
       return res.status(404).json({ error: 'Cart not found' });
     }
 
-    cart.userId = userId;
-    await cart.save();
+    // Recherche le panier existant de l'utilisateur avec ses produits associés
+    const existingCart = await Cart.findOne({
+      where: { userId, orderId: null },
+      include: 'CartProducts' // Assurez-vous que 'CartProducts' correspond à l'alias défini dans la relation
+    });
+
+    if (!existingCart) {
+      // Si aucun panier existant n'est trouvé, associe simplement le panier au nouvel utilisateur
+      cart.userId = userId;
+      await cart.save();
+    } else {
+      // Fusionne les produits du panier en cours avec le panier existant
+      for (const cartProduct of cart.CartProducts) {
+        const existingProduct = existingCart.CartProducts.find(cp => cp.productId === cartProduct.productId);
+        if (existingProduct) {
+          // Si le produit existe déjà dans le panier existant, met à jour la quantité
+          existingProduct.quantity += cartProduct.quantity;
+          await existingProduct.save();
+        } else {
+          // Sinon, ajoute le produit au panier existant
+          cartProduct.cartId = existingCart.id; // Affecte l'ID du panier existant
+          await cartProduct.save();
+        }
+      }
+      // Supprime le panier en cours une fois les produits transférés
+      await cart.destroy();
+    }
 
     res.status(200).json({ message: 'Cart order updated successfully' });
   } catch (error) {
@@ -202,8 +228,6 @@ router.patch("/update-user/:cartId", async (req, res) => {
     res.status(500).json({ error: 'Unable to update cart order' });
   }
 });
-
-
 router.delete("/:id", async (req, res) => {
   const userId = req.query.userId;
   const cartItemId = req.params.id;

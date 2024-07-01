@@ -145,21 +145,31 @@ const applyPromoCode = async () => {
 }
 
 const fetchCartItems = async () => {
-    if (authToken) {
-      const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
-      });
-      if (response.data) {
-      carts.value = response.data;
-      if (carts.value[0] && carts.value[0].promoCodeId) {
-        const promoId = carts.value[0].promoCodeId;
-        const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
-        promo.value = responsePromo.data;
+  if (authToken) {
+    try {
+      const response = await axios.get(`http://localhost:3000/carts/${authToken}`);
+
+      if (response.data && response.data.length > 0) {
+        carts.value = response.data;
+
+        if (carts.value[0].promoCodeId) {
+          const promoId = carts.value[0].promoCodeId;
+          const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
+          promo.value = responsePromo.data;
+        } else {
+          promo.value = null;
+        }
       } else {
+        carts.value = null;
         promo.value = null;
       }
+    } catch (error) {
+      carts.value = null;
+      promo.value = null; 
     }
-    }
+  }
 };
+
 
 const updateCartQuantity = async (id, quantity) => {
   if (quantity === 'remove') {

@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { CartProduct } = require("../models");
+const { CartProduct, Cart } = require("../models");
 const router = new Router();
 
 router.get('/', async (req, res) => {
@@ -36,17 +36,21 @@ router.patch("/:id", async (req, res) => {
   
   router.delete("/:id", async (req, res) => {
     const id = req.params.id;
-  
-    try {
-      const deleted = await CartProduct.destroy({ where: { id: id } });
+    const cartProduct = await CartProduct.findByPk(id);
+    const deleted = await cartProduct.destroy();
+
       if (deleted) {
-        res.sendStatus(204); // No Content
-      } else {
-        res.sendStatus(404); // Not Found
+        const remainingCartProducts = await CartProduct.findAll({ where: { cartId: cartProduct.cartId } });
+        if (remainingCartProducts.length === 0) {
+        const cart = await Cart.findByPk(cartProduct.cartId);
+        if (cart) {
+          await cart.destroy();
+        }
       }
-    } catch (error) {
-      res.status(500).json({ error: 'Unable to delete cartProduct item' });
-    }
+        res.sendStatus(204);
+      } else {
+        res.sendStatus(404);
+      }
   });
   
 

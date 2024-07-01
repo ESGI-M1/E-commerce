@@ -83,20 +83,6 @@ module.exports = function(connection) {
             sequelize: connection,
             modelName: 'Product',
             tableName: 'Products',
-            hooks: {
-                beforeCreate: (product) => {
-                    const now = new Date();
-                    if (!product.createdAt) {
-                        product.createdAt = now;
-                    }
-                    if (!product.updatedAt) {
-                        product.updatedAt = now;
-                    }
-                },
-                beforeUpdate: (product) => {
-                    product.updatedAt = new Date();
-                }
-            }
         }
     );
 

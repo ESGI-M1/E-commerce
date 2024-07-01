@@ -81,7 +81,7 @@ const fetchUserProfile = async () => {
 
   try {
     const response = await axios.get(`http://localhost:3000/users/${authToken}`, {
-      headers: { Authorization: `Bearer ${authToken}` }
+      withCredentials: true
     });
     user.value = response.data;
   } catch (error) {

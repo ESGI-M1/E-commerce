@@ -5,7 +5,8 @@ const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
-router.get("/", async (req, res) => {
+router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
+
     const products = await Product.findAll({
         where: req.query,
         include: [Category, Image],
@@ -15,7 +16,6 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/search", async (req, res) => {
-
     try{
         const { q } = req.query;
         const products = await Product.findAll({
@@ -23,25 +23,25 @@ router.get("/search", async (req, res) => {
                 name: {
                     [Op.iLike]: `%${q}%`,
                 },
+                active: true,
             },
         });
         res.json(products);
         
-    } catch (error) {
-        console.error("Error fetching products by search query:", error);
-        res.status(500).json({ error: "Failed to fetch products by search query" });
+    } catch (e) {
+        next(e);
     }
 
 });
 
 router.get("/:id/images", async (req, res) => {
     try {
-        const productId = req.params.id;
-        const images = await Image.findAll({ where: { productId } });
+        const images = await Image.findAll(
+            { where: { productId : parseInt(req.params.id) } 
+        });
         res.json(images);
-    } catch (error) {
-        console.error("Error fetching images for product:", error);
-        res.status(500).json({ error: "Failed to fetch images for product" });
+    } catch (e) {
+    next(e);
     }
 });
 
@@ -59,7 +59,6 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);
-        console.log(`Fetching product with ID: ${productId}`);
         
         const product = await Product.findByPk(productId, {
             include: [
@@ -70,7 +69,6 @@ router.get("/:id", async (req, res, next) => {
 
         if (product ? res.json(product) : res.sendStatus(404));
     } catch (e) {
-        console.error('Error fetching product by ID:', e);
         next(e);
     }
 });

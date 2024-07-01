@@ -27,8 +27,8 @@ router.post("/login", async (req, res) => {
       if (loginAttempt[user.id] === 3) {
         try {
           mailer.sendConsecutiveConnexionError(user);
-        } catch (e) {
-          console.log("Error sending email : " + e);
+        } catch (error) {
+          console.log(error);
         }
       }
 
@@ -89,6 +89,7 @@ router.post("/forgot-password", async (req, res) => {
       mailer.sendResetPassword(user);
     }
     catch(error){
+      console.log(error);
       return res.sendStatus(406); // TODO Vérifier le code de retour
     }
   }
@@ -103,24 +104,43 @@ router.post('/reset-password', async (req, res) => {
   try {
     const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (tokenDecoded.purpose !== 'reset-password') {
+    if (tokenDecoded && tokenDecoded.purpose !== 'reset-password') {
       return res.sendStatus(400);
     }
 
     const user = await User.findByPk(tokenDecoded.id);
 
     if (!user) {
-      console.log("User not found + " + tokenDecoded.id);
       return res.sendStatus(400);
     }
 
-    user.password = password;
-    await user.save();
-
+    await user.update({ password : password });
     res.sendStatus(200);
-  } catch (error) {
-    console.log("Error : " + error);
-    res.sendStatus(400);
+  } catch (e) {
+    next(e);
+  }
+});
+
+
+router.post("/confirm-address/:token", async (req, res) => {
+  const token = req.params.token;
+
+  try {
+    const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (tokenDecoded && tokenDecoded.purpose !== "confirm_address") {
+      return res.sendStatus(400);
+    } 
+
+    await User.update({active: true}, {
+      where: {
+        id: tokenDecoded.id,
+      }
+    });
+
+    res.sendStatus(201);
+  } catch (e) {
+    next(e);
   }
 });
 

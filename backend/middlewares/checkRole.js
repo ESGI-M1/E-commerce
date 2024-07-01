@@ -10,12 +10,8 @@ module.exports = function (options = {}) {
 
       if (!token) return res.sendStatus(401);
 
-      console.log(token);
-
       try {
          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-         console.log(decoded);
 
          if (!decoded || decoded.purpose !== 'authentication') {
             res.clearCookie("JWT");
@@ -23,8 +19,6 @@ module.exports = function (options = {}) {
          }
 
          const user = User.findByPk(decoded.id);
-
-         console.log(user, allowedRoles);
 
          if (!user) {
             res.clearCookie("JWT");

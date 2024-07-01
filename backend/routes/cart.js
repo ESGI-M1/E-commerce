@@ -2,20 +2,21 @@ const { Router } = require("express");
 const { Cart, Product, User, CartProduct, Image, Category, AddressUser } = require("../models");
 const router = new Router();
 const crypto = require('crypto'); // Importer le module crypto pour générer des mots de passe aléatoires
+const { parse } = require("path");
 
 router.get("/", async (req, res) => {
-    const cartItems = await Cart.findAll({ include: [{ model: Product, as: 'product' }] });
-    res.json(cartItems);
+  const cartItems = await Cart.findAll({ include: [{ model: Product, as: 'product' }] });
+  res.json(cartItems);
 });
 
 router.get("/product/:id", async (req, res, next) => {
   try {
     const cart = await Cart.findOne({
       where: {
-        productId: req.params.id
+        productId: parseInt(req.params.id),
       }
     });
-    if (cart ? res.json(cart) : res.sendStatus(404));
+    cart ? res.json(cart) : res.sendStatus(404);
   } catch (e) {
     next(e);
   }
@@ -25,7 +26,7 @@ router.get("/order/:id", async (req, res, next) => {
   try {
     const cart = await Cart.findOne({
       where: {
-        orderId: req.params.id
+        orderId: parseInt(req.params.id),
       },
       include: [{
         model: CartProduct,
@@ -37,11 +38,7 @@ router.get("/order/:id", async (req, res, next) => {
         }]
       }]
     });
-    if (cart) {
-      res.json(cart);
-    } else {
-      res.sendStatus(404);
-    }
+    cart ? res.json(cart) : res.sendStatus(404);
   } catch (e) {
     next(e);
   }
@@ -84,12 +81,12 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: 'Missing userId or productId' });
     }
 
-    let user = await User.findByPk(userId);
+    let user = await User.findByPk(parseInt(userId));
 
     if (!user) {
       const tempPassword = generateRandomPassword(12);
       user = await User.create({
-        id: userId,
+        id: parseInt(userId),
         firstname: 'Temp',
         lastname: 'User',
         email: 'temporary@example.com',
@@ -98,13 +95,13 @@ router.post("/", async (req, res) => {
       });
     }
 
-    let cart = await Cart.findOne({ where: { userId, orderId: null } });
+    let cart = await Cart.findOne({ where: { userId : parseInt(userId), orderId: null } });
 
     if (!cart) {
-      cart = await Cart.create({ userId });
+      cart = await Cart.create({ userId : parseInt(userId) });
     }
 
-    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, productId } });
+    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, productId : parseInt(productId) } });
 
     if (cartProduct) {
       cartProduct.quantity += 1;
@@ -114,16 +111,15 @@ router.post("/", async (req, res) => {
     }
 
     res.status(200).json({ message: 'Product added to cart' });
-  } catch (error) {
-    console.error('Error adding product to cart:', error);
-    res.status(500).json({ error: 'Unable to add product to cart' });
+  } catch (e) {
+    next(e);
   }
 });
 
 // Récupère tous les produits du panier d'un utilisateur
 router.get("/:userId", async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = parseInt(req.params.userId);
 
     const cartItems = await Cart.findAll({
       where: { userId, orderId: null },
@@ -157,35 +153,30 @@ router.get("/:userId", async (req, res) => {
     } else {
       res.status(404).json({ error: 'Cart items not found' });
     }
-  } catch (error) {
-    console.error('Error fetching cart details:', error);
-    res.status(500).json({ error: 'Unable to fetch cart details' });
+  } catch (e) {
+    next(e);
   }
 });
 
 router.patch("/update-order/:cartId", async (req, res) => {
-  const { cartId } = req.params;
-  const { orderId } = req.body;
+  const cartId = parseInt(req.params.cartId);
+  const orderId = parseInt(req.body.orderId);
 
   try {
     const cart = await Cart.findByPk(cartId);
-    if (!cart) {
-      return res.status(404).json({ error: 'Cart not found' });
-    }
+    if (!cart) return res.status(404).json({ error: 'Cart not found' });
+    
+    const [nbUpdated, updatedCart] = await Cart.update({ orderId }, { where: { id: cartId }, returning: true });
 
-    cart.orderId = orderId;
-    await cart.save();
-
-    res.status(200).json({ message: 'Cart order updated successfully' });
-  } catch (error) {
-    console.error('Error updating cart order:', error);
-    res.status(500).json({ error: 'Unable to update cart order' });
+    nbUpdated ? res.json(updatedCart) : res.sendStatus(404);
+  } catch (e) {
+    next(e);
   }
 });
 
 router.patch("/update-user/:cartId", async (req, res) => {
-  const { cartId } = req.params;
-  const { userId } = req.body;
+  const cartId = parseInt(req.params.cartId);
+  const userId = parseInt(req.body.userId);
 
   try {
     const cart = await Cart.findByPk(cartId);
@@ -193,27 +184,25 @@ router.patch("/update-user/:cartId", async (req, res) => {
       return res.status(404).json({ error: 'Cart not found' });
     }
 
-    cart.userId = userId;
-    await cart.save();
+    const [nbUpdated, updatedCart] = await Cart.update({ userId }, { where: { id: cartId }, returning: true });
 
-    res.status(200).json({ message: 'Cart order updated successfully' });
-  } catch (error) {
-    console.error('Error updating cart order:', error);
-    res.status(500).json({ error: 'Unable to update cart order' });
+    nbUpdated ? res.json(updatedCart) : res.sendStatus(404);
+  } catch (e) {
+    next(e);
   }
 });
 
 
 router.delete("/:id", async (req, res) => {
-  const userId = req.query.userId;
-  const cartItemId = req.params.id;
+  const cartItemId = parseInt(req.params.id);
+  const userId = parseInt(req.body.userId);
 
   try {
     const deleted = await Cart.destroy({ where: { id: cartItemId, userId } });
 
     if (deleted ? res.sendStatus(204) : res.sendStatus(404));
-  } catch (error) {
-    res.status(500).json({ error: 'Unable to delete cart item' });
+  } catch (e) {
+    next(e);
   }
 });
 
@@ -221,11 +210,11 @@ router.post('/remove-promo', async (req, res) => {
   const { userId, cartIds } = req.body;
 
   try {
-    await Cart.update({ promoCodeId: null }, { where: { userId, id: cartIds } });
+    await Cart.update({ promoCodeId: null }, { where: { userId : parseInt(userId), id: parseInt(cartIds) } });
 
     res.sendStatus(200);
-  } catch (error) {
-    res.status(500).json({ success: false, error: 'Erreur lors de la suppression du code promo.' });
+  } catch (e) {
+    next(e);
   }
 });
 

@@ -104,7 +104,7 @@ router.post('/reset-password', async (req, res) => {
   try {
     const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (tokenDecoded && tokenDecoded.purpose !== 'reset-password') {
+    if (!tokenDecoded || tokenDecoded.purpose !== 'reset-password') {
       return res.sendStatus(400);
     }
 
@@ -122,13 +122,15 @@ router.post('/reset-password', async (req, res) => {
 });
 
 
-router.post("/confirm-address/:token", async (req, res) => {
-  const token = req.params.token;
+router.post("/confirm-address", async (req, res) => {
+  const token = req.body.token;
 
   try {
     const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (tokenDecoded && tokenDecoded.purpose !== "confirm_address") {
+    console.log(tokenDecoded);
+
+    if (!tokenDecoded || tokenDecoded.purpose !== "confirm_address") {
       return res.sendStatus(400);
     } 
 

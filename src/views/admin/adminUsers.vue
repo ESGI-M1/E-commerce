@@ -1,6 +1,6 @@
 <template>
   <div class="users">
-    <h1>Utilisateurs</h1>
+    <h1>Utilisateurs ({{ users.length }})</h1>
     <div class="text-right">
       <button class="btn btn-success" @click="showAddUserModal">
         <i class="fa fa-plus"></i> Ajouter Utilisateur
@@ -24,15 +24,24 @@
           <td>{{ user.firstname }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.role }}</td>
-          <td>
-            <button @click="showEditUserModal(user)" class="btn btn-primary">
+          <td class="flex flex-center">
+            <a @click="showEditUserModal(user)" class="a-primary">
               <i class="fa fa-edit"></i>
-            </button>
+            </a>
+            &nbsp;
+            <fancy-confirm
+                :class="'a-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer l\'utilisateur ?'"
+                :elementType="'a'"
+                @confirmed="deleteUser(user.id)"
+            >
+            <template #buttonText>
+              <i class="fa fa-trash"></i>
+            </template>
+          </fancy-confirm>
+          &nbsp;
             <button @click="resetPassword(user.id)" class="btn btn-warning">
               Réinitialiser MDP
-            </button>
-            <button @click="deleteUser(user.id)" class="btn btn-danger">
-              <i class="fa fa-trash"></i>
             </button>
           </td>
         </tr>
@@ -81,8 +90,8 @@
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
-// Définition du schéma de validation des utilisateurs avec Zod
 const userSchema = z.object({
   id: z.number().optional(),
   firstname: z.string().min(1, 'Le prénom est requis'),
@@ -105,10 +114,11 @@ const currentUser = ref<User>({
 
 const showModal = ref(false)
 const isEditing = ref(false)
+const numberOfUsers = ref(0)
 
-// Fonction pour récupérer la liste des utilisateurs
 const fetchUsers = async () => {
   const response = await axios.get('http://localhost:3000/users')
+
   users.value = response.data
 }
 
@@ -141,17 +151,14 @@ function generateRandomPassword(length: number): string {
   return password;
 }
 
-
-// Fonction pour ajouter un utilisateur
 const addUser = async () => {
     const parsedUser = userSchema.parse(currentUser.value)
-    parsedUser.password = generateRandomPassword(12)
+    parsedUser.password = generateRandomPassword(15)
     const response = await axios.post('http://localhost:3000/users', parsedUser)
     users.value.push(response.data)
     closeModal()
 }
 
-// Fonction pour mettre à jour un utilisateur
 const updateUser = async () => {
     const parsedUser = userSchema.parse(currentUser.value)
     const response = await axios.patch(
@@ -166,7 +173,6 @@ const updateUser = async () => {
     closeModal()
 }
 
-// Fonction pour supprimer un utilisateur
 const deleteUser = async (userId: number) => {
     await axios.delete(`http://localhost:3000/users/${userId}`)
     users.value = users.value.filter(user => user.id !== userId)

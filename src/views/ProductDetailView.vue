@@ -68,7 +68,7 @@ const addToFavorites = async (productId: string) => {
     return
   }
     const userId = localStorage.getItem('authToken')
-    const response = await axios.post('http://localhost:3000/favorites/add', {
+    const response = await axios.post('http://localhost:3000/favorites', {
       userId,
       productId
     })

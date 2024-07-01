@@ -1,6 +1,6 @@
 <template>
   <div class="promos">
-    <h1>Codes Promos</h1>
+    <h1>Codes Promos ({{ promos.length }})</h1>
     <div class="text-right">
       <button class="btn btn-success" @click="showAddForm">
         <i class="fa fa-plus"></i> Ajouter Code Promo
@@ -25,9 +25,9 @@
           <td>{{ formatDate(promo.endDate) }}</td>
           <td>{{ promo.discountPercentage }}</td>
           <td>
-            <button @click="editPromo(promo.id)" class="btn btn-primary">
+            <a @click="editPromo(promo.id)" class="a-primary">
               <i class="fa fa-edit"></i>
-            </button>
+            </a>
           </td>
         </tr>
       </tbody>

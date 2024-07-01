@@ -1,6 +1,6 @@
 <template>
   <div class="categories">
-    <h1>Gestion des Catégories</h1>
+    <h1>Gestion des Catégories ({{ categories.length }})</h1>
     <div class="text-right">
       <button @click="showAddCategoryModal" class="btn btn-success">
         <i class="fa fa-plus"></i> Ajouter Catégorie
@@ -28,12 +28,23 @@
             <td>{{ findCategoryName(category.parentCategoryId) }}</td>
             <td><p v-if="category.Products">{{ category.Products.length }}</p></td>
             <td>
-              <button @click="showEditCategoryModal(category)" class="btn btn-primary">
+              <div class="flex">
+              <a @click="showEditCategoryModal(category)" class="a-primary">
                 <i class="fa fa-edit"></i>
-              </button>
-              <button @click="deleteCategory(category)" class="btn btn-danger">
-                <i class="fa fa-trash-alt"></i>
-              </button>
+              </a>
+              &nbsp;
+              <fancy-confirm
+                :class="'a-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer la catégorie ?'"
+                :elementType="'a'"
+                @confirmed="deleteCategory(category)"
+            >
+            <template #buttonText>
+              <i class="fa fa-trash"></i>
+            </template>
+          </fancy-confirm>
+</div>
+
             </td>
           </tr>
         </tbody>
@@ -97,6 +108,7 @@
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 interface Category {
   id?: number

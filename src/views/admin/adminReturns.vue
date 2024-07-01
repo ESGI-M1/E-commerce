@@ -1,6 +1,6 @@
 <template>
   <div class="returns">
-    <h1>Retours</h1>
+    <h1>Retours ({{ returnProducts.length }})</h1>
 
     <div class="return-table">
       <table>
@@ -36,7 +36,7 @@
             <td>
               <fancy-confirm v-if="returnProduct.status === 'processing'"
                 :buttonText="'Valider'"
-                :class="'btn-success'"
+                :class="'btn btn-success'"
                 :confirmationMessage="'Etes-vous sûr de vouloir valider le retour du produit ?'"
                 @confirmed="validate(returnProduct.id)"
               >

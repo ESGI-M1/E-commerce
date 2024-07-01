@@ -1,6 +1,6 @@
 <template>
   <div class="products">
-    <h1>Produits</h1>
+    <h1>Produits ({{ products.length }})</h1>
     <div class="text-right">
       <button @click="showAddProductModal" class="btn btn-success">
         <i class="fa fa-plus"></i> Ajouter Produit
@@ -47,14 +47,26 @@
               <li v-for="category in product.Categories" :key="category.id">{{ category.name }}</li>
             </ul>
           </td>
-          <td>{{ product.active ? 'Oui' : 'Non' }}</td>
           <td>
-            <button @click="showEditProductModal(product)" class="btn btn-primary">
+            <i :class="product.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
+          </td>
+          <td>
+            <div class="flex">
+            <a @click="showEditProductModal(product)" class="a-primary">
               <i class="fa fa-edit"></i>
-            </button>
-            <button @click="deleteProduct(product)" class="btn btn-danger">
+            </a>
+            &nbsp;
+            <fancy-confirm
+                :class="'a-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer le produit ?'"
+                :elementType="'a'"
+                @confirmed="deleteProduct(product)"
+            >
+            <template #buttonText>
               <i class="fa fa-trash"></i>
-            </button>
+            </template>
+          </fancy-confirm>
+          </div>
           </td>
         </tr>
       </tbody>
@@ -129,6 +141,7 @@
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const productSchema = z.object({
   id: z.number().optional(),
@@ -331,5 +344,13 @@ form {
 img {
   max-width: 25%;
   cursor: pointer;
+}
+
+.text-success {
+  color: green;
+}
+
+.text-danger {
+  color: red;
 }
 </style>

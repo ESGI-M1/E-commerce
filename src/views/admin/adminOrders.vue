@@ -1,6 +1,6 @@
 <template>
   <div class="orders">
-    <h1>Liste des Commandes</h1>
+    <h1>Liste des Commandes ({{ orders.length }})</h1>
 
     <div class="order-table">
       <table>
@@ -28,7 +28,7 @@
             <td>
               <fancy-confirm v-if="order.status === 'pending'"
                 :buttonText="'Valider'"
-                :class="'btn-success'"
+                :class="'btn btn-success'"
                 :confirmationMessage="'Etes-vous sûr de vouloir valider la commande ?'"
                 @confirmed="validate(order.id)"
               >

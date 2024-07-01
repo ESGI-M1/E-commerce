@@ -26,14 +26,15 @@
           </div>
           <div class="address-actions">
             <fancy-confirm
-              :class="'btn-danger'"
-              :confirmationMessage="'Etes-vous sûr de vouloir supprimer l\'adresse ?'"
-              @confirmed="deleteAddress(address.id)"
+                :class="'a-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer l\'adresse ?'"
+                :elementType="'a'"
+                @confirmed="deleteAddress(address.id)"
             >
-              <template #buttonText>
-                <i class="fa fa-trash"></i>
-              </template>
-            </fancy-confirm>
+            <template #buttonText>
+              <i class="fa fa-trash"></i>
+            </template>
+          </fancy-confirm>
           </div>
         </div>
       </div>

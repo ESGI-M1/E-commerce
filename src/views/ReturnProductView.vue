@@ -43,7 +43,7 @@
         <fancy-confirm
           v-else-if="statut === 'processing' && existingReturn"
           :buttonText="'Annuler'"
-          :class="'btn-danger'"
+          :class="'btn btn-danger'"
           :confirmationMessage="'Etes-vous sûr de vouloir annuler le retour du produit ?'"
           @confirmed="deleteReturn"
         >

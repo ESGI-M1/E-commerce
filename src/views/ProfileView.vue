@@ -113,14 +113,10 @@ const fetchUserProfile = async () => {
     return router.push('/');
   }
 
-  try {
     const response = await axios.get(`http://localhost:3000/users/${authToken}`, {
       headers: { Authorization: `Bearer ${authToken}` }
     });
     user.value = response.data;
-  } catch (error) {
-    console.error('Erreur lors du chargement du profil :', error);
-  }
 };
 
 const openeditFirstnameModal = (firstname: string) => {

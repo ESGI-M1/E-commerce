@@ -140,14 +140,29 @@ const productSchema = z.object({
   Categories: z.array(z.number())
 })
 
-const products = ref([])
-const currentProduct = ref({
+// Définir le type des produits
+interface Product {
+  id?: number;
+  name: string;
+  reference: string;
+  description: string;
+  price: number;
+  active: boolean;
+  Categories: number[];
+  Images?: { url: string; description: string }[]; // Ajouter ce champ facultatif si nécessaire
+}
+
+// Références réactives pour les produits et le produit courant
+const products = ref<Product[]>([])
+const currentProduct = ref<Product>({
   name: '',
   reference: '',
   description: '',
   price: 0,
-  Categories: []
+  Categories: [],
+  active: true // Définir la valeur par défaut pour active
 })
+
 const showModal = ref(false)
 const isEditing = ref(false)
 

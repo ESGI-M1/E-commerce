@@ -10,7 +10,18 @@ const router = useRouter()
 const isFavorite = ref(false)
 const productId = ref(route.params.id as string)
 
-const product = ref({
+interface Product {
+  id: string;
+  name: string;
+  imageSrc: string;
+  description: string;
+  price: number;
+  reference: string;
+  comments: string[];
+  Categories: number[];
+}
+
+const product = ref<Product>({
   id: '',
   name: '',
   imageSrc: '',

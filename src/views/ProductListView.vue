@@ -1,3 +1,26 @@
+<template>
+  <div class="product-list">
+    <div
+      v-for="product in productsStore.products"
+      :key="product.id"
+      class="product-card"
+      @click="showProductDetails(product.id)"
+    >
+      <img
+        :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'"
+        :alt="product.Images ? product.Images[0].description : 'Product image'"
+        class="product-image"
+      />
+      <div class="product-info">
+        <h2 class="product-name">{{ product.name }}</h2>
+        <p class="product-description">{{ product.description }}</p>
+        <p class="product-reference">{{ product.reference }}</p>
+        <p class="product-price">${{ parseFloat(product.price).toFixed(2) }}</p>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
@@ -24,29 +47,6 @@ onMounted(() => {
   fetchProducts()
 })
 </script>
-
-<template>
-  <div class="product-list">
-    <div
-      v-for="product in productsStore.products"
-      :key="product.id"
-      class="product-card"
-      @click="showProductDetails(product.id)"
-    >
-      <img
-        :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'"
-        :alt="product.Images ? product.Images[0].description : 'Product image'"
-        class="product-image"
-      />
-      <div class="product-info">
-        <h2 class="product-name">{{ product.name }}</h2>
-        <p class="product-description">{{ product.description }}</p>
-        <p class="product-reference">{{ product.reference }}</p>
-        <p class="product-price">${{ parseFloat(product.price).toFixed(2) }}</p>
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .product-list {

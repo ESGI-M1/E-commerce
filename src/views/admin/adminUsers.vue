@@ -92,7 +92,6 @@ const userSchema = z.object({
   password: z.string().optional()
 })
 
-// Définition des types d'utilisateur et de la liste des utilisateurs
 type User = z.infer<typeof userSchema>
 
 const users = ref<User[]>([])
@@ -109,12 +108,8 @@ const isEditing = ref(false)
 
 // Fonction pour récupérer la liste des utilisateurs
 const fetchUsers = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/users')
-    users.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des utilisateurs :', error)
-  }
+  const response = await axios.get('http://localhost:3000/users')
+  users.value = response.data
 }
 
 function generateRandomPassword(length: number): string {
@@ -203,8 +198,8 @@ const closeModal = () => {
 
 // Fonction pour réinitialiser le mot de passe d'un utilisateur
 const resetPassword = async (userId: number) => {
-    await axios.post(`http://localhost:3000/users/${userId}/reset-password`)
-    alert('Le mot de passe a été réinitialisé.')
+  await axios.post(`http://localhost:3000/users/${userId}/reset-password`)
+  alert('Le mot de passe a été réinitialisé.')
 }
 
 onMounted(() => {

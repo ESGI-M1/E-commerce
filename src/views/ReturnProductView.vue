@@ -82,9 +82,7 @@ const quantityOptions = computed(() => {
 })
 
 const fetchProductDetails = async () => {
-  try {
     const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`);
-    console.log('response', response.data)
     if (response.data.status == 'pending') {
       router.push(`/order/${orderId.value}`) ;
     }
@@ -118,18 +116,11 @@ const fetchProductDetails = async () => {
       deliveryMethod.value = returnResponse.data.deliveryMethod
       statut.value = returnResponse.data.status
     }
-  } catch (error) {
-    console.error(
-      'Erreur lors de la récupération des détails du produit ou des informations de retour :',
-      error
-    )
-  }
 }
 
 onMounted(() => fetchProductDetails())
 
 const submitReturn = async () => {
-  try {
     const response = await axios.post(`http://localhost:3000/return`, {
       orderId: orderId.value,
       productId: productId.value,
@@ -138,15 +129,10 @@ const submitReturn = async () => {
       userId,
       deliveryMethod: deliveryMethod.value
     })
-    console.log('Retour du produit enregistré avec succès :', response.data)
     router.push(`/order/${orderId.value}`)
-  } catch (error) {
-    console.error('Erreur lors de la soumission du retour du produit :', error)
-  }
 }
 
 const deleteReturn = async () => {
-  try {
     await axios.delete(`http://localhost:3000/return`, {
       params: {
         userId: userId,
@@ -155,9 +141,6 @@ const deleteReturn = async () => {
       }
     })
     router.push(`/order/${orderId.value}`)
-  } catch (error) {
-    console.error('Erreur lors de la suppression du retour du produit :', error)
-  }
 }
 </script>
 

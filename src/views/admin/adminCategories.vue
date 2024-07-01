@@ -134,62 +134,38 @@ const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchCategories = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/categories')
-    categories.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des catégories :', error)
-  }
+  const response = await axios.get('http://localhost:3000/categories')
+  categories.value = response.data
 }
 
 const fetchProducts = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/products')
-    products.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des produits :', error)
-  }
+  const response = await axios.get('http://localhost:3000/products')
+  products.value = response.data
 }
 
 const addCategory = async () => {
-  try {
     const parsedCategory = categorySchema.parse(currentCategory.value)
     const response = await axios.post('http://localhost:3000/categories', parsedCategory)
     categories.value.push(response.data)
     closeModal()
-  } catch (error) {
-    console.error("Erreur lors de l'ajout de la catégorie :", error)
-  }
 }
 
 const updateCategory = async () => {
-  try {
-    const parsedCategory = categorySchema.parse(currentCategory.value)
-    await axios.patch(
-      `http://localhost:3000/categories/${currentCategory.value.id}`,
-      parsedCategory
-    )
-    const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
-    if (index !== -1) {
-      categories.value[index] = currentCategory.value
-    }
-    closeModal()
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('ZOD : Erreur lors de la modification de la catégorie :', error.errors)
-    } else {
-      console.error('Erreur lors de la modification de la catégorie :', error)
-    }
+  const parsedCategory = categorySchema.parse(currentCategory.value)
+  await axios.patch(
+    `http://localhost:3000/categories/${currentCategory.value.id}`,
+    parsedCategory
+  )
+  const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
+  if (index !== -1) {
+    categories.value[index] = currentCategory.value
   }
+  closeModal()
 }
 
 const deleteCategory = async (category: Category) => {
-  try {
-    await axios.delete(`http://localhost:3000/categories/${category.id}`)
-    categories.value = categories.value.filter((cat) => cat.id !== category.id)
-  } catch (error) {
-    console.error('Erreur lors de la suppression de la catégorie :', error)
-  }
+  await axios.delete(`http://localhost:3000/categories/${category.id}`)
+  categories.value = categories.value.filter((cat) => cat.id !== category.id)
 }
 
 const showAddCategoryModal = () => {

@@ -129,22 +129,18 @@ const removePromo = async () => {
 }
 
 const applyPromoCode = async () => {
-  try {
-    const response = await axios.post(
-      `http://localhost:3000/promos/${promoCode.value}/apply`,
-      null,
-      { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
-    )
+  const response = await axios.post(
+    `http://localhost:3000/promos/${promoCode.value}/apply`,
+    null,
+    { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
+  )
 
-    if (response.data.success) {
-      promo.value = response.data
-      fetchCartItems()
-      promoError.value = ''
-    } else {
-      promoError.value = response.data.error || 'Ce code promo a expiré.'
-    }
-  } catch (error) {
-    promoError.value = 'Ce code promo est invalide.'
+  if (response.data.success) {
+    promo.value = response.data
+    fetchCartItems()
+    promoError.value = ''
+  } else {
+    promoError.value = response.data.error || 'Ce code promo a expiré.'
   }
 }
 
@@ -166,17 +162,13 @@ const fetchCartItems = async () => {
 };
 
 const updateCartQuantity = async (id, quantity) => {
-  try {
-    if (quantity === 'remove') {
-      await axios.delete(`http://localhost:3000/cartproducts/${id}`);
-    } else {
-      await axios.patch(`http://localhost:3000/cartproducts/${id}`, { quantity });
+  if (quantity === 'remove') {
+    await axios.delete(`http://localhost:3000/cartproducts/${id}`);
+  } else {
+    await axios.patch(`http://localhost:3000/cartproducts/${id}`, { quantity });
 
-    }
-    fetchCartItems();
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour du panier :', error);
   }
+  fetchCartItems();
 };
 
 const subtotal = computed(() => {

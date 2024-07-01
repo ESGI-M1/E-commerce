@@ -101,48 +101,31 @@ const editMode = ref(false)
 const showAddEditForm = ref(false)
 
 const fetchPromos = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/promos')
-    promos.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des codes promos:', error)
-  }
+  const response = await axios.get('http://localhost:3000/promos')
+  promos.value = response.data
 }
 
 const handleSubmit = async () => {
-  try {
-    if (editMode.value) {
-      await axios.put(`http://localhost:3000/promos/${promo.value.id}`, promo.value)
-      editMode.value = false
-    } else {
-      await addPromo()
-    }
-    fetchPromos()
-    cancelEdit()
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde du code promo:', error)
+  if (editMode.value) {
+    await axios.put(`http://localhost:3000/promos/${promo.value.id}`, promo.value)
+    editMode.value = false
+  } else {
+    await addPromo()
   }
+  fetchPromos()
+  cancelEdit()
 }
 
 const addPromo = async () => {
-  try {
-    const response = await axios.post('http://localhost:3000/promos', promo.value)
-    promos.value.push(response.data) // Ajouter le nouveau promo à la liste locale
-  } catch (error) {
-    console.error("Erreur lors de l'ajout du code promo:", error)
-    throw error // À adapter selon la gestion d'erreur souhaitée
-  }
+  const response = await axios.post('http://localhost:3000/promos', promo.value)
+  promos.value.push(response.data) // Ajouter le nouveau promo à la liste locale
 }
 
 const editPromo = async (promoId: number) => {
-  try {
-    const response = await axios.put(`http://localhost:3000/promos/${promoId}`)
-    promo.value = response.data
-    editMode.value = true
-    showAddEditForm.value = true
-  } catch (error) {
-    console.error('Erreur lors de la récupération du code promo pour modification:', error)
-  }
+  const response = await axios.put(`http://localhost:3000/promos/${promoId}`)
+  promo.value = response.data
+  editMode.value = true
+  showAddEditForm.value = true
 }
 
 const showAddForm = () => {

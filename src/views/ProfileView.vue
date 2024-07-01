@@ -90,7 +90,6 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
-import { last } from 'pdf-lib';
 
 const user = ref(null);
 const isOpen = ref(false);
@@ -161,12 +160,8 @@ const closeModal = () => {
 };
 
 const deleteAddress = async (id) => {
-  try {
-    await axios.delete(`http://localhost:3000/adressusers/${id}`);
-    user.value.deliveryAddress = user.value.deliveryAddress.filter(address => address.id !== id);
-  } catch (error) {
-    console.error('Erreur lors de la suppression de l\'adresse :', error);
-  }
+  await axios.delete(`http://localhost:3000/adressusers/${id}`);
+  user.value.deliveryAddress = user.value.deliveryAddress.filter(address => address.id !== id);
 };
 
 const handleSubmit = async () => {
@@ -175,7 +170,6 @@ const handleSubmit = async () => {
     return router.push('/');
   }
 
-  try {
     let response;
     if (mode.value === 'addAddress') {
       response = await axios.post(`http://localhost:3000/adressusers/${authToken}`, form.value);
@@ -190,9 +184,6 @@ const handleSubmit = async () => {
     }
 
     closeModal();
-  } catch (error) {
-    console.error('Erreur lors de la soumission du formulaire :', error);
-  }
 };
 
 onMounted(async () => {

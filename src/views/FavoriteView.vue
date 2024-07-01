@@ -45,44 +45,35 @@ const router = useRouter()
 const favoriteProducts = ref<Product[]>([])
 
 const fetchFavorites = async () => {
-  try {
-    const userId = localStorage.getItem('authToken')
-    if (!userId) {
-      throw new Error('User is not authenticated')
-    }
+  const userId = localStorage.getItem('authToken')
+  if (!userId) {
+    throw new Error('User is not authenticated')
+  }
 
-    const response = await axios.get(`http://localhost:3000/favorites/${userId}`)
-    const favorites: Favorite[] = response.data
+  const response = await axios.get(`http://localhost:3000/favorites/${userId}`)
+  const favorites: Favorite[] = response.data
 
-    const products: Product[] = await Promise.all(
-      favorites.map(async (favorite) => {
-        const product = favorite.product
-        if (product.id) {
-          try {
-            const imageResponse = await axios.get(
-              `http://localhost:3000/products/${product.id}/images`
-            )
-            if (imageResponse.data && imageResponse.data.length > 0) {
-              product.imageSrc = imageResponse.data[0].url
-              product.imageDesc = imageResponse.data[0].description
-            } else {
-              product.imageSrc = '../../produit_avatar.jpg'
-            }
-          } catch (error) {
-            console.error(`Error fetching image for product ${product.id}:`, error)
+  const products: Product[] = await Promise.all(
+    favorites.map(async (favorite) => {
+      const product = favorite.product
+      if (product.id) {
+          const imageResponse = await axios.get(
+            `http://localhost:3000/products/${product.id}/images`
+          )
+          if (imageResponse.data && imageResponse.data.length > 0) {
+            product.imageSrc = imageResponse.data[0].url
+            product.imageDesc = imageResponse.data[0].description
+          } else {
             product.imageSrc = '../../produit_avatar.jpg'
           }
-        } else {
-          product.imageSrc = '../../produit_avatar.jpg'
-        }
-        return product
-      })
-    )
+      } else {
+        product.imageSrc = '../../produit_avatar.jpg'
+      }
+      return product
+    })
+  )
 
-    favoriteProducts.value = products
-  } catch (error) {
-    console.error('Error fetching favorite products:', error)
-  }
+  favoriteProducts.value = products
 }
 
 const showProductDetails = (id: number) => {
@@ -90,19 +81,14 @@ const showProductDetails = (id: number) => {
 }
 
 const removeFromFavorites = async (productId: number) => {
-  try {
-    const userId = localStorage.getItem('authToken')
-    if (!userId) {
-      throw new Error('User is not authenticated')
-    }
-
-    await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
-
-    // Mise à jour de la liste des produits favoris après suppression
-    favoriteProducts.value = favoriteProducts.value.filter((product) => product.id !== productId)
-  } catch (error) {
-    console.error('Error removing favorite product:', error)
+  const userId = localStorage.getItem('authToken')
+  if (!userId) {
+    throw new Error('User is not authenticated')
   }
+
+  await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
+
+  favoriteProducts.value = favoriteProducts.value.filter((product) => product.id !== productId)
 }
 
 const authToken = localStorage.getItem('authToken')

@@ -31,12 +31,8 @@ const productsStore = useProductsStore()
 const router = useRouter()
 
 const fetchProducts = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/products')
-    productsStore.products = response.data
-  } catch (error) {
-    console.error('Error fetching products:', error)
-  }
+  const response = await axios.get('http://localhost:3000/products')
+  productsStore.products = response.data
 }
 
 const showProductDetails = (id: string) => {

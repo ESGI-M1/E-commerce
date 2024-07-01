@@ -49,7 +49,6 @@ const resetPassword = async () => {
     if (passwordSchema.safeParse(password.value).success) {
       let url = window.location.href.split('/')
       const token = url[url.length - 1]
-      try {
         const response = await axios.post('http://localhost:3000/users/reset-password', {
           token: token,
           password: password.value
@@ -62,10 +61,6 @@ const resetPassword = async () => {
             router.push('/login')
           }, 10000)
         }
-      } catch (e) {
-        colorMessage.value = 'red'
-        message.value = 'Lien invalide ou expiré'
-      }
     }
   }
 }

@@ -89,7 +89,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import axios from '../tools/axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
 
 const user = ref(null)
@@ -111,9 +111,7 @@ const fetchUserProfile = async () => {
     return router.push('/')
   }
 
-  const response = await axios.get(`http://localhost:3000/users/${authToken}`, {
-    withCredentials: true
-  });
+  const response = await axios.get(`http://localhost:3000/users/${authToken}`);
   user.value = response.data;
 };
 
@@ -164,9 +162,7 @@ const closeModal = () => {
 
 const deleteAddress = async (id) => {
   try {
-    await axios.delete(`http://localhost:3000/addressusers/${id}`, {
-      withCredentials: true
-    })
+    await axios.delete(`http://localhost:3000/addressusers/${id}`);
     user.value.deliveryAddress = user.value.deliveryAddress.filter((address) => address.id !== id)
   } catch (error) {
     console.error(error)
@@ -182,24 +178,18 @@ const handleSubmit = async () => {
     let response;
     if (mode.value === 'addAddress') {
 
-      response = await axios.post(`http://localhost:3000/addressusers`, form.value, {
-        withCredentials: true
-      });
+      response = await axios.post(`http://localhost:3000/addressusers`, form.value);
       user.value.deliveryAddress.push(response.data);
 
     } else if (mode.value === 'editAddress' && editingAddress) {
 
-      response = await axios.put(`http://localhost:3000/addressusers/` + form.value.id, form.value, {
-        withCredentials: true
-      });
+      response = await axios.put(`http://localhost:3000/addressusers/` + form.value.id, form.value);
       Object.assign(editingAddress, response.data);
 
     } else {
 
       const field = mode.value;
-      response = await axios.patch(`http://localhost:3000/users/${authToken}`, { [field]: form.value[field] }, {
-        withCredentials: true
-      });
+      response = await axios.patch(`http://localhost:3000/users/${authToken}`, { [field]: form.value[field] });
       user.value[field] = response.data[field];
       
     }

@@ -145,7 +145,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../tools/axios';
 import { loadStripe } from '@stripe/stripe-js'
 
 const stripePromise = loadStripe(

@@ -100,7 +100,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../tools/axios';
 
 const router = useRouter()
 const carts = ref(null)

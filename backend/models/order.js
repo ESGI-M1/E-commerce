@@ -34,7 +34,7 @@ module.exports = function (connection) {
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM('pending', 'completed', 'returned'),
+        type: DataTypes.ENUM('pending', 'completed'),
         allowNull: false,
         defaultValue: 'pending',
       },

@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Cookies from 'js-cookie'
 
-import Dashboard from '../views/DashboardView.vue'
 import About from '../views/AboutView.vue'
 
 import Login from '../views/LoginView.vue'
@@ -24,6 +23,7 @@ import ReturnProduct from '../views/ReturnProductView.vue'
 import ConfirmAddress from '../views/ConfirmAddress.vue'
 import Success from '../views/SuccessView.vue'
 import Error from '../views/ErrorView.vue'
+import Livraison from '../views/OrderLivraisonView.vue'
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -44,12 +44,6 @@ const routes = [
     path: '/users',
     name: 'Users',
     component: Users,
-    meta: { requiresAdmin: true }
-  },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard,
     meta: { requiresAdmin: true }
   },
   {
@@ -135,6 +129,11 @@ const routes = [
     name: 'Historique des commandes',
     component: Order,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/order/livraison/:id',
+    name: 'LivraisonOrder',
+    component: Livraison
   },
   {
     path: '/order/:id',

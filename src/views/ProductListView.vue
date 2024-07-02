@@ -1,32 +1,3 @@
-<script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
-import axios from 'axios'
-import { useProductsStore } from '@/store/products'
-
-const productsStore = useProductsStore()
-const router = useRouter()
-
-const fetchProducts = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/products', {
-      withCredentials: true
-    })
-    productsStore.products = response.data
-  } catch (error) {
-    console.error('Error fetching products:', error)
-  }
-}
-
-const showProductDetails = (id: string) => {
-  router.push({ name: 'ProductDetail', params: { id } })
-}
-
-onMounted(() => {
-  fetchProducts()
-})
-</script>
-
 <template>
   <div class="product-list">
     <div
@@ -49,6 +20,29 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
+import axios from 'axios'
+import { useProductsStore } from '@/store/products'
+
+const productsStore = useProductsStore()
+const router = useRouter()
+
+const fetchProducts = async () => {
+  const response = await axios.get('http://localhost:3000/products')
+  productsStore.products = response.data
+}
+
+const showProductDetails = (id: string) => {
+  router.push({ name: 'ProductDetail', params: { id } })
+}
+
+onMounted(() => {
+  fetchProducts()
+})
+</script>
 
 <style scoped>
 .product-list {

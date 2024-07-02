@@ -158,19 +158,26 @@ const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
 const carts = ref(null)
 
-const newLivraisonDomicileAddress = ref({
+interface Address {
+  street: string;
+  postalCode: string;
+  city: string;
+  country: string;
+}
+
+const newLivraisonDomicileAddress = ref<Address>({
   street: '',
   postalCode: '',
   city: '',
   country: '',
 })
 
-const livraisonDomicileAddress = ref({
-      street: '',
-      postalCode: '',
-      city: '',
-      country: '',
-    });
+const livraisonDomicileAddress = ref<Address>({
+  street: '',
+  postalCode: '',
+  city: '',
+  country: '',
+})
 
 const fetchCartItems = async () => {
   if (authToken) {

@@ -15,6 +15,10 @@ router.get('/', async (req, res) => {
           model: User,
           as: 'user',
         },
+        {
+          model: AdressOrder,
+          as: 'adressOrder',
+        }
       ],
       order: [['createdAt', 'DESC']],
     });
@@ -287,6 +291,18 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
       await AddressOrder.destroy({ where: { id: addressId } });
     }
     deletedOrder > 0 ? res.sendStatus(204) : res.sendStatus(404);
+  }
+});
+
+router.patch("/:id", async (req, res, next) => {
+  const order = await Order.findByPk(req.params.id);
+
+  if (order) {
+    order.status = 'completed';
+    await order.save();
+      res.json(order);
+  } else {
+      res.sendStatus(404);
   }
 });
 

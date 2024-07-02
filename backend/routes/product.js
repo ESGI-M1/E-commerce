@@ -73,8 +73,6 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
-
-
 router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;

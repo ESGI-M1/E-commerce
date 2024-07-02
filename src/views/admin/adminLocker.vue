@@ -1,6 +1,6 @@
 <template>
   <div class="products">
-    <h1>Produits</h1>
+    <h1>Produits ({{ products.length }})</h1>
     <div class="text-right">
       <button @click="showAddProductModal" class="btn btn-success">
         <i class="fa fa-plus"></i> Ajouter Produit
@@ -47,14 +47,26 @@
               <li v-for="category in product.Categories" :key="category.id">{{ category.name }}</li>
             </ul>
           </td>
-          <td>{{ product.active ? 'Oui' : 'Non' }}</td>
           <td>
-            <button @click="showEditProductModal(product)" class="btn btn-primary">
+            <i :class="product.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
+          </td>
+          <td>
+            <div class="flex">
+            <a @click="showEditProductModal(product)" class="a-primary">
               <i class="fa fa-edit"></i>
-            </button>
-            <button @click="deleteProduct(product)" class="btn btn-danger">
+            </a>
+            &nbsp;
+            <fancy-confirm
+                :class="'a-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer le produit ?'"
+                :elementType="'a'"
+                @confirmed="deleteProduct(product)"
+            >
+            <template #buttonText>
               <i class="fa fa-trash"></i>
-            </button>
+            </template>
+          </fancy-confirm>
+          </div>
           </td>
         </tr>
       </tbody>
@@ -129,6 +141,7 @@
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const productSchema = z.object({
   id: z.number().optional(),
@@ -140,80 +153,70 @@ const productSchema = z.object({
   Categories: z.array(z.number())
 })
 
-const products = ref([])
-const currentProduct = ref({
+// Définir le type des produits
+interface Product {
+  id?: number;
+  name: string;
+  reference: string;
+  description: string;
+  price: number;
+  active: boolean;
+  Categories: number[];
+  Images?: { url: string; description: string }[]; // Ajouter ce champ facultatif si nécessaire
+}
+
+// Références réactives pour les produits et le produit courant
+const products = ref<Product[]>([])
+const currentProduct = ref<Product>({
   name: '',
   reference: '',
   description: '',
   price: 0,
-  Categories: []
+  Categories: [],
+  active: true // Définir la valeur par défaut pour active
 })
+
 const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchProducts = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/products')
-    products.value = response.data
-    console.log(products.value)
-  } catch (error) {
-    console.error('Erreur lors de la récupération des produits :', error)
-  }
+  const response = await axios.get('http://localhost:3000/products')
+  products.value = response.data
 }
 
 const addProduct = async () => {
-  try {
-    const parsedProduct = productSchema.parse({
-      ...currentProduct.value,
-      price: parseFloat(currentProduct.value.price)
-    })
-    const response = await axios.post('http://localhost:3000/products', parsedProduct, { withCredentials: true })
-    products.value.push(response.data)
-    closeModal()
-  } catch (error) {
-    console.error("Erreur lors de l'ajout du produit :", error)
-  }
+  const parsedProduct = productSchema.parse({
+    ...currentProduct.value,
+    price: parseFloat(currentProduct.value.price)
+  })
+  const response = await axios.post('http://localhost:3000/products', parsedProduct, { withCredentials: true })
+  products.value.push(response.data)
+  closeModal()
 }
 
 const updateProduct = async () => {
-  try {
-    const parsedProduct = productSchema.parse({
-      ...currentProduct.value,
-      price: parseFloat(currentProduct.value.price)
-    })
-    console.log(parsedProduct)
-    await axios.patch(`http://localhost:3000/products/${currentProduct.value.id}`, parsedProduct, { withCredentials: true })
-    const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
-    if (index !== -1) {
-      products.value[index] = currentProduct.value
-    }
-    closeModal()
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('Zod : Erreur lors de la modification du produit :', error.errors)
-    } else {
-      console.error('Erreur lors de la modification du produit :', error)
-    }
+  const parsedProduct = productSchema.parse({
+    ...currentProduct.value,
+    price: parseFloat(currentProduct.value.price)
+  })
+  console.log(parsedProduct)
+  await axios.patch(`http://localhost:3000/products/${currentProduct.value.id}`, parsedProduct, { withCredentials: true })
+  const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
+  if (index !== -1) {
+    products.value[index] = currentProduct.value
   }
+  closeModal()
 }
 
 const deleteProduct = async (product) => {
-  try {
-    await axios.delete(`http://localhost:3000/products/${product.id}`, { withCredentials: true })
-    products.value = products.value.filter((p) => p.id !== product.id)
-  } catch (error) {
-    console.error('Erreur lors de la suppression du produit :', error)
-  }
+  await axios.delete(`http://localhost:3000/products/${product.id}`, { withCredentials: true })
+  products.value = products.value.filter((p) => p.id !== product.id)
 }
 
 const categories = ref([])
 const fetchCategories = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/categories')
-    categories.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des catégories :', error)
-  }
+  const response = await axios.get('http://localhost:3000/categories')
+  categories.value = response.data
 }
 
 const showAddProductModal = () => {
@@ -239,27 +242,23 @@ const closeModal = () => {
 }
 
 const updateProductImage = async (productId, newImage) => {
-  try {
-    const formData = new FormData()
-    formData.append('image', newImage)
+  const formData = new FormData()
+  formData.append('image', newImage)
 
-    const response = await axios.post(
-      `http://localhost:3000/products/${productId}/image`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+  const response = await axios.post(
+    `http://localhost:3000/products/${productId}/image`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data'
       }
-    )
-
-    // Mettre à jour les images du produit dans la liste
-    const updatedProductIndex = products.value.findIndex((p) => p.id === productId)
-    if (updatedProductIndex !== -1) {
-      products.value[updatedProductIndex].Images = response.data.Images
     }
-  } catch (error) {
-    console.error("Erreur lors de la modification de l'image du produit :", error)
+  )
+
+  // Mettre à jour les images du produit dans la liste
+  const updatedProductIndex = products.value.findIndex((p) => p.id === productId)
+  if (updatedProductIndex !== -1) {
+    products.value[updatedProductIndex].Images = response.data.Images
   }
 }
 
@@ -345,5 +344,13 @@ form {
 img {
   max-width: 25%;
   cursor: pointer;
+}
+
+.text-success {
+  color: green;
+}
+
+.text-danger {
+  color: red;
 }
 </style>

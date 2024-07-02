@@ -69,5 +69,4 @@ describe('User Routes', () => {
       })
       .expect(401);
   });
-
 });

@@ -15,14 +15,10 @@ const route = useRoute()
 const category = ref()
 // Function to fetch category
 const fetchCategory = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/categories/' + route.params.slug)
-    categoriesStore.addCategory(response.data)
-    category.value = response.data
-    productsStore.setProducts(response.data.Products)
-  } catch (error) {
-    console.error('Error fetching categories:', error)
-  }
+  const response = await axios.get('http://localhost:3000/categories/' + route.params.slug)
+  categoriesStore.addCategory(response.data)
+  category.value = response.data
+  productsStore.setProducts(response.data.Products)
 }
 
 onMounted(() => {

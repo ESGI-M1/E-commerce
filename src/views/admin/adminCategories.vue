@@ -1,13 +1,12 @@
 <template>
   <div class="categories">
-    <h1>Gestion des Catégories</h1>
+    <h1>Gestion des Catégories ({{ categories.length }})</h1>
     <div class="text-right">
       <button @click="showAddCategoryModal" class="btn btn-success">
         <i class="fa fa-plus"></i> Ajouter Catégorie
       </button>
     </div>
 
-    <!-- Tableau des catégories -->
     <div class="category-table">
       <h2>Liste des Catégories</h2>
       <table>
@@ -27,14 +26,25 @@
             <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
             <td>{{ findCategoryName(category.parentCategoryId) }}</td>
-            <td>{{ category.Products.length }}</td>
+            <td><p v-if="category.Products">{{ category.Products.length }}</p></td>
             <td>
-              <button @click="showEditCategoryModal(category)" class="btn btn-primary">
+              <div class="flex">
+              <a @click="showEditCategoryModal(category)" class="a-primary">
                 <i class="fa fa-edit"></i>
-              </button>
-              <button @click="deleteCategory(category)" class="btn btn-danger">
-                <i class="fa fa-trash-alt"></i>
-              </button>
+              </a>
+              &nbsp;
+              <fancy-confirm
+                :class="'a-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer la catégorie ?'"
+                :elementType="'a'"
+                @confirmed="deleteCategory(category)"
+            >
+            <template #buttonText>
+              <i class="fa fa-trash"></i>
+            </template>
+          </fancy-confirm>
+</div>
+
             </td>
           </tr>
         </tbody>
@@ -98,6 +108,21 @@
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
+
+interface Category {
+  id?: number
+  name: string
+  slug: string
+  description?: string
+  parentCategoryId?: number | null
+  Products: number[]
+}
+
+interface Product {
+  id: number
+  name: string
+}
 
 const categorySchema = z.object({
   id: z.number().optional(),
@@ -108,74 +133,51 @@ const categorySchema = z.object({
   Products: z.array(z.number())
 })
 
-const categories = ref([])
-const currentCategory = ref({
+const categories = ref<Category[]>([])
+const currentCategory = ref<Category>({
   name: '',
   slug: '',
   description: '',
   parentCategoryId: null,
   Products: []
 })
+const products = ref<Product[]>([])
 const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchCategories = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/categories')
-    categories.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des catégories :', error)
-  }
+  const response = await axios.get('http://localhost:3000/categories')
+  categories.value = response.data
 }
 
 const fetchProducts = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/products')
-    products.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des produits :', error)
-  }
+  const response = await axios.get('http://localhost:3000/products')
+  products.value = response.data
 }
 
 const addCategory = async () => {
-  try {
     const parsedCategory = categorySchema.parse(currentCategory.value)
     const response = await axios.post('http://localhost:3000/categories', parsedCategory)
     categories.value.push(response.data)
     closeModal()
-  } catch (error) {
-    console.error("Erreur lors de l'ajout de la catégorie :", error)
-  }
 }
 
 const updateCategory = async () => {
-  try {
-    const parsedCategory = categorySchema.parse(currentCategory.value)
-    await axios.patch(
-      `http://localhost:3000/categories/${currentCategory.value.id}`,
-      parsedCategory
-    )
-    const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
-    if (index !== -1) {
-      categories.value[index] = currentCategory.value
-    }
-    closeModal()
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('ZOD : Erreur lors de la modification de la catégorie :', error.errors)
-    } else {
-      console.error('Erreur lors de la modification de la catégorie :', error)
-    }
+  const parsedCategory = categorySchema.parse(currentCategory.value)
+  await axios.patch(
+    `http://localhost:3000/categories/${currentCategory.value.id}`,
+    parsedCategory
+  )
+  const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
+  if (index !== -1) {
+    categories.value[index] = currentCategory.value
   }
+  closeModal()
 }
 
-const deleteCategory = async (category) => {
-  try {
-    await axios.delete(`http://localhost:3000/categories/${category.id}`)
-    categories.value = categories.value.filter((cat) => cat.id !== category.id)
-  } catch (error) {
-    console.error('Erreur lors de la suppression de la catégorie :', error)
-  }
+const deleteCategory = async (category: Category) => {
+  await axios.delete(`http://localhost:3000/categories/${category.id}`)
+  categories.value = categories.value.filter((cat) => cat.id !== category.id)
 }
 
 const showAddCategoryModal = () => {
@@ -190,7 +192,7 @@ const showAddCategoryModal = () => {
   showModal.value = true
 }
 
-const showEditCategoryModal = (category) => {
+const showEditCategoryModal = (category: Category) => {
   isEditing.value = true
   currentCategory.value = { ...category }
   showModal.value = true
@@ -200,7 +202,7 @@ const closeModal = () => {
   showModal.value = false
 }
 
-const findCategoryName = (id) => {
+const findCategoryName = (id: number | undefined) => {
   const category = categories.value.find(cat => cat.id === id)
   return category ? category.name : ''
 }

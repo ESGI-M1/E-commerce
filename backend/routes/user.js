@@ -16,6 +16,8 @@ router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
 });
 
 router.post("/", async (req, res, next) => {
+  const { code, startDate, endDate, discountPercentage } = req.body;
+
   try {
     const user = await User.create(req.body);
     res.status(201).json(user);

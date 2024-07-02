@@ -95,4 +95,17 @@ router.delete("/", async (req, res) => {
 });
   
 
+router.patch("/:id", async (req, res, next) => {
+  const returned = await ReturnProduct.findByPk(req.params.id); // TODO security
+
+  if (returned) {
+    returned.status = 'returned';
+    await returned.save();
+    return res.json(returned);
+  }
+
+  res.sendStatus(404);
+});
+
+  
 module.exports = router;

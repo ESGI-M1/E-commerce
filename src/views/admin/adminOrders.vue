@@ -1,26 +1,39 @@
 <template>
   <div class="orders">
-    <h1>Liste des Commandes</h1>
+    <h1>Liste des Commandes ({{ orders.length }})</h1>
 
-    <!-- Tableau des commandes -->
     <div class="order-table">
       <table>
         <thead>
           <tr>
+            <th>Commande</th>
             <th>Date</th>
             <th>Client</th>
             <th>Statut</th>
             <th>Total</th>
             <th>Adresse</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="order in orders" :key="order.id">
+            <td>n°{{ order.id }}</td>
             <td>{{ formatDate(order.deliveryDate) }}</td>
             <td>#{{ order.user.id }} {{ order.user.lastname }} {{ order.user.firstname }}</td>
-            <td>{{ order.status }}</td>
+            <td :title="order.status === 'completed' ? 'Terminé' : 'En cours'">
+              <i :class="order.status === 'completed' ? 'fas fa-check-circle status-completed' : 'fas fa-hourglass-half status-pending'"></i>
+            </td>
             <td>{{ order.totalAmount }} €</td>
-            <td>{{ order.deliveryMethod }}</td>
+            <td v-if="order.adressOrder">{{ order.adressOrder.street }}, {{ order.adressOrder.postalCode }} {{ order.adressOrder.city }}, {{ order.adressOrder.country }}</td>
+            <td>
+              <fancy-confirm v-if="order.status === 'pending'"
+                :buttonText="'Valider'"
+                :class="'btn btn-success'"
+                :confirmationMessage="'Etes-vous sûr de vouloir valider la commande ?'"
+                @confirmed="validate(order.id)"
+              >
+              </fancy-confirm>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -32,20 +45,44 @@
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
 import { format, parseISO } from 'date-fns'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
-const orders = ref([])
-
-const fetchOrders = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/orders')
-    orders.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des commandes :', error)
-  }
+interface User {
+  id: number
+  lastname: string
+  firstname: string
 }
 
-const formatDate = (dateStr) => {
+interface Address {
+  street: string
+  postalCode: string
+  city: string
+  country: string
+}
+
+interface Order {
+  id: number
+  deliveryDate: string
+  user: User
+  status: string
+  totalAmount: number
+  adressOrder?: Address
+}
+
+const orders = ref<Order[]>([])
+
+const fetchOrders = async () => {
+  const response = await axios.get('http://localhost:3000/orders')
+  orders.value = response.data
+}
+
+const formatDate = (dateStr: string) => {
   return format(parseISO(dateStr), 'dd/MM/yyyy HH:mm')
+}
+
+const validate = async (id: number) => {
+  await axios.patch(`http://localhost:3000/orders/${id}`)
+  fetchOrders()
 }
 
 onMounted(() => {
@@ -60,5 +97,13 @@ onMounted(() => {
 
 .order-table {
   margin-top: 20px;
+}
+
+.status-completed {
+  color: green;
+}
+
+.status-pending {
+  color: orange;
 }
 </style>

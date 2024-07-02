@@ -179,6 +179,7 @@ const logout = () => {
   min-width: 160px;
   border-radius: 4px;
   overflow: hidden;
+  z-index: 10000;
 }
 
 .dropdown-item {

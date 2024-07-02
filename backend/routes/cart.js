@@ -1,8 +1,7 @@
 const { Router } = require("express");
 const { Cart, Product, User, CartProduct, Image, Category, AddressUser } = require("../models");
 const router = new Router();
-const crypto = require('crypto'); // Importer le module crypto pour générer des mots de passe aléatoires
-const { parse } = require("path");
+const crypto = require('crypto');
 
 router.get("/", async (req, res) => {
   const cartItems = await Cart.findAll({ include: [{ model: Product, as: 'product' }] });
@@ -172,6 +171,11 @@ router.patch("/update-order/:cartId", async (req, res) => {
   } catch (e) {
     next(e);
   }
+
+  cart.orderId = orderId;
+  await cart.save();
+
+  res.status(200).json({ message: 'Cart order updated successfully' });
 });
 
 router.patch("/update-user/:cartId", async (req, res) => {
@@ -179,19 +183,37 @@ router.patch("/update-user/:cartId", async (req, res) => {
   const userId = parseInt(req.body.userId);
 
   try {
-    const cart = await Cart.findByPk(cartId);
+    const cart = await Cart.findByPk(cartId, { include: 'CartProducts' });
     if (!cart) {
       return res.status(404).json({ error: 'Cart not found' });
     }
 
-    const [nbUpdated, updatedCart] = await Cart.update({ userId }, { where: { id: cartId }, returning: true });
+    const existingCart = await Cart.findOne({
+      where: { userId, orderId: null },
+      include: 'CartProducts'
+    });
 
-    nbUpdated ? res.json(updatedCart) : res.sendStatus(404);
+    if (!existingCart) {
+      cart.userId = userId;
+      await cart.save();
+    } else {
+      for (const cartProduct of cart.CartProducts) {
+        const existingProduct = existingCart.CartProducts.find(cp => cp.productId === cartProduct.productId);
+        if (existingProduct) {
+          existingProduct.quantity += cartProduct.quantity;
+          await existingProduct.save();
+        } else {
+          cartProduct.cartId = existingCart.id;
+          await cartProduct.save();
+        }
+      }
+      await cart.destroy();
+    }
+    res.status(200).json({ message: 'Cart order updated successfully' });
   } catch (e) {
     next(e);
   }
 });
-
 
 router.delete("/:id", async (req, res) => {
   const cartItemId = parseInt(req.params.id);

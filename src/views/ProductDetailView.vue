@@ -10,7 +10,18 @@ const router = useRouter()
 const isFavorite = ref(false)
 const productId = ref(route.params.id as string)
 
-const product = ref({
+interface Product {
+  id: string;
+  name: string;
+  imageSrc: string;
+  description: string;
+  price: number;
+  reference: string;
+  comments: string[];
+  Categories: number[];
+}
+
+const product = ref<Product>({
   id: '',
   name: '',
   imageSrc: '',
@@ -56,9 +67,8 @@ const addToFavorites = async (productId: string) => {
     router.push('/login')
     return
   }
-  try {
     const userId = localStorage.getItem('authToken')
-    const response = await axios.post('http://localhost:3000/favorites/add', {
+    const response = await axios.post('http://localhost:3000/favorites', {
       userId,
       productId
     })
@@ -67,26 +77,17 @@ const addToFavorites = async (productId: string) => {
       isFavorite.value = true
       alert('Produit ajouté aux favoris avec succès')
     }
-  } catch (error) {
-    console.error('Error adding product to favorites:', error)
-    alert("Échec de l'ajout du produit aux favoris")
-  }
 }
 
 const removeFromFavorites = async (productId: string) => {
-  try {
-    const userId = localStorage.getItem('authToken')
-    if (!userId) {
-      throw new Error('User is not authenticated')
-    }
-
-    await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
-    isFavorite.value = false
-    alert('Produit supprimé des favoris avec succès')
-  } catch (error) {
-    console.error('Error removing favorite product:', error)
-    alert('Échec de la suppression du produit des favoris')
+  const userId = localStorage.getItem('authToken')
+  if (!userId) {
+    throw new Error('User is not authenticated')
   }
+
+  await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
+  isFavorite.value = false
+  alert('Produit supprimé des favoris avec succès')
 }
 
 const addToCart = async (quantity: number) => {

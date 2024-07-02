@@ -1,8 +1,12 @@
 const { Router } = require("express");
 const { Product, Category } = require("../models");
+const checkRole = require("../middlewares/checkRole");
 const router = new Router();
 
 router.get("/", async (req, res) => {
+
+    req.query.active = true;
+
     const categories = await Category.findAll({
         where: req.query,
         include: [Product],
@@ -21,7 +25,9 @@ router.post("/", async (req, res, next) => {
 
 router.get("/:id(\\d+)", async (req, res, next) => {
     try {
-        const category = await Category.findByPk(parseInt(req.params.id));
+        const category = await Category.findByPk(parseInt(req.params.id),{
+            where: { active: true },
+        });
         if (category ? res.json(category) : res.sendStatus(404));
     } catch (e) {
         next(e);
@@ -56,7 +62,7 @@ router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
     }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Products } = req.body;
         
@@ -79,7 +85,7 @@ router.patch("/:id", async (req, res, next) => {
     }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const nbDeleted = await Category.destroy({
             where: {
@@ -92,7 +98,7 @@ router.delete("/:id", async (req, res, next) => {
     }
 });
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const nbDeleted = await Category.destroy({
             where: {

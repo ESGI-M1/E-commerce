@@ -1,10 +1,12 @@
 const { Router } = require("express");
 const { Op } = require("sequelize");
 const { Product, Category, Image } = require("../models");
+const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
-router.get("/", async (req, res) => {
+router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
+
     const products = await Product.findAll({
         where: req.query,
         include: [Category, Image],
@@ -14,7 +16,6 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/search", async (req, res) => {
-
     try{
         const { q } = req.query;
         const products = await Product.findAll({
@@ -22,28 +23,29 @@ router.get("/search", async (req, res) => {
                 name: {
                     [Op.iLike]: `%${q}%`,
                 },
+                active: true,
             },
         });
         res.json(products);
         
-    } catch (error) {
-        res.status(500).json({ error: "Failed to fetch products by search query" });
+    } catch (e) {
+        next(e);
     }
 
 });
 
 router.get("/:id/images", async (req, res) => {
     try {
-        const productId = req.params.id;
-        const images = await Image.findAll({ where: { productId } });
+        const images = await Image.findAll(
+            { where: { productId : parseInt(req.params.id) } 
+        });
         res.json(images);
-    } catch (error) {
-        console.error("Error fetching images for product:", error);
-        res.status(500).json({ error: "Failed to fetch images for product" });
+    } catch (e) {
+    next(e);
     }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { ...productData } = req.body;
         const product = await Product.create(productData);
@@ -57,7 +59,6 @@ router.post("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);
-        console.log(`Fetching product with ID: ${productId}`);
         
         const product = await Product.findByPk(productId, {
             include: [
@@ -72,7 +73,7 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;
         const product = await Product.findByPk(parseInt(req.params.id));
@@ -94,7 +95,7 @@ router.patch("/:id", async (req, res, next) => {
     }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const nbDeleted = await Product.destroy({
             where: {
@@ -107,7 +108,7 @@ router.delete("/:id", async (req, res, next) => {
     }
 });
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;
         await Product.destroy({

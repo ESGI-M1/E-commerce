@@ -1,15 +1,15 @@
 const { Router } = require("express");
-const { AdressOrder } = require("../models");
+const { AddressOrder } = require("../models");
 const router = new Router();
 
 router.get("/", async (req, res) => {
-    const adress = await AdressOrder.findAll();
-    res.json(adress);
+    const address = await AddressOrder.findAll();
+    res.json(address);
 });
 
 router.post("/", async (req, res) => {
       const { street, postalCode, city, country } = req.body;
-      const newAddress = await AdressOrder.create({
+      const newAddress = await AddressOrder.create({
         street: street,
         postalCode: postalCode,
         city: city,

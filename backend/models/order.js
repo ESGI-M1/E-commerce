@@ -11,9 +11,9 @@ module.exports = function (connection) {
         foreignKey: 'orderId',
         as: 'carts',
       });
-      Order.belongsTo(models.AdressOrder, {
+      Order.belongsTo(models.AddressOrder, {
         foreignKey: 'deliveryMethod',
-        as: 'adressOrder',
+        as: 'addressOrder',
         allowNull: false,
       });
     }
@@ -46,7 +46,7 @@ module.exports = function (connection) {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'AdressOrders',
+          model: 'AddressOrders',
           key: 'id',
         },
       },

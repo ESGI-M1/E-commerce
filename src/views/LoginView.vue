@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { z } from 'zod'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import Cookies from 'js-cookie'
 
 const email = ref('')
 const password = ref('')
@@ -31,6 +32,10 @@ const passwordError = computed(() => {
   return parsedPassword.error.issues[0].message
 })
 
+const isAuthenticated = computed(() => {
+  return Cookies.get('USER') !== undefined
+})
+
 const login = () => {
   if (
     !emailSchema.safeParse(email.value).success ||
@@ -43,6 +48,8 @@ const login = () => {
     .post('http://localhost:3000/login', {
       email: email.value,
       password: password.value
+    }, {
+      withCredentials: true
     })
     .then(async (response) => {
       const temporaryId = localStorage.getItem('temporaryId')
@@ -57,7 +64,6 @@ const login = () => {
           await axios.delete(`http://localhost:3000/users/${temporaryId}`)
           localStorage.removeItem('temporaryId')
         }
-        localStorage.setItem('authToken', response.data.id)
         router.push('/')
       } catch (error) {
         console.error('Error updating carts:', error)
@@ -70,19 +76,12 @@ const login = () => {
     })
 }
 
-onMounted(() => {
-  const authToken = localStorage.getItem('authToken')
-  if (authToken) {
-    router.push('/')
-  }
-})
-
 </script>
 
 <template>
   <div class="login auth-form">
     <h1>Connexion</h1>
-    <form @submit.prevent="login">
+    <form @submit.prevent="login" v-if="!isAuthenticated">
       <div>
         <label for="email">Email</label>
         <input type="email" placeholder="Email" v-model="email" required />
@@ -105,6 +104,9 @@ onMounted(() => {
       </div>
       <button type="submit">Connexion</button>
     </form>
+    <div v-else>
+      <h2>Vous êtes déjà connecté</h2>
+    </div>
     <RouterLink to="/forgot-password">Mot de passe oublié ?</RouterLink>
   </div>
 </template>

@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const { Favorite, Product, User } = require('../models');
+const checkAuth = require('../middlewares/checkAuth');
 
-router.post('/', async (req, res) => {
+router.post('/', checkAuth, async (req, res) => {
   try {
-    let userId = req.body.userId;
-    let productId = req.body.productId;
+    const productId = req.body.productId;
 
-    if (!userId || !productId) {
-      return res.status(400).json({ error: 'UserId and ProductId are required' });
+    if (!productId) {
+      return res.status(400).json({ error: 'ProductId is required' });
     }
 
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(req.user.id);
     const product = await Product.findByPk(productId);
 
     if (!user || !product) {
@@ -19,43 +19,38 @@ router.post('/', async (req, res) => {
     }
 
     const favorite = await Favorite.create({
-      userId: userId,
+      userId: req.user.id,
       productId: productId,
     });
     
     res.status(201).json(favorite);
-  } catch (error) {
-    console.error('Error adding to favorites:', error);
-    res.status(500).json({ error: 'Unable to add to favorites' });
+  } catch (e){
+    next(e)
   }
 });
 
-router.get('/:userId', async (req, res) => {
-  const userId = req.params.userId;
-
+router.get('/:userId', checkAuth, async (req, res) => {
   try {
-      const favorites = await Favorite.findAll({
-          where: { userId },
-          include: [{ model: Product, as: 'product' }] // Utiliser l'alias défini dans l'association
-      });
+    const favorites = await Favorite.findAll({
+        where: { userId: req.user.id },
+        include: [{ model: Product, as: 'product' }] // Utiliser l'alias défini dans l'association
+    });
 
-      res.json(favorites);
-  } catch (error) {
-      console.error('Erreur lors de la récupération des favoris :', error);
-      res.status(500).json({ error: 'Une erreur est survenue lors de la récupération des favoris.' });
+    res.json(favorites);
+  } catch (e){
+    next(e)
   }
 });
 
 // Supprimer un produit des favoris d'un utilisateur
-router.delete('/:userId/:productId', async (req, res) => {
-  const { userId, productId } = req.params;
+router.delete('/:productId', checkAuth, async (req, res) => {
+  const productId = parseInt(req.params.productId);
 
   try {
-    await Favorite.destroy({ where: { userId, productId } });
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Erreur lors de la suppression du favori :', error);
-    res.status(500).json({ error: 'Une erreur est survenue lors de la suppression du favori.' });
+    await Favorite.destroy({ where: { userId: req.user.id, productId: productId } });
+    res.sendStatus(204);
+  } catch (e) {
+    next(e)
   }
 });
 

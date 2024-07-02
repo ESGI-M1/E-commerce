@@ -62,26 +62,26 @@
       <div v-if="isAuthenticated" class="user-menu">
         <i class="fas fa-user"></i>
         <div class="dropdown">
-          <a href="/profile" class="dropdown-item">Mon Profil</a>
-          <a :href="'/favorite'" class="dropdown-item">Mes favoris</a>
-          <a v-if="isAdmin" :href="'/ressources'" class="dropdown-item">Gestion des ressources</a>
-          <a :href="'/order'" class="dropdown-item">Historique des commandes</a>
+          <RouterLink to="/profile" class="dropdown-item">Mon profil</RouterLink>
+          <RouterLink to="/favorites" class="dropdown-item">Mes favoris</RouterLink>
+          <RouterLink to="/ressources" v-if="isAdmin" class="dropdown-item">Gestion des ressources</RouterLink>
+          <RouterLink to="order" class="dropdown-item">Historique des commandes</RouterLink>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
       </div>
-      <button v-else @click="redirectToLogin" class="login-button">S'identifier</button>
+      <RouterLink v-else to="/login" class="login-button">S'identifier</RouterLink>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
+import Cookies from 'js-cookie'
 
 import axios from 'axios'
 
-const isAuthenticated = ref(false)
 const isAdmin = ref(false)
 const router = useRouter()
 const search = ref('')
@@ -90,7 +90,6 @@ const productsStore = useProductsStore()
 const searchProducts = async () => {
   // route search
   if (router.currentRoute.value.name !== 'Search') {
-    console.log('route search')
     router.push('/search')
   }
 
@@ -103,42 +102,14 @@ const searchProducts = async () => {
   }
 }
 
-const checkAuthStatus = () => {
-  isAuthenticated.value = !!localStorage.getItem('authToken')
-}
-
-const redirectToLogin = () => {
-  router.push('/identifier')
-}
+const isAuthenticated = computed(() => {
+  return Cookies.get('USER') !== undefined
+})  
 
 const logout = () => {
-  // Logique de déconnexion
-  localStorage.removeItem('authToken')
-  isAuthenticated.value = false
+  Cookies.remove('USER')
   router.push('/')
 }
-
-const checkIsAdmin = async () => {
-  const authToken = localStorage.getItem('authToken')
-  if (!authToken) {
-    isAdmin.value = false
-    return
-  }
-
-  try {
-    const response = await axios.get(`http://localhost:3000/users/${authToken}`)
-    const user = response.data
-    isAdmin.value = user && user.role === 'admin'
-  } catch (error) {
-    isAdmin.value = false
-  }
-}
-
-// Vérifier l'état de connexion et le rôle de l'utilisateur au montage du composant
-onMounted(async () => {
-  checkAuthStatus()
-  await checkIsAdmin()
-})
 </script>
 
 <style scoped>

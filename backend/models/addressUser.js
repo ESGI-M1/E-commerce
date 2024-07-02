@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 
-module.exports = function (sequelize) {
+module.exports = function (connection) {
   class AddressUser extends Model {}
 
   AddressUser.init(
@@ -22,7 +22,7 @@ module.exports = function (sequelize) {
         allowNull: false,
       },
     },
-    { sequelize }
+    { sequelize: connection }
   );
 
   return AddressUser;

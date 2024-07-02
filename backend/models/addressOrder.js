@@ -1,10 +1,10 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = function (connection) {
-  class AdressOrder extends Model {
+  class AddressOrder extends Model {
   }
 
-  AdressOrder.init(
+  AddressOrder.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -30,10 +30,10 @@ module.exports = function (connection) {
     },
     {
       sequelize: connection,
-      modelName: 'AdressOrder',
-      tableName: 'AdressOrders',
+      modelName: 'AddressOrder',
+      tableName: 'AddressOrders',
     }
   );
 
-  return AdressOrder;
+  return AddressOrder;
 };

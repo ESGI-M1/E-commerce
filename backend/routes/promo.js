@@ -1,60 +1,57 @@
 const { Router } = require("express");
 const router = new Router();
 const { PromoCode, Cart } = require('../models');
+const checkRole = require("../middlewares/checkRole");
 
 //get
-router.get('/', async (req, res) => {
+router.get('/', checkRole({ roles: "admin" }), async (req, res) => {
   try {
     const promos = await PromoCode.findAll({
       order: [['code', 'ASC']]
     });
     res.status(200).json(promos);
-  } catch (error) {
-    res.status(500).json({ error: 'Une erreur est survenue lors de la récupération des codes promos.' });
+  } catch (e) {
+    next(e);
   }
 });
 
 //add
-router.post('/', async (req, res) => {
+router.post('/', checkRole({ roles: "admin" }), async (req, res) => {
   const { code, startDate, endDate, discountPercentage } = req.body;
 
   try {
     const newPromo = await PromoCode.create({ code, startDate, endDate, discountPercentage });
     res.status(201).json(newPromo);
-  } catch (error) {
-    res.status(500).json({ error: 'Une erreur est survenue lors de la création du code promo.' });
+  } catch (e) {
+    next(e);
   }
 });
 
 //edit
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkRole({ roles: "admin" }), async (req, res) => {
   const promoId = req.params.id;
   const { code, startDate, endDate, discountPercentage } = req.body;
 
   try {
     const promo = await PromoCode.findByPk(promoId);
 
-    if (!promo) {
-      return res.status(404).json({ error: 'Ce code promo est introuvable.' });
-    }
+    if (!promo) return res.sendStatus(404);
 
     await promo.update({ code, startDate, endDate, discountPercentage });
     res.status(200).json(promo);
-  } catch (error) {
-    res.status(500).json({ error: 'Une erreur est survenue lors de la mise à jour du code promo.' });
+  } catch (e) {
+    next(e);
   }
 });
 
 // Route pour vérifier le code promo
-router.post('/:code', async (req, res) => {
+router.post('/:code', async (req, res) => { // TODO RATE LIMITER
   const promoCode = req.params.code;
 
   try {
     const promo = await PromoCode.findOne({ where: { code: promoCode } });
 
-    if (!promo) {
-      return res.status(404).json({ error: 'Ce code promo est invalide ou n\'existe pas.' });
-    }
+    if (!promo) return res.sendStatus(404);
 
     const currentDate = new Date();
     const startDate = new Date(promo.startDate);
@@ -66,8 +63,8 @@ router.post('/:code', async (req, res) => {
     } else {
       res.status(400).json({ error: 'Ce code promo est invalide ou a expiré.' });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Une erreur est survenue lors de la vérification du code promo.' });
+  } catch (e) {
+    next(e);
   }
 });
 
@@ -78,9 +75,8 @@ router.post('/:code/apply', async (req, res) => {
     try {
       // Vérifie si le code promo existe et s'il est valide
       const promo = await PromoCode.findOne({ where: { code: promoCode } });
-      if (!promo) {
-        return res.status(404).json({ error: 'Ce code promo est invalide.' });
-      }
+
+      if (!promo) return res.sendStatus(404);
   
       const currentDate = new Date();
       const startDate = new Date(promo.startDate);
@@ -100,9 +96,8 @@ router.post('/:code/apply', async (req, res) => {
       } else {
         res.status(400).json({ error: 'Ce code promo a expiré.' });
       }
-    } catch (error) {
-      console.error('Erreur lors de l\'application du code promo :', error);
-      res.status(500).json({ error: 'Une erreur est survenue lors de l\'application du code promo.' });
+    } catch (e) {
+      next(e);
     }
   });
 
@@ -113,13 +108,9 @@ router.post('/:code/apply', async (req, res) => {
     // Recherche du code promo par son ID avec Sequelize
     const promo = await PromoCode.findByPk(promoId);
 
-    if (promo) {
-      res.json(promo);
-    } else {
-      res.sendStatus(404);
-    }
-  } catch (error) {
-    next(error);
+    promo ? res.json(promo) : res.sendStatus(404);
+  } catch (e) {
+    next(e);
   }
 });
 

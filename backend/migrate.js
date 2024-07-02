@@ -26,7 +26,7 @@ do {
 
 connection
   .sync({
-    alter: true,
+    force: true,
   })
-  //.then(() => connection.close())
-  .then(() => console.log("Database synced"));
+  .then(() => console.log("Database synced"))
+  .then(() => connection.close());

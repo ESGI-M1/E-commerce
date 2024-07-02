@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Cookies from 'js-cookie'
+
 import About from '../views/AboutView.vue'
 
 import Login from '../views/LoginView.vue'
@@ -18,7 +20,7 @@ import ProductList from '../views/ProductListView.vue'
 import Order from '../views/OrderView.vue'
 import OrderDetail from '../views/OrderDetailView.vue'
 import ReturnProduct from '../views/ReturnProductView.vue'
-import ConfirmAdress from '../views/ConfirmAdress.vue'
+import ConfirmAddress from '../views/ConfirmAddress.vue'
 import Success from '../views/SuccessView.vue'
 import Error from '../views/ErrorView.vue'
 import Livraison from '../views/OrderLivraisonView.vue'
@@ -31,27 +33,6 @@ import Ressources from '../views/admin/adminRessources.vue'
 import Locker from '../views/admin/adminLocker.vue'
 import Orders from '../views/admin/adminOrders.vue'
 import Returns from '../views/admin/adminReturns.vue'
-
-import axios from 'axios'
-
-const isAdmin = async () => {
-  const authToken = localStorage.getItem('authToken')
-  if (!authToken) {
-    return false
-  }
-
-  try {
-    const response = await axios.get(`http://localhost:3000/users/${authToken}`)
-    const user = response.data
-    if (!user || user.role != 'admin') {
-      return false
-    }
-
-    return user.role === 'admin'
-  } catch (error) {
-    return false
-  }
-}
 
 const routes = [
   {
@@ -132,19 +113,22 @@ const routes = [
     component: Error
   },
   {
-    path: '/favorite',
+    path: '/favorites',
     name: 'Favoris',
-    component: Favoris
+    component: Favoris,
+    meta: { requiresAuth: true }
   },
   {
     path: '/profile',
     name: 'Profile',
-    component: Profile
+    component: Profile,
+    meta: { requiresAuth: true }
   },
   {
     path: '/order',
     name: 'Historique des commandes',
-    component: Order
+    component: Order,
+    meta: { requiresAuth: true }
   },
   {
     path: '/order/livraison/:id',
@@ -155,12 +139,14 @@ const routes = [
     path: '/order/:id',
     name: 'OrderDetail',
     component: OrderDetail,
-    props: true
+    props: true,
+    meta: { requiresAuth: true }
   },
   {
     path: '/order/:orderId/returnProduct/:productId',
     name: 'ReturnProducts',
-    component: ReturnProduct
+    component: ReturnProduct,
+    meta: { requiresAuth: true }
   },
   {
     path: '/ressources',
@@ -188,8 +174,9 @@ const routes = [
   },
   {
     path: '/users/confirm-address/:token',
-    name: 'ConfirmAdress',
-    component: ConfirmAdress
+    name: 'ConfirmAddress',
+    component: ConfirmAddress,
+    meta: { requiresAuth: true }
   },
   {
     path: '/orders',
@@ -210,17 +197,39 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach(async (to, from, next) => {
-  if (to.matched.some((record) => record.meta.requiresAdmin)) {
-    const isAdminUser = await isAdmin()
-    if (!isAdminUser) {
-      next('/')
-    } else {
-      next()
-    }
-  } else {
-    next()
+const isLogged = () => {
+  const userCookie = Cookies.get('USER');
+  if (!userCookie) return null;
+
+  const userObject = JSON.parse(userCookie.substring(2));
+  return userObject;
+}
+
+const isAuthenticated = () => {
+  return isLogged() !== null;
+}
+
+const isAdmin = () => {
+  const user = isLogged();
+  if (!user || !user.role) return false;
+
+  return user.role === 'admin';
+}
+
+
+router.beforeEach(async (to, from) => {
+  console.log('beforeEach');
+
+  if (to.matched.some(record => record.meta.requiresAdmin)) {
+    if (!isAdmin()) return '/login';
   }
-})
+
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!isAuthenticated()) return '/login';
+  }
+
+  return true;
+});
+  
 
 export default router

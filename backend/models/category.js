@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 const categoryMongo = require("../dtos/denormalization/categoryMongo");
+const { tr } = require("date-fns/locale");
 
 module.exports = function (connection) {
 
@@ -47,13 +48,12 @@ module.exports = function (connection) {
             description: {
                 type: DataTypes.TEXT,
             },
+            active: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
         },
-        {
-            timestamps: true,
-            createdAt: true,
-            updatedAt: 'updateTimestamp',
-            sequelize: connection
-        }
+        { sequelize: connection }
     );
     return Category;
 };

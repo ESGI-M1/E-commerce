@@ -24,12 +24,16 @@ services:
       MAILER_ADDRESS: dabh45@gmail.com
       MAILER_PASSWORD: ddzx ztcb frrk ijsk
       BASE_URL: http://localhost:5173
+      NODE_ENV: development
     ports:
       - 127.0.0.1:3000:3000
     volumes:
       - ./backend:/home/node/app
     working_dir: /home/node/app
     command: bash -c "npm install && npm run dev"
+    depends_on:
+      - mongo
+      - postgres
 
   postgres:
     image: postgres

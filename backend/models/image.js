@@ -27,10 +27,7 @@ module.exports = function(connection) {
                 type: DataTypes.TEXT,
             },
         },
-        {
-            timestamps: false,
-            sequelize: connection
-        }
+        { sequelize: connection }
     );
     return Image;
 }

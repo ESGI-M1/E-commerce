@@ -56,19 +56,19 @@
           <div v-if="mode === 'editAddress' || mode === 'addAddress'">
             <div class="form-group">
               <label for="street">Rue</label>
-              <input v-model="form.street" type="text" id="street" required />
+              <input v-model="form.street" type="text" id="street" required autocomplete="street-address" />
             </div>
             <div class="form-group">
               <label for="postalCode">Code Postal</label>
-              <input v-model="form.postalCode" type="text" id="postalCode" required />
+              <input v-model="form.postalCode" type="text" id="postalCode" required autocomplete="postal-code" />
             </div>
             <div class="form-group">
               <label for="city">Ville</label>
-              <input v-model="form.city" type="text" id="city" required />
+              <input v-model="form.city" type="text" id="city" required autocomplete="address-level2" />
             </div>
             <div class="form-group">
               <label for="country">Pays</label>
-              <input v-model="form.country" type="text" id="country" required />
+              <input v-model="form.country" type="text" id="country" required autocomplete="country-name" />
             </div>
           </div>
           <div v-else>
@@ -92,9 +92,9 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
 
-const user = ref(null);
-const isOpen = ref(false);
-const mode = ref('');
+const user = ref(null)
+const isOpen = ref(false)
+const mode = ref('')
 const form = ref({
   street: '',
   postalCode: '',
@@ -108,13 +108,13 @@ let modeLabel = ref('');
 let editingAddress = null;
 
 const fetchUserProfile = async () => {
-  const authToken = localStorage.getItem('authToken');
+  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
-    return router.push('/');
+    return router.push('/')
   }
 
     const response = await axios.get(`http://localhost:3000/users/${authToken}`, {
-      headers: { Authorization: `Bearer ${authToken}` }
+      withCredentials: true
     });
     user.value = response.data;
 };
@@ -160,30 +160,42 @@ const openEditAddressModal = (address) => {
 };
 
 const closeModal = () => {
-  isOpen.value = false;
-};
+  isOpen.value = false
+}
 
 const deleteAddress = async (id) => {
-  await axios.delete(`http://localhost:3000/adressusers/${id}`);
-  user.value.deliveryAddress = user.value.deliveryAddress.filter(address => address.id !== id);
-};
+  try {
+    await axios.delete(`http://localhost:3000/addressusers/${id}`, {
+      withCredentials: true
+    })
+    user.value.deliveryAddress = user.value.deliveryAddress.filter((address) => address.id !== id)
+  } catch (error) {
+    console.error(error)
+  }
+}
 
 const handleSubmit = async () => {
-  const authToken = localStorage.getItem('authToken');
+  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
-    return router.push('/');
+    return router.push('/')
   }
 
     let response;
     if (mode.value === 'addAddress') {
-      response = await axios.post(`http://localhost:3000/adressusers/${authToken}`, form.value);
+      response = await axios.post(`http://localhost:3000/addressusers`, form.value, {
+        withCredentials: true
+      });
       user.value.deliveryAddress.push(response.data);
     } else if (mode.value === 'editAddress' && editingAddress) {
-      response = await axios.put(`http://localhost:3000/adressusers/${authToken}`, form.value);
+      response = await axios.put(`http://localhost:3000/addressusers/${authToken}`, form.value, {
+        withCredentials: true
+      });
       Object.assign(editingAddress, response.data);
     } else {
       const field = mode.value;
-      response = await axios.patch(`http://localhost:3000/users/${authToken}`, { [field]: form.value[field] });
+      response = await axios.patch(`http://localhost:3000/users/${authToken}`, { [field]: form.value[field] }, {
+        withCredentials: true
+      });
       user.value[field] = response.data[field];
     }
 
@@ -191,8 +203,8 @@ const handleSubmit = async () => {
 };
 
 onMounted(async () => {
-  await fetchUserProfile();
-});
+  await fetchUserProfile()
+})
 </script>
 
 <style scoped>
@@ -283,8 +295,8 @@ onMounted(async () => {
   font-weight: bold;
 }
 
-.modal-form input[type="text"],
-.modal-form input[type="email"] {
+.modal-form input[type='text'],
+.modal-form input[type='email'] {
   width: calc(100% - 16px);
   padding: 8px;
   border: 1px solid #ccc;

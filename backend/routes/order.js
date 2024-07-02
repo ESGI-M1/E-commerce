@@ -1,85 +1,88 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AdressOrder } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
+const checkAuth = require("../middlewares/checkAuth");
+const checkRole = require("../middlewares/checkRole");
 
 router.get('/', async (req, res) => {
-    try {
-      const orders = await Order.findAll({
-        where: req.query,
-        include: [
-          {
-            model: User,
-            as: 'user',
-          },
-          {
-            model: AdressOrder,
-            as: 'adressOrder',
-          }
-        ],
-        order: [['createdAt', 'DESC']],
-      });
-      res.json(orders);
-    } catch (error) {
-      res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
-    }
-  });
-
-  router.get('/:id', async (req, res) => {
-    try {
-      const cart = await Cart.findOne({
-        where: {
-          orderId: req.params.id
+  try {
+    const orders = await Order.findAll({
+      where: req.query,
+      include: [
+        {
+          model: User,
+          as: 'user',
         },
-        include: [
-          {
-            model: CartProduct,
-            as: 'CartProducts',
-            include: [{ 
-              model: Product, 
-              as: 'product',
-              include: [Category, Image],
-            }]
-          },
-          {
-            model: PromoCode,
-            as: 'promoCode',
-          }
-        ]
-      });      
-  
-      const order = await Order.findOne({
-        where: {
-          id: req.params.id
-        },
-        include: [
-          {
-            model: User,
-            as: 'user',
-          },
-          {
-            model: AdressOrder,
-            as: 'adressOrder',
-          }
-        ],
-        order: [['createdAt', 'DESC']],
-      });
-  
-      if (!order || !cart) {
-        return res.status(404).json({ error: 'Commande ou panier non trouvé' });
-      }
-      order.dataValues.Cart = cart;
-  
-      res.json(order);
-    } catch (error) {
-      res.status(500).json({ error: 'Erreur serveur lors de la récupération des commandes' });
-    }
-  });
+        {
+          model: AdressOrder,
+          as: 'adressOrder',
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+    res.json(orders);
+  } catch (e) {
+    next(e)
+  }
+});
 
-router.post('/', async (req, res) => {
-try {
-    const { userId, total, method } = req.body;
+router.get('/:id', checkAuth, async (req, res) => {
+  try {
+    const cart = await Cart.findOne({
+      where: {
+        orderId: parseInt(req.params.id),
+        userId: req.user.id
+      },
+      include: [
+        {
+          model: CartProduct,
+          as: 'CartProducts',
+          include: [{ 
+            model: Product, 
+            as: 'product',
+            include: [Category, Image],
+          }]
+        },
+        {
+          model: PromoCode,
+          as: 'promoCode',
+        }
+      ]
+    });      
+
+    const order = await Order.findOne({
+      where: {
+        id: parseInt(req.params.id),
+        userId: req.user.id
+      },
+      include: [
+        {
+          model: User,
+          as: 'user',
+        },
+        {
+          model: AddressOrder,
+          as: 'addressOrder',
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    if (!order || !cart) return res.status(404).json({ error: 'Commande ou panier non trouvé' });
+    
+    order.dataValues.Cart = cart;
+
+    res.json(order);
+  } catch (error) {
+    next(error)
+  }
+});
+
+router.post('/', checkAuth, async (req, res) => {
+  try {
+    const { total, method } = req.body;
     /*const exist = await Order.findAll({
         where: { 
             userId: userId,
@@ -92,25 +95,26 @@ try {
     deliveryDate.setDate(deliveryDate.getDate() + 3);
 
     const newOrder = await Order.create({
-        userId: userId,
-        totalAmount: total,
+        userId: req.user.id,
+        totalAmount: parseFloat(total),
         deliveryDate: deliveryDate,
         deliveryMethod: method,
       });
 
     res.status(201).json(newOrder);
-    
-} catch (error) {
-    res.status(500).json({ error: error.message });
-}
+      
+  } catch (e) {
+    next(e)
+  }
 });
 
-router.get("/user/:idUser", async (req, res) => {
+router.get("/user/:idUser", async (req, res) => {   // TODO SECURITY
+
   const { idUser } = req.params;
 
   try {
       const carts = await Cart.findAll({
-          where: { userId: idUser },
+          where: { userId: parseInt(idUser) },
           include: [
               {
                   model: PromoCode,
@@ -170,84 +174,82 @@ router.get("/user/:idUser", async (req, res) => {
       const ordersWithCarts = Object.values(orderMap);
 
       res.json(ordersWithCarts);
-  } catch (error) {
-      res.status(500).json({ error: 'Erreur lors de la récupération des commandes et des paniers' });
+  } catch (e) {
+    next(e);
   }
 });
 
 
-router.get("/details/:idUser", async (req, res) => {
-    const { idUser } = req.params;
-    const { orderId } = req.query;
+router.get("/details/:idUser", async (req, res) => {    // TODO SECURITY
+  const idUser = parseInt(req.params.idUser);
+  const orderId = parseInt(req.query.orderId);
 
-    try {
-        const carts = await Cart.findAll({
-            where: { userId: idUser, orderId: orderId },
-            include: [
-                {
-                    model: Product,
-                    as: 'product',
-                    attributes: ['id', 'name', 'price'],
-                    include: [Category, Image],
-                },
-                {
-                    model: PromoCode,
-                    as: 'promoCode',
-                    attributes: ['discountPercentage']
-                }
-            ]
-        });
+  try {
+      const carts = await Cart.findAll({
+          where: { userId: idUser, orderId: orderId },
+          include: [
+              {
+                  model: Product,
+                  as: 'product',
+                  attributes: ['id', 'name', 'price'],
+                  include: [Category, Image],
+              },
+              {
+                  model: PromoCode,
+                  as: 'promoCode',
+                  attributes: ['discountPercentage']
+              }
+          ]
+      });
 
-        const orderMap = {};
+      const orderMap = {};
 
-        for (const cart of carts) {
-            const orderId = cart.orderId;
+      for (const cart of carts) {
+          const orderId = cart.orderId;
 
-            if (!orderMap[orderId]) {
-                const order = await Order.findByPk(orderId);
-                if (order) {
-                    orderMap[orderId] = {
-                        id: order.id,
-                        userId: order.userId,
-                        totalAmount: order.totalAmount,
-                        status: order.status,
-                        createdAt: order.createdAt,
-                        deliveryDate: order.deliveryDate,
-                        deliveryMethod: order.deliveryMethod,
-                        carts: [] // Initialiser le tableau de paniers
-                    };
-                }
-            }
+          if (!orderMap[orderId]) {
+              const order = await Order.findByPk(orderId);
+              if (order) {
+                  orderMap[orderId] = {
+                      id: order.id,
+                      userId: order.userId,
+                      totalAmount: order.totalAmount,
+                      status: order.status,
+                      createdAt: order.createdAt,
+                      deliveryDate: order.deliveryDate,
+                      deliveryMethod: order.deliveryMethod,
+                      carts: [] // Initialiser le tableau de paniers
+                  };
+              }
+          }
 
-            if (orderMap[orderId]) {
-                console.log('cart:', cart)
-                orderMap[orderId].carts.push({
-                    id: cart.id,
-                    quantity: cart.quantity,
-                    product: cart.product,
-                    promo: cart.promoCode,
-                });
-            }
-        }
+          if (orderMap[orderId]) {
+              console.log('cart:', cart)
+              orderMap[orderId].carts.push({
+                  id: cart.id,
+                  quantity: cart.quantity,
+                  product: cart.product,
+                  promo: cart.promoCode,
+              });
+          }
+      }
 
-        const ordersWithCarts = Object.values(orderMap);
+      const ordersWithCarts = Object.values(orderMap);
 
-        res.json(ordersWithCarts);
-    } catch (error) {
-        res.status(500).json({ error: 'Erreur lors de la récupération des commandes et des paniers' });
-    }
+      res.json(ordersWithCarts);
+  } catch (e) {
+      next(e);
+  }
 });
 
 // Télécharger la facture PDF
 router.get('/invoice/:orderId', async (req, res) => {
-  const orderId = req.params.orderId;
+  const orderId = parseInt(req.params.orderId);
   
   try {
     const order = await Order.findByPk(orderId);
   
-    if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
+    if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
   
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage();
@@ -271,26 +273,24 @@ router.get('/invoice/:orderId', async (req, res) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.send(pdfBytes);
   
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to generate invoice' });
+  } catch (e){
+    next(e);
   }
 });
 
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
+router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
+    const id = parseInt(req.params.id);
     const order = await Order.findByPk(id);
     const addressId = order.deliveryMethod;
 
     if (order) {
-    const deletedOrder = await Order.destroy({ where: { id } });
+    const deletedOrder = await Order.destroy({
+       where: { id } 
+      });
     if (addressId) {
-      await AdressOrder.destroy({ where: { id: addressId } });
+      await AddressOrder.destroy({ where: { id: addressId } });
     }
-    if (deletedOrder > 0) {
-      return res.sendStatus(204);
-    } else {
-      return res.sendStatus(404);
-    }
+    deletedOrder > 0 ? res.sendStatus(204) : res.sendStatus(404);
   }
 });
 

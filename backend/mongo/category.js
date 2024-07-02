@@ -1,40 +1,37 @@
-const { connection, Schema } = require('./db');
+const mongoose = require('mongoose'); 
 
-const CategorySchema = new Schema(
-  {
-    _id: {
-      type: Number,
-      required: true,
-      unique: true,
+module.exports = function (connection) {
+  const CategorySchema = new mongoose.Schema(
+    {
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      slug: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+      },
+      description: {
+        type: String,
+      },
+      parentCategory: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+      },
+      products: [{
+        type: Number,
+        ref: 'Product',
+      }],
     },
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-    },
-    parentCategory: {
-      type: Schema.Types.ObjectId,
-      ref: 'Category',
-    },
-    products: [{
-      type: Number,
-      ref: 'Product',
-    }],
-  },
-  {
-    timestamps: true,
-  }
-);
+    {
+      timestamps: true,
+    }
+  );
 
-const Category = connection.model('Category', CategorySchema);
+  const Category = connection.model('Category', CategorySchema);
 
-module.exports = Category;
+  return Category;
+}

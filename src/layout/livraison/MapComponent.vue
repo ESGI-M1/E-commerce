@@ -15,7 +15,7 @@ const carIcon = L.icon({
   iconAnchor: [19, 19],
 });
 
-interface MapProps {
+interface MapProps {  
   startLocation: [number, number];
   endLocation: [number, number];
 }

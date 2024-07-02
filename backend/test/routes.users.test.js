@@ -1,7 +1,7 @@
 let request = require('supertest');
 request = request('http://localhost:3000');
 
-describe('User Routes', () => {
+describe('Utilisateurs routes', () => {
 
   it('should fail to register with wrong email', async () => {
     request

@@ -2,7 +2,7 @@ let request = require('supertest');
 const { User } = require("../models");
 request = request('http://localhost:3000');
 
-describe('User Routes', () => {
+describe('Commandes routes', () => {
 
   it('should create a new address order', async () => {
     const newAddressData = {
@@ -12,7 +12,7 @@ describe('User Routes', () => {
       country: 'Test Country'
     };
 
-     request(app)
+     request
       .post('/adressorders')
       .send(newAddressData)
       .expect(201)
@@ -40,7 +40,7 @@ describe('User Routes', () => {
       country: 'Countryland',
     };
 
-    const response = await request(app)
+    const response = request
       .post(`/adressusers/${user.id}`)
       .send(newAddressData)
       .expect(201);
@@ -62,7 +62,7 @@ describe('User Routes', () => {
       country: 'Countryland',
     };
 
-    const response = await request(app)
+    const response = request
       .post(`/adressusers/${nonExistentUserId}`)
       .send(newAddressData)
       .expect(404);

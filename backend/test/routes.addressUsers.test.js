@@ -2,7 +2,7 @@ let request = require('supertest');
 const { User, AddressUser } = require("../models");
 request = request('http://localhost:3000');
 
-describe('User Routes', () => {
+describe('Adresse utilisateur routes', () => {
   
   it('should create a new address for a user', async () => {
     const user = await User.create({
@@ -19,7 +19,7 @@ describe('User Routes', () => {
       country: 'Countryland',
     };
 
-    const response = await request(app)
+    const response = request
       .post(`/adressusers/${user.id}`)
       .send(newAddressData)
       .expect(201);
@@ -41,7 +41,7 @@ describe('User Routes', () => {
       country: 'Countryland',
     };
 
-    const response = await request(app)
+    const response = request
       .post(`/adressusers/${nonExistentUserId}`)
       .send(newAddressData)
       .expect(404);
@@ -72,7 +72,7 @@ describe('User Routes', () => {
       country: 'Anotherland',
     };
 
-    const response = await request(app)
+    const response = request
       .put(`/adressusers/${user.id}`)
       .send(updatedAddressData)
       .expect(200);
@@ -94,7 +94,7 @@ describe('User Routes', () => {
       country: 'Anotherland',
     };
 
-    const response = await request(app)
+    const response = request
       .put(`/adressusers/${nonExistentUserId}`)
       .send(updatedAddressData)
       .expect(404);
@@ -118,7 +118,7 @@ describe('User Routes', () => {
       userId: user.id,
     });
 
-    const response = await request(app)
+    const response = request
       .delete(`/adressusers/${address.id}`)
       .expect(204);
 
@@ -129,7 +129,7 @@ describe('User Routes', () => {
   it('should return 404 if address does not exist', async () => {
     const nonExistentAddressId = 'non-existent-address-id';
 
-    const response = await request(app)
+    const response = request
       .delete(`/adressusers/${nonExistentAddressId}`)
       .expect(404);
 

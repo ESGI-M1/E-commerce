@@ -216,10 +216,7 @@ const isAdmin = () => {
   return user.role === 'admin';
 }
 
-
 router.beforeEach(async (to, from) => {
-  console.log('beforeEach');
-
   if (to.matched.some(record => record.meta.requiresAdmin)) {
     if (!isAdmin()) return '/login';
   }

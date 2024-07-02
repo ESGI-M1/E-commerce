@@ -2,7 +2,7 @@ let request = require('supertest');
 const { User, Product } = require("../models");
 request = request('http://localhost:3000');
 
-describe('User Routes', () => {
+describe('Favoris routes', () => {
 
   it('should add a product to favorites', async () => {
     const user = await User.create({
@@ -23,7 +23,7 @@ describe('User Routes', () => {
       productId: product.id,
     };
 
-    const response = await request(app)
+    const response = request
       .post('/favorites')
       .send(newFavoriteData)
       .expect(201);
@@ -37,7 +37,7 @@ describe('User Routes', () => {
     const invalidFavoriteData = {
     };
 
-    const response = await request(app)
+    const response = request
       .post('/favorites')
       .send(invalidFavoriteData)
       .expect(400);
@@ -54,7 +54,7 @@ describe('User Routes', () => {
       productId: nonExistentProductId,
     };
 
-    const response = await request(app)
+    const response = request
       .post('/favorites')
       .send(nonExistentFavoriteData)
       .expect(404);
@@ -92,7 +92,7 @@ describe('User Routes', () => {
       productId: product2.id,
     });
 
-    const response = await request(app)
+    const response = request
       .get(`/favorites/${user.id}`)
       .expect(200);
 
@@ -106,7 +106,7 @@ describe('User Routes', () => {
   it('should return 500 if an error occurs', async () => {
     const invalidUserId = 'invalid-user-id';
 
-    const response = await request(app)
+    const response = request
       .get(`/favorites/${invalidUserId}`)
       .expect(500);
 
@@ -132,7 +132,7 @@ describe('User Routes', () => {
       productId: product.id,
     });
 
-    const response = await request(app)
+    const response = request
       .delete(`/favorites/${user.id}/${product.id}`)
       .expect(200);
 
@@ -148,7 +148,7 @@ describe('User Routes', () => {
     const invalidUserId = 'invalid-user-id';
     const invalidProductId = 'invalid-product-id';
 
-    const response = await request(app)
+    const response = request
       .delete(`/favorites/${invalidUserId}/${invalidProductId}`)
       .expect(500);
 

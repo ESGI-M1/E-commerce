@@ -15,7 +15,6 @@ router.get('/', checkRole({ roles: "admin" }), async (req, res) => {
   }
 });
 
-//add
 router.post('/', checkRole({ roles: "admin" }), async (req, res) => {
   const { code, startDate, endDate, discountPercentage } = req.body;
 

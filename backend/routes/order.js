@@ -6,7 +6,7 @@ const { format } = require('date-fns');
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: req.query,
@@ -80,7 +80,7 @@ router.get('/:id', checkAuth, async (req, res) => {
   }
 });
 
-router.post('/', checkAuth, async (req, res) => {
+router.post('/', checkAuth, async (req, res, next) => {
   try {
     const { total, method } = req.body;
     /*const exist = await Order.findAll({
@@ -108,7 +108,7 @@ router.post('/', checkAuth, async (req, res) => {
   }
 });
 
-router.get("/user/:idUser", async (req, res) => {   // TODO SECURITY
+router.get("/user/:idUser", async (req, res, next) => {   // TODO SECURITY
 
   const { idUser } = req.params;
 
@@ -180,7 +180,7 @@ router.get("/user/:idUser", async (req, res) => {   // TODO SECURITY
 });
 
 
-router.get("/details/:idUser", async (req, res) => {    // TODO SECURITY
+router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
   const idUser = parseInt(req.params.idUser);
   const orderId = parseInt(req.query.orderId);
 
@@ -243,7 +243,7 @@ router.get("/details/:idUser", async (req, res) => {    // TODO SECURITY
 });
 
 // Télécharger la facture PDF
-router.get('/invoice/:orderId', async (req, res) => {
+router.get('/invoice/:orderId', async (req, res, next) => {
   const orderId = parseInt(req.params.orderId);
   
   try {
@@ -294,7 +294,7 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", async (req, res) => {
   const order = await Order.findByPk(req.params.id);
 
   if (order) {

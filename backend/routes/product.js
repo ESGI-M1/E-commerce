@@ -5,7 +5,9 @@ const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
-router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
+router.get("/", async (req, res) => {
+
+    req.query.active = true;
 
     const products = await Product.findAll({
         where: req.query,
@@ -15,7 +17,7 @@ router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
     res.json(products);
 });
 
-router.get("/search", async (req, res) => {
+router.get("/search", async (req, res, next) => {
     try{
         const { q } = req.query;
         const products = await Product.findAll({
@@ -34,7 +36,7 @@ router.get("/search", async (req, res) => {
 
 });
 
-router.get("/:id/images", async (req, res) => {
+router.get("/:id/images", async (req, res, next) => {
     try {
         const images = await Image.findAll(
             { where: { productId : parseInt(req.params.id) } 

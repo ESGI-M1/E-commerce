@@ -75,7 +75,7 @@ router.post("/login", async (req, res) => {
 
 });
 
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", async (req, res, next) => {
 
   const user = await User.findOne({
     attributes: ['id', 'firstname', 'email'],
@@ -88,9 +88,8 @@ router.post("/forgot-password", async (req, res) => {
     try{
       mailer.sendResetPassword(user);
     }
-    catch(error){
-      console.log(error);
-      return res.sendStatus(406); // TODO Vérifier le code de retour
+    catch(e){
+      next(e)
     }
   }
 
@@ -98,7 +97,7 @@ router.post("/forgot-password", async (req, res) => {
 
 });
 
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', async (req, res, next) => {
   const { token, password } = req.body;
 
   try {
@@ -122,7 +121,7 @@ router.post('/reset-password', async (req, res) => {
 });
 
 
-router.post("/confirm-address", async (req, res) => {
+router.post("/confirm-address", async (req, res, next) => {
   const token = req.body.token;
 
   try {

@@ -3,7 +3,7 @@ const router = express.Router();
 const { Favorite, Product, User } = require('../models');
 const checkAuth = require('../middlewares/checkAuth');
 
-router.post('/', checkAuth, async (req, res) => {
+router.post('/', checkAuth, async (req, res, next) => {
   try {
     const productId = req.body.productId;
 
@@ -29,7 +29,7 @@ router.post('/', checkAuth, async (req, res) => {
   }
 });
 
-router.get('/:userId', checkAuth, async (req, res) => {
+router.get('/:userId', checkAuth, async (req, res, next) => {
   try {
     const favorites = await Favorite.findAll({
         where: { userId: req.user.id },
@@ -43,7 +43,7 @@ router.get('/:userId', checkAuth, async (req, res) => {
 });
 
 // Supprimer un produit des favoris d'un utilisateur
-router.delete('/:productId', checkAuth, async (req, res) => {
+router.delete('/:productId', checkAuth, async (req, res, next) => {
   const productId = parseInt(req.params.productId);
 
   try {

@@ -96,13 +96,11 @@ const user = ref(null)
 const isOpen = ref(false)
 const mode = ref('')
 const form = ref({
+  id: '',
   street: '',
   postalCode: '',
   city: '',
   country: '',
-  lastname: '',
-  firstname: '',
-  email: ''
 });
 let modeLabel = ref('');
 let editingAddress = null;
@@ -113,10 +111,10 @@ const fetchUserProfile = async () => {
     return router.push('/')
   }
 
-    const response = await axios.get(`http://localhost:3000/users/${authToken}`, {
-      withCredentials: true
-    });
-    user.value = response.data;
+  const response = await axios.get(`http://localhost:3000/users/${authToken}`, {
+    withCredentials: true
+  });
+  user.value = response.data;
 };
 
 const openeditFirstnameModal = (firstname: string) => {
@@ -153,6 +151,7 @@ const openEditAddressModal = (address) => {
   isOpen.value = true;
   mode.value = 'editAddress';
   editingAddress = address;
+  form.value.id = address.id;
   form.value.street = address.street;
   form.value.postalCode = address.postalCode;
   form.value.city = address.city;
@@ -182,21 +181,27 @@ const handleSubmit = async () => {
 
     let response;
     if (mode.value === 'addAddress') {
+
       response = await axios.post(`http://localhost:3000/addressusers`, form.value, {
         withCredentials: true
       });
       user.value.deliveryAddress.push(response.data);
+
     } else if (mode.value === 'editAddress' && editingAddress) {
-      response = await axios.put(`http://localhost:3000/addressusers/${authToken}`, form.value, {
+
+      response = await axios.put(`http://localhost:3000/addressusers/` + form.value.id, form.value, {
         withCredentials: true
       });
       Object.assign(editingAddress, response.data);
+
     } else {
+
       const field = mode.value;
       response = await axios.patch(`http://localhost:3000/users/${authToken}`, { [field]: form.value[field] }, {
         withCredentials: true
       });
       user.value[field] = response.data[field];
+      
     }
 
     closeModal();

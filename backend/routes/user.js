@@ -6,7 +6,7 @@ const checkRole = require("../middlewares/checkRole");
 const checkAuth = require("../middlewares/checkAuth");
 const { nb } = require("date-fns/locale");
 
-router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
+router.get("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 
     const users = await User.findAll({
       where: req.query,

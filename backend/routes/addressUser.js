@@ -37,6 +37,7 @@ router.put("/:id", checkAuth, async (req, res, next) => {
       returning: true,
     });
 
+    console.log(updatedAddress);
     nbUpdated === 1 ? res.json(updatedAddress[0]) : res.sendStatus(404);
   } catch (e) {
     next(e);

@@ -7,7 +7,8 @@
   "scripts": {
     "d:s:u": "node migrate.js",
     "dev": "node --watch server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "node server.js"
   },
   "author": "",
   "license": "ISC",

@@ -23,6 +23,8 @@ const app = express();
 //}
 
 //app.use(parseBody);
+const cors = require('cors')
+
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
 app.use(cors());

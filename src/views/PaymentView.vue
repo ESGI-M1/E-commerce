@@ -297,6 +297,8 @@ const handlePayment = async (payment: string) => {
         items: carts.value[0].CartProducts,
         promo: promo.value,
       });
+
+      const { sessionId } = paypalSession.data;
     }
 
       await axios.delete(`http://localhost:3000/orders/${order.value.id}`);

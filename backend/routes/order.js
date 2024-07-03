@@ -16,8 +16,8 @@ router.get('/', async (req, res, next) => {
           as: 'user',
         },
         {
-          model: AdressOrder,
-          as: 'adressOrder',
+          model: AddressOrder,
+          as: 'addressOrder',
         }
       ],
       order: [['createdAt', 'DESC']],

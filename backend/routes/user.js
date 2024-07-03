@@ -1,12 +1,10 @@
 const { Router } = require("express");
 const { User, AddressUser } = require("../models");
 const router = new Router();
-const jwt = require("jsonwebtoken");
 const checkRole = require("../middlewares/checkRole");
 const checkAuth = require("../middlewares/checkAuth");
-const { nb } = require("date-fns/locale");
 
-router.get("/", checkRole({ roles: "admin" }), async (req, res, next) => {
+router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
 
     const users = await User.findAll({
       where: req.query,

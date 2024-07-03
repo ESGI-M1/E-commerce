@@ -245,34 +245,31 @@ const showProductDetails = (id: string) => {
 const handlePayment = async (payment: string) => {
   let newAddress = null;
   let addressorders = null;
-
+  let response = null;
+  
   if (deliveryOption.value === 'pointRelais') {
-    try {
       const randomStreet = Math.random().toString(36).substring(7);
-      const response = await axios.post('http://localhost:3000/addressorders', {
+      response = await axios.post('http://localhost:3000/addressorders', {
         street: randomStreet,
         postalCode: pointRelaisPostalCode.value,
         city: getCityFromPostalCode(pointRelaisPostalCode.value),
         country: getCountryFromPostalCode(pointRelaisPostalCode.value),
       });
 
-      newAddress = response.data;
-    } catch (error) {
-      console.error('Error creating address (Point Relais):', error);
-    }
   } else if (deliveryOption.value === 'livraisonDomicile') {
     if (livraisonDomicileAddress.value.street != '') {
       newLivraisonDomicileAddress.value = livraisonDomicileAddress.value
     } 
-      const response = await axios.post('http://localhost:3000/addressorders', {
+      response = await axios.post('http://localhost:3000/addressorders', {
         street: newLivraisonDomicileAddress.value.street,
         postalCode: newLivraisonDomicileAddress.value.postalCode,
         city: newLivraisonDomicileAddress.value.city,
         country: newLivraisonDomicileAddress.value.country,
       });
 
-      newAddress = response.data;
   }
+  newAddress = response.data;
+
 
   if (newAddress) {
     try {

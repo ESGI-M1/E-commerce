@@ -7,7 +7,15 @@ const router = new Router();
 
 router.get("/", async (req, res) => {
 
-    req.query.active = true;
+    const products = await Product.findAll({
+        where: req.query,
+        include: [Category, Image],
+    });
+
+    res.json(products);
+});
+
+router.get("/admin", checkRole({ roles: "admin" }), async (req, res) => {
 
     const products = await Product.findAll({
         where: req.query,
@@ -17,7 +25,7 @@ router.get("/", async (req, res) => {
     res.json(products);
 });
 
-router.get("/search", async (req, res, next) => {
+router.get("/search", async (req, res) => {
     try{
         const { q } = req.query;
         const products = await Product.findAll({
@@ -34,17 +42,6 @@ router.get("/search", async (req, res, next) => {
         next(e);
     }
 
-});
-
-router.get("/:id/images", async (req, res, next) => {
-    try {
-        const images = await Image.findAll(
-            { where: { productId : parseInt(req.params.id) } 
-        });
-        res.json(images);
-    } catch (e) {
-    next(e);
-    }
 });
 
 router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
@@ -64,8 +61,8 @@ router.get("/:id", async (req, res, next) => {
         
         const product = await Product.findByPk(productId, {
             include: [
-                { model: Category, required: false },
-                { model: Image, required: false }
+                { model: Category },
+                { model: Image }
             ]
         });
 

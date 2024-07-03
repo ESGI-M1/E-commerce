@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Favorite, Product, User } = require('../models');
+const { Favorite, Product, User, Image, Category } = require('../models');
 const checkAuth = require('../middlewares/checkAuth');
 
 router.post('/', checkAuth, async (req, res, next) => {
@@ -33,7 +33,11 @@ router.get('/:userId', checkAuth, async (req, res, next) => {
   try {
     const favorites = await Favorite.findAll({
         where: { userId: req.user.id },
-        include: [{ model: Product, as: 'product' }] // Utiliser l'alias défini dans l'association
+        include: [
+          { model: Product, as: 'product',          
+            include: [Category, Image],
+          }
+        ]
     });
 
     res.json(favorites);

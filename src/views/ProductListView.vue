@@ -8,7 +8,7 @@
     >
       <img
         :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'"
-        :alt="product.Images ? product.Images[0].description : 'Product image'"
+        :alt="product.Images ? product.Images[0].description : product.name"
         class="product-image"
       />
       <div class="product-info">

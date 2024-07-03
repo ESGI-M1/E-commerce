@@ -61,7 +61,8 @@ router.get("/:productId", async (req, res, next) => {
   const productId = req.params.productId;
   const { userId, orderId } = req.query;
 
-  if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
+  //if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
+  if(!userId || !req.user || ( userId !== req.user.id)) return res.sendStatus(403);
 
   try {
     const returnProduct = await ReturnProduct.findOne({

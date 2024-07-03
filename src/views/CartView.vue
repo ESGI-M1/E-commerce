@@ -14,11 +14,11 @@
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
             <div class="item-details" @click="showProductDetails(item.product.id)">
               <h3>{{ item.product.name }}</h3>
-              <img
-                :src="item.product.Images[0]?.url || require('../../assets/produit_avatar.jpg')"
-                :alt="item.product.Images[0]?.description || 'Produit'"
-                class="product-image"
-              />
+              <img :src="item.product.Images ? item.product.Images[0].url : 
+                  '../../produit_avatar.jpg'" 
+                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  item.product.name" class="product-image" 
+                  />
             </div>
             <div class="item-quantity">
               <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">

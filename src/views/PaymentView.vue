@@ -93,10 +93,10 @@
               <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
                 <div class="item-details" @click="showProductDetails(item.product.id)">
                   <h3>{{ item.product.name }}</h3>
-                  <img
-                    :src="item.product.Images[0]?.url ?? '../../produit_avatar.jpg'"
-                    :alt="item.product.Images[0]?.description"
-                    class="product-image"
+                  <img :src="item.product.Images ? item.product.Images[0].url : 
+                  '../../produit_avatar.jpg'" 
+                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  item.product.name" class="product-image" 
                   />
                 </div>
                 <div class="item-quantity">
@@ -445,13 +445,6 @@ input[type='text'] {
 .item-details {
   display: flex;
   align-items: center;
-}
-
-.product-image {
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  margin-left: 10px;
 }
 
 .item-quantity {

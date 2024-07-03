@@ -50,11 +50,20 @@ module.exports = function (connection) {
           key: 'id',
         },
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      }
     },
     {
       sequelize: connection,
       modelName: 'Order',
       tableName: 'Orders',
+      timestamps: true,
     }
   );
 

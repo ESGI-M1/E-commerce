@@ -52,8 +52,16 @@ module.exports = function (connection) {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
+            createdAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              },
+              updatedAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              }
         },
-        { sequelize: connection }
+        { sequelize: connection, timestamps: true }
     );
     return Category;
 };

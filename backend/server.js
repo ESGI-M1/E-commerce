@@ -19,6 +19,8 @@ const StripeRouter = require("./stripe/stripe");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
 
+//const migrate = require("./migrate");
+
 const app = express();
 const cors = require('cors')
 require('./services/cron');

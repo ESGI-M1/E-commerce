@@ -76,9 +76,17 @@ module.exports = function (connection) {
       },
       lastPasswordUpdate: {
         type: DataTypes.DATE
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
       }
     },
-    { sequelize: connection }
+    { sequelize: connection, timestamps: true}
   );
 
   return User;

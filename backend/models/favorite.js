@@ -25,13 +25,18 @@ module.exports = function(sequelize) {
             },
             createdAt: {
                 type: DataTypes.DATE,
-                defaultValue: DataTypes.NOW
-            }
+                allowNull: true
+              },
+              updatedAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              }
         },
         {
             sequelize,
             modelName: 'Favorite',
-            tableName: 'Favorites'
+            tableName: 'Favorites',
+            timestamps: true
         }
     );
 

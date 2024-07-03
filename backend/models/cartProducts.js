@@ -37,11 +37,20 @@ module.exports = function (connection) {
                 allowNull: false,
                 defaultValue: 1,
             },
+            createdAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              },
+              updatedAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              }
         },
         {
             sequelize: connection,
             modelName: 'CartProduct',
             tableName: 'CartProducts',
+            timestamps: true,
         }
     );
 

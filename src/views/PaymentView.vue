@@ -293,6 +293,7 @@ const handlePayment = async () => {
         console.error('Error redirecting to checkout:', error);
       }
     } catch (error) {
+      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
       console.error('Error handling payment:', error);
     }
   }

@@ -83,6 +83,7 @@ module.exports = function(connection) {
             sequelize: connection,
             modelName: 'Product',
             tableName: 'Products',
+            timestamps: true,
         }
     );
 

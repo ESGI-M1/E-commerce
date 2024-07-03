@@ -286,14 +286,14 @@ const handlePayment = async () => {
         promo: promo.value,
       });
 
+      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
+
       const { sessionId } = stripeSession.data;
       const { error } = await stripe.redirectToCheckout({ sessionId });
-
-      if (error) {
-        console.error('Error redirecting to checkout:', error);
-      }
     } catch (error) {
-      console.error('Error handling payment:', error);
+      if (typeof order !== 'undefined' && order) {
+      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
+      }
     }
   }
 };

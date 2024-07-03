@@ -82,7 +82,6 @@ import Cookies from 'js-cookie'
 
 import axios from 'axios'
 
-const isAdmin = ref(false)
 const router = useRouter()
 const search = ref('')
 const productsStore = useProductsStore()
@@ -105,6 +104,11 @@ const searchProducts = async () => {
 const isAuthenticated = computed(() => {
   return Cookies.get('USER') !== undefined
 })  
+
+const isAdmin = computed(() => {
+  const user = JSON.parse(Cookies.get('USER').slice(2))
+  return user.role === 'admin'
+})
 
 const logout = () => {
   Cookies.remove('USER')

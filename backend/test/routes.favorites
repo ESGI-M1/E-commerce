@@ -6,10 +6,10 @@ describe('Favoris routes', () => {
 
   it('should add a product to favorites', async () => {
     const user = await User.create({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      password: 'Password123!',
+      firstname: 'John',
+      lastname: 'Doe',
+      email: 'john.doe789@example.com',
+      password: 'Password123457!',
     });
 
     const product = await Product.create({
@@ -26,11 +26,14 @@ describe('Favoris routes', () => {
     const response = request
       .post('/favorites')
       .send(newFavoriteData)
-      .expect(201);
+      .expect(201)
+      .then(response => {
+        expect(response.body).toHaveProperty('id');
+        expect(response.body.userId).toEqual(newFavoriteData.userId);
+        expect(response.body.productId).toEqual(newFavoriteData.productId);
+      });
 
-    expect(response.body).toHaveProperty('id');
-    expect(response.body.userId).toEqual(newFavoriteData.userId);
-    expect(response.body.productId).toEqual(newFavoriteData.productId);
+
   });
 
   it('should return 400 if userId or productId are missing', async () => {
@@ -40,9 +43,12 @@ describe('Favoris routes', () => {
     const response = request
       .post('/favorites')
       .send(invalidFavoriteData)
-      .expect(400);
+      .expect(400)
+      .then(response => {
+        expect(response.body.error).toEqual('UserId and ProductId are required');
+      });
 
-    expect(response.body.error).toEqual('UserId and ProductId are required');
+
   });
 
   it('should return 404 if user or product does not exist', async () => {
@@ -57,9 +63,12 @@ describe('Favoris routes', () => {
     const response = request
       .post('/favorites')
       .send(nonExistentFavoriteData)
-      .expect(404);
+      .expect(404)
+      .then(response => {
+        expect(response.body.error).toEqual('User or Product not found');
+      });
 
-    expect(response.body.error).toEqual('User or Product not found');
+
   });
 
   it('should retrieve favorites for a user', async () => {
@@ -94,13 +103,15 @@ describe('Favoris routes', () => {
 
     const response = request
       .get(`/favorites/${user.id}`)
-      .expect(200);
+      .expect(200)
+      .then(response => {
+        expect(response.body).toHaveLength(2);
+        expect(response.body[0]).toHaveProperty('id');
+        expect(response.body[0]).toHaveProperty('userId', user.id);
+        expect(response.body[0].product).toHaveProperty('id', product1.id);
+        expect(response.body[1].product).toHaveProperty('id', product2.id);
+      });
 
-    expect(response.body).toHaveLength(2);
-    expect(response.body[0]).toHaveProperty('id');
-    expect(response.body[0]).toHaveProperty('userId', user.id);
-    expect(response.body[0].product).toHaveProperty('id', product1.id);
-    expect(response.body[1].product).toHaveProperty('id', product2.id);
   });
 
   it('should return 500 if an error occurs', async () => {
@@ -115,10 +126,10 @@ describe('Favoris routes', () => {
 
     it('should delete a favorite product for a user', async () => {
     const user = await User.create({
-      firstName: 'Alice',
-      lastName: 'Johnson',
-      email: 'alice.johnson@example.com',
-      password: 'Password789!',
+      firstname: 'Alice',
+      lastname: 'Johnsone',
+      email: 'alice.johnsone78@example.com',
+      password: 'Password747589!',
     });
 
     const product = await Product.create({
@@ -134,14 +145,17 @@ describe('Favoris routes', () => {
 
     const response = request
       .delete(`/favorites/${user.id}/${product.id}`)
-      .expect(200);
+      .expect(200)
+      .then(response => {
+        expect(response.body.success).toBeTruthy();
+      });
 
-    expect(response.body.success).toBeTruthy();
 
     const deletedFavorite = await Favorite.findOne({
       where: { userId: user.id, productId: product.id },
     });
     expect(deletedFavorite).toBeNull();
+
   });
 
   it('should return 500 if an error occurs', async () => {
@@ -150,9 +164,12 @@ describe('Favoris routes', () => {
 
     const response = request
       .delete(`/favorites/${invalidUserId}/${invalidProductId}`)
-      .expect(500);
+      .expect(500)
+      .then(response => {
+        expect(response.body.error).toEqual('Une erreur est survenue lors de la suppression du favori.');
+      });
 
-    expect(response.body.error).toEqual('Une erreur est survenue lors de la suppression du favori.');
+
   });
 
 });

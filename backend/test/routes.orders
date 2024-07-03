@@ -4,7 +4,7 @@ const { Order, AddressOrder, User } = require('../models');
 
 describe('Order routes', () => {
   it('should delete an order and its associated address', async () => {
-    const adminUser = await User.create({ id: 1, role: 'admin' });
+    const adminUser = await User.create({ role: 'admin' }, lastname = 'Doe', firstname = 'John', email = 'zorglux0@zorglux.com', password = 'Password123456789!');
     const address = await AddressOrder.create({ id: 1 });
     const order = await Order.create({ id: 1, deliveryMethod: address.id });
 
@@ -20,7 +20,7 @@ describe('Order routes', () => {
   });
 
   it('should return 404 when trying to delete a non-existent order', async () => {
-    const adminUser = await User.create({ id: 2, role: 'admin' });
+    const adminUser = await User.create({ role: 'admin' }, lastname = 'Doe', firstname = 'John', email = 'zorglux1@zorglux.com', password = 'Password123456789!');
 
     request
       .delete(`/orders/9999`)

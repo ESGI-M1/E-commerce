@@ -28,11 +28,7 @@ module.exports = function (connection) {
         allowNull: false,
       },
     },
-    {
-      sequelize: connection,
-      modelName: 'AddressOrder',
-      tableName: 'AddressOrders',
-    }
+    { sequelize: connection }
   );
 
   return AddressOrder;

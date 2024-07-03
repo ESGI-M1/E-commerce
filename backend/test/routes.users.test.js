@@ -41,7 +41,7 @@ describe('Utilisateurs routes', () => {
     request
       .post('/users')
       .send({
-        email: 'toto@toto.com',
+        email: 'toto@zorglux.com',
         password: 'Toto123456!',
         firstname: 'toto',
         lastname: 'toto'
@@ -53,14 +53,14 @@ describe('Utilisateurs routes', () => {
     request
       .post('/login')
       .send({
-        email: 'toto@toto.com',
+        email: 'toto@zorglux.com',
         password: 'Toto123456!'
       })
       .expect(200);
 
   });
 
-  it('should fail to login with wrong email', async () => {
+  it('should fail to login with unregistered email', async () => {
     request
       .post('/login')
       .send({

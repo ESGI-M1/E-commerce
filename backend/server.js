@@ -23,6 +23,7 @@ const AddressUserRouter = require("./routes/addressUser");
 const app = express();
 const cors = require('cors')
 require('./services/cron');
+require('./migrate');
 
 const options = {
   origin: 'http://localhost:5173',

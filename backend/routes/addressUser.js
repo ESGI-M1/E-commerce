@@ -10,6 +10,18 @@ router.get("/", checkAuth, async (req, res) => {
     res.json(address);
 });
 
+router.get("/:id", checkAuth, async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const address = await AddressUser.findOne({
+    where: {
+      id: id,
+      userId: req.user.id,
+    },
+  });
+  res.json(address);
+});
+
 router.post("/", checkAuth, async (req, res, next) => {
   try {
     const newAddress = await AddressUser.create({
@@ -37,7 +49,6 @@ router.put("/:id", checkAuth, async (req, res, next) => {
       returning: true,
     });
 
-    console.log(updatedAddress);
     nbUpdated === 1 ? res.json(updatedAddress[0]) : res.sendStatus(404);
   } catch (e) {
     next(e);
@@ -54,7 +65,7 @@ router.delete("/:id", checkAuth, async (req, res) => {
       },
     });
 
-    deletedAddress ? res.sendStatus(204) : res.sendStatus(404);
+    deletedAddress === 1 ? res.sendStatus(204) : res.sendStatus(404);
   } catch (e) {
     next(e);
   }

@@ -148,6 +148,7 @@ const isEditing = ref(false)
 const fetchCategories = async () => {
   const response = await axios.get('http://localhost:3000/categories')
   categories.value = response.data
+  console.log(categories.value)
 }
 
 const fetchProducts = async () => {

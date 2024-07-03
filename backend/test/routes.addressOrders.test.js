@@ -13,7 +13,7 @@ describe('Commandes routes', () => {
     };
 
      request
-      .post('/adressorders')
+      .post('/addressorders')
       .send(newAddressData)
       .expect(201)
       .then(response => {

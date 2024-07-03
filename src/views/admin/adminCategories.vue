@@ -8,7 +8,6 @@
     </div>
 
     <div class="category-table">
-      <h2>Liste des Catégories</h2>
       <table>
         <thead>
           <tr>

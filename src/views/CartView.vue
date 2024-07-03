@@ -89,9 +89,6 @@
           </div>
         </div>
         <button @click="checkout" class="checkout-button">Paiement</button>
-        <button @click="checkoutWithPaypal" class="paypal-button">
-          Paiement avec PayPal <i class="fab fa-paypal"></i>
-        </button>
       </div>
     </div>
   </div>
@@ -195,10 +192,6 @@ const checkout = () => {
   } else {
     router.push('/payment')
   }
-}
-
-const checkoutWithPaypal = () => {
-  alert('Paiement effectué via PayPal.')
 }
 
 const showProductDetails = (id: string) => {
@@ -335,24 +328,6 @@ input[type='text'] {
 
 .checkout-button:hover {
   background-color: #333;
-}
-
-.paypal-button {
-  padding: 10px 20px;
-  background-color: #0070ba;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-  width: 100%;
-}
-
-.paypal-button:hover {
-  background-color: #005ea6;
-}
-
-.fa-paypal {
-  margin-left: 5px;
 }
 
 .total {

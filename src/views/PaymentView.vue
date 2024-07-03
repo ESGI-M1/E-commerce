@@ -134,8 +134,12 @@
     <div class="payment">
       <div class="payment-form">
         <h2>Paiement sécurisé</h2>
-        <button class="pay-button" @click="handlePayment">
-          {{ promo ? 'Payer ' + discountedTotal + ' €' : 'Payer ' + total + ' €' }}
+        <button class="pay-button" @click="handlePayment('stripe')">
+          Paiement avec stripe
+        </button>
+        &nbsp;
+        <button @click="handlePayment('paypal')" class="paypal-button">
+          Paiement avec PayPal <i class="fab fa-paypal"></i>
         </button>
       </div>
     </div>
@@ -238,7 +242,7 @@ const showProductDetails = (id: string) => {
   router.push({ name: 'ProductDetail', params: { id } })
 }
 
-const handlePayment = async () => {
+const handlePayment = async (payment: string) => {
   let newAddress = null;
   let addressorders = null;
 
@@ -278,6 +282,7 @@ const handlePayment = async () => {
         userId: authToken,
       });
 
+      if (payment == 'stripe') {
       const stripe = await stripePromise;
       const stripeSession = await axios.post('http://localhost:3000/stripe', {
         cartId: carts.value[0].id,
@@ -286,10 +291,18 @@ const handlePayment = async () => {
         promo: promo.value,
       });
 
-      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
-
       const { sessionId } = stripeSession.data;
       const { error } = await stripe.redirectToCheckout({ sessionId });
+    } else if(payment == 'paypal') {
+      const paypalSession = await axios.post('http://localhost:3000/paypal', {
+        cartId: carts.value[0].id,
+        orderId: order.data.id,
+        items: carts.value[0].CartProducts,
+        promo: promo.value,
+      });
+    }
+
+      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
     } catch (error) {
       if (typeof order !== 'undefined' && order) {
       await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
@@ -492,5 +505,22 @@ input[type='text'] {
 
 .new-price {
   text-align: right;
+}
+
+.paypal-button {
+  padding: 10px 20px;
+  background-color: #0070ba;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.paypal-button:hover {
+  background-color: #005ea6;
+}
+
+.fa-paypal {
+  margin-left: 5px;
 }
 </style>

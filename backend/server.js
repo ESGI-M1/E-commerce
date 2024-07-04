@@ -29,6 +29,7 @@ const options = {
   credentials: true,
 };
 
+require('./migrate');
 
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));

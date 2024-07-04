@@ -210,6 +210,7 @@ describe('User Address Routes', () => {
       postalCode: newAddressData.postalCode,
       city: newAddressData.city,
       country: newAddressData.country,
+      userId: user.id,
     });
 
     const loginResponse = await server

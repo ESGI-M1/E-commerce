@@ -66,6 +66,7 @@
           <a :href="'/favorite'" class="dropdown-item">Mes favoris</a>
           <a v-if="isAdmin" :href="'/ressources'" class="dropdown-item">Gestion des ressources</a>
           <a :href="'/order'" class="dropdown-item">Historique des commandes</a>
+          <a :href="'/alertes'" class="dropdown-item">Mes alertes</a>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
       </div>

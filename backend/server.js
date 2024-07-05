@@ -16,6 +16,8 @@ const StripeRouter = require("./stripe/stripe");
 const AdressOrderRouter = require("./routes/adressOrder");
 const AdressUserRouter = require("./routes/adressUser");
 const rateLimiter = require('./rateLimiter');
+const AlertesRouter = require("./routes/alerteUser")
+const NewsLetterRouter = require("./routes/newLetter");
 
 const app = express();
 const cors = require('cors')
@@ -45,6 +47,8 @@ app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
 app.use('/adressorders', AdressOrderRouter);
 app.use('/adressusers', AdressUserRouter);
+app.use('/alertes', AlertesRouter);
+app.use('/newsletters', NewsLetterRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 
-module.exports = function(sequelize) {
+module.exports = function(connection) {
     class Favorite extends Model {
         static associate(models) {
             Favorite.belongsTo(models.User, { foreignKey: 'userId' });
@@ -15,24 +15,12 @@ module.exports = function(sequelize) {
                 primaryKey: true,
                 autoIncrement: true
             },
-            userId: {
-                type: DataTypes.INTEGER,
-                allowNull: false
-            },
-            productId: {
-                type: DataTypes.INTEGER,
-                allowNull: false
-            },
             createdAt: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW
             }
         },
-        {
-            sequelize,
-            modelName: 'Favorite',
-            tableName: 'Favorites'
-        }
+        { sequelize: connection }
     );
 
     return Favorite;

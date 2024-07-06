@@ -2,14 +2,49 @@ const request = require('supertest');
 const { User, AddressUser } = require('../models');
 const server = request('http://localhost:3000');
 
-describe('User Address Routes', () => {
-  it('should create a new address for a user', async () => {
-    const user = await User.create({
-      firstname: 'John',
-      lastname: 'Doe',
-      email: 'john.doe45@zorglux.com',
+let user;
+let cookie;
+
+const getUser = async () => {
+
+  if (user) return user;
+
+  user = await User.create({
+    firstname: 'John',
+    lastname: 'Doe',
+    email: 'zorglux+addressusers@zorglux.com',
+    password: 'Password123254369!',
+  });
+
+  return user;
+  
+};
+
+const getCookie = async () => {
+
+  if(!user) await getUser();
+
+  if (cookie) return cookie;
+
+  const loginResponse = await server
+    .post('/login')
+    .send({
+      email: user.email,
       password: 'Password123254369!',
-    });
+    })
+    .expect(200);
+
+  cookie = loginResponse.headers['set-cookie'];
+
+  return cookie;
+
+}
+
+describe('User Address Routes', () => {
+
+  it('should create a new address for a user', async () => {
+
+    const user = await getUser();
 
     const newAddressData = {
       street: '123 Main St',
@@ -19,18 +54,10 @@ describe('User Address Routes', () => {
       userId: user.id
     };
 
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password123254369!',
-      })
-      .expect(200);
-
     const response = await server
       .post('/addressusers')
       .send(newAddressData)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', await getCookie())
       .expect(201);
 
     expect(response.body).toHaveProperty('id');
@@ -58,19 +85,15 @@ describe('User Address Routes', () => {
   });
 
   it('should update an existing address for a user', async () => {
-    const user = await User.create({
-      firstname: 'Jane',
-      lastname: 'Smith',
-      email: 'jane.smith@zorglux.com',
-      password: 'Password1596456!',
-    });
+
+    const user = await getUser();
 
     const address = await AddressUser.create({
       street: '456 Oak St',
       postalCode: '54321',
       city: 'Villageville',
       country: 'Otherland',
-      userId: user.id,
+      userId: user.id
     });
 
     const updatedAddressData = {
@@ -80,18 +103,12 @@ describe('User Address Routes', () => {
       country: 'Anotherland',
     };
 
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password1596456!',
-      })
-      .expect(200);
+    const cookie = await getCookie();
 
     const response = await server
       .put(`/addressusers/${address.id}`)
       .send(updatedAddressData)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', cookie)
       .expect(200);
 
     expect(response.body).toHaveProperty('id', address.id);
@@ -105,24 +122,11 @@ describe('User Address Routes', () => {
   it('should return 404 if address does not exist (update)', async () => {
     const nonExistentAddressId = 10001;
 
-    const user = await User.create({
-      firstname: 'Jack',
-      lastname: 'Black',
-      email: 'jack.black@zorglux.com',
-      password: 'Password1234789!',
-    });
-
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password1234789!',
-      })
-      .expect(200);
+    const cookie = await getCookie();
 
     await server
       .put(`/addressusers/${nonExistentAddressId}`)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', cookie)
       .send({
         street: '789 Elm St',
         postalCode: '67890',
@@ -133,32 +137,22 @@ describe('User Address Routes', () => {
   });
 
   it('should delete an existing address for a user', async () => {
-    const user = await User.create({
-      firstname: 'Alice',
-      lastname: 'Johnson',
-      email: 'alice.johnson12@zorglux.com',
-      password: 'Password1234789!',
-    });
+
+    const user = await getUser();
 
     const address = await AddressUser.create({
       street: '890 Pine St',
       postalCode: '98765',
       city: 'Hamletville',
       country: 'Fantasyland',
-      userId: user.id,
+      userId: user.id
     });
 
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password1234789!',
-      })
-      .expect(200);
+    const cookie = await getCookie();
 
     await server
       .delete(`/addressusers/${address.id}`)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', cookie)
       .expect(204);
 
     const deletedAddress = await AddressUser.findByPk(address.id);
@@ -168,35 +162,13 @@ describe('User Address Routes', () => {
   it('should return 404 if address does not exist (delete)', async () => {
     const nonExistentAddressId = 10001;
 
-    const user = await User.create({
-      firstname: 'Bob',
-      lastname: 'Brown',
-      email: 'bob.brown@zorglux.com',
-      password: 'Password1234789!',
-    });
-
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password1234789!',
-      })
-      .expect(200);
-
     await server
       .delete(`/addressusers/${nonExistentAddressId}`)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', await getCookie())
       .expect(404);
   });
 
   it('should return 200 if address user is present', async () => {
-
-    const user = await User.create({
-      firstname: 'User',
-      lastname: `Test`,
-      email: 'addressUser@zorglux.com',
-      password: 'Password123456789!',
-    });
 
     const newAddressData = {
       street: '1278 Rue de Moulin',
@@ -205,25 +177,21 @@ describe('User Address Routes', () => {
       country: 'Test Belgium',
     };
 
+    const user = await getUser();
+
     const addressUser = await AddressUser.create({
       street: newAddressData.street,
       postalCode: newAddressData.postalCode,
       city: newAddressData.city,
       country: newAddressData.country,
-      userId: user.id,
+      userId: user.id
     });
 
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password123456789!',
-      })
-      .expect(200);
+    const cookie = await getCookie();
 
     const response = await server
       .get(`/addressusers/${addressUser.id}`)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', cookie)
       .expect(200);
 
     expect(response.body.street).toBe(newAddressData.street);

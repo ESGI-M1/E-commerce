@@ -53,7 +53,7 @@ describe('Utilisateurs routes', () => {
     request
       .post('/login')
       .send({
-        email: 'toto@zorglux.com',
+        email: 'zorglux+users@zorglux.com',
         password: 'Toto123456!'
       })
       .expect(200);

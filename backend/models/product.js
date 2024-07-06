@@ -16,6 +16,7 @@ module.exports = function(connection) {
         }
 
         static addHooks(models) {
+            /*
             Product.addHook("afterCreate", (product) =>
                 productMongo(product.id, models.Category, models.Product)
             );
@@ -25,6 +26,7 @@ module.exports = function(connection) {
             Product.addHook("afterDestroy", (product) =>
                 productMongo(product.id, models.Category, models.Product, true)
             );
+            */
         }
     }
 
@@ -79,11 +81,7 @@ module.exports = function(connection) {
                 defaultValue: DataTypes.NOW,
             }
         },
-        {
-            sequelize: connection,
-            modelName: 'Product',
-            tableName: 'Products',
-        }
+        { sequelize: connection }
     );
 
     return Product;

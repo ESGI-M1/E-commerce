@@ -3,7 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 const mailer = require('../services/mailer');
-const { se, id } = require("date-fns/locale");
 
 const router = new Router();
 

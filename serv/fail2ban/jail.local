@@ -1,0 +1,31 @@
+[sshd]
+enabled = true
+port = 2222
+logpath = /var/log/auth.log
+
+[nginx-http-auth]
+enabled = true
+filter = nginx-http-auth
+port = http,https
+logpath = /var/log/nginx/error.log
+
+[nginx-badbots]
+enabled = true
+filter = nginx-badbots
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 3
+
+[nginx-noscript]
+enabled = true
+filter = nginx-noscript
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 3
+
+[adminer]
+enabled = true
+filter = adminer
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 3

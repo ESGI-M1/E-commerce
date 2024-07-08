@@ -80,9 +80,9 @@ const signup = async () => {
   ) {
     return
   }
-
+  
   try {
-    await axios.post('http://localhost:3000/users', {
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, {
       firstname: firstname.value,
       lastname: lastname.value,
       email: email.value,

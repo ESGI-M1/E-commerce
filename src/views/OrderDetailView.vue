@@ -75,12 +75,12 @@ const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring
 
 const fetchOrder = async () => {
     if (authToken) {
-      const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`, {
       })
       order.value = response.data
 
       for (const cart of order.value.Cart.CartProducts) {
-        const returnProduct = await axios.get(`http://localhost:3000/return/${cart.product.id}`, {
+        const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.product.id}`, {
           params: {
             orderId: orderId.value,
           }
@@ -109,7 +109,7 @@ const isFutureDate = (dateStr: string) => {
 
 const downloadInvoice = async (orderId) => {
   try {
-    const response = await axios.get(`http://localhost:3000/orders/invoice/${orderId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/invoice/${orderId}`, {
       responseType: 'blob',
       headers: {
         Authorization: `Bearer ${authToken}`
@@ -149,7 +149,7 @@ const formatHeure = (dateStr: string) => {
 }
 
 const addToCart = async (id: number, quantity: number) => {
-    await axios.post('http://localhost:3000/carts', {
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
       userId: authToken,
       productId: id,
       quantity: quantity

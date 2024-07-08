@@ -33,11 +33,11 @@ const product = ref<Product>({
 })
 
 const fetchProductById = async (id: string) => {
-  const response = await axios.get(`http://localhost:3000/products/${id}`)
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${id}`)
   product.value = response.data
 
   if (user) {
-    const favoriteResponse = await axios.get('http://localhost:3000/favorites')
+    const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`)
     const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId)
     isFavorite.value = favoriteProductIds.includes(product.value.id)
   }
@@ -48,7 +48,7 @@ const addToFavorites = async (productId: string) => {
     router.push('/login')
     return
   }
-    const response = await axios.post('http://localhost:3000/favorites', {
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/favorites`, {
       productId
     })
 
@@ -63,7 +63,7 @@ const removeFromFavorites = async (productId: string) => {
     throw new Error('User is not authenticated')
   }
 
-  await axios.delete(`http://localhost:3000/favorites/${productId}`)
+  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
   isFavorite.value = false
   alert('Produit supprimé des favoris avec succès')
 }
@@ -80,7 +80,7 @@ const addToCart = async (quantity: number) => {
   }
 
   try {
-    await axios.post('http://localhost:3000/carts', {
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
       userId: user,
       productId: product.value.id,
       quantity: quantity

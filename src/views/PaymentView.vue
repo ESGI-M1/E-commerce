@@ -34,17 +34,16 @@
 
         <div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
     <h3>Livraison à domicile</h3>
-    <div >
       <div v-if="carts[0].user && carts[0].user.deliveryAddress" v-for="(address, index) in carts[0].user.deliveryAddress" :key="address.id" class="delivery-address">
         <label>
           <input
-  type="radio"
-  :value="address"
-  v-model="selectedAddress"
-  name="deliveryAddress"
-  :checked="index === 0 ? true : false"
-  @click="updateLivraisonDomicileAddress(address)"
-/>
+          type="radio"
+          :value="address"
+          v-model="selectedAddress"
+          name="deliveryAddress"
+          :checked="index === 0 ? true : false"
+          @click="updateLivraisonDomicileAddress(address)"
+        />
           <div class="address-info">
             <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
             <p>{{ address.street }}</p>
@@ -53,8 +52,6 @@
           </div>
         </label>
       </div>
-    </div>
-
     <div>
             <input type="radio" value="newAddress" v-model="selectedAddress" name="deliveryAddress"/> Nouvelle adresse </input>
             <label>
@@ -93,9 +90,9 @@
               <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
                 <div class="item-details" @click="showProductDetails(item.product.id)">
                   <h3>{{ item.product.name }}</h3>
-                  <img :src="item.product.Images ? item.product.Images[0].url : 
+                  <img :src="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].url : 
                   '../../produit_avatar.jpg'" 
-                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  :alt="item.product.Images && item.product.Images.length > 0? item.product.Images[0].description : 
                   item.product.name" class="product-image" 
                   />
                 </div>
@@ -151,12 +148,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import { loadStripe } from '@stripe/stripe-js'
+import Cookies from 'js-cookie'
 
 const stripePromise = loadStripe(
   'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
 )
 const router = useRouter()
-const authToken = localStorage.getItem('authToken')
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const promo = ref(null)
 const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
@@ -203,8 +201,7 @@ const fetchCartItems = async () => {
     newLivraisonDomicileAddress.value.postalCode = carts.value[0].user.deliveryAddress[0].postalCode
     newLivraisonDomicileAddress.value.city = carts.value[0].user.deliveryAddress[0].city
     newLivraisonDomicileAddress.value.country = carts.value[0].user.deliveryAddress[0].country
-      }
-}
+  }}
 
 const updateLivraisonDomicileAddress = (address) => {
   newLivraisonDomicileAddress.value.street = address.street
@@ -216,7 +213,6 @@ const updateLivraisonDomicileAddress = (address) => {
   livraisonDomicileAddress.value.postalCode = '';
   livraisonDomicileAddress.value.country = '';
   livraisonDomicileAddress.value.city = '';
-
 }
 
 const subtotal = computed(() => {

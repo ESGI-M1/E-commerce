@@ -31,7 +31,6 @@ module.exports = function (options = {}) {
 
          req.user = user;
          next();
-         return res.sendStatus(401);
       }
       catch (err) {
          console.log(err);

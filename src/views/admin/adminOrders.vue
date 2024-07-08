@@ -24,7 +24,8 @@
               <i :class="order.status === 'completed' ? 'fas fa-check-circle status-completed' : 'fas fa-hourglass-half status-pending'"></i>
             </td>
             <td>{{ order.totalAmount }} €</td>
-            <td v-if="order.adressOrder">{{ order.adressOrder.street }}, {{ order.adressOrder.postalCode }} {{ order.adressOrder.city }}, {{ order.adressOrder.country }}</td>
+            <td v-if="order.addressOrder">{{ order.addressOrder.street }}, {{ order.addressOrder.postalCode }} {{ order.addressOrder.city }}, {{ order.addressOrder.country }}</td>
+            <td v-else></td>
             <td>
               <fancy-confirm v-if="order.status === 'pending'"
                 :buttonText="'Valider'"
@@ -42,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios'
+import axios from '../../tools/axios';
 import { ref, onMounted } from 'vue'
 import { format, parseISO } from 'date-fns'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
@@ -66,7 +67,7 @@ interface Order {
   user: User
   status: string
   totalAmount: number
-  adressOrder?: Address
+  addressOrder?: Address
 }
 
 const orders = ref<Order[]>([])

@@ -29,12 +29,9 @@
                 accept="image/*"
                 style="display: none"
               />
-              <img
-                :src="
-                  product.Images ? product.Images[0].url : require('@/assets/produit_avatar.jpg')
-                "
-                :alt="product.Images ? product.Images[0].description : 'Product image'"
-                @click="triggerFileInput"
+              <img :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'" 
+              :alt="product.Images ? product.Images[0].description : product.name" 
+              class="product-image" 
               />
             </label>
           </td>
@@ -138,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios'
+import axios from '../../tools/axios';
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
@@ -153,7 +150,6 @@ const productSchema = z.object({
   Categories: z.array(z.number())
 })
 
-// Définir le type des produits
 interface Product {
   id?: number;
   name: string;
@@ -162,10 +158,9 @@ interface Product {
   price: number;
   active: boolean;
   Categories: number[];
-  Images?: { url: string; description: string }[]; // Ajouter ce champ facultatif si nécessaire
+  Images?: { url: string; description: string }[];
 }
 
-// Références réactives pour les produits et le produit courant
 const products = ref<Product[]>([])
 const currentProduct = ref<Product>({
   name: '',
@@ -173,14 +168,14 @@ const currentProduct = ref<Product>({
   description: '',
   price: 0,
   Categories: [],
-  active: true // Définir la valeur par défaut pour active
+  active: true
 })
 
 const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchProducts = async () => {
-  const response = await axios.get('http://localhost:3000/products')
+  const response = await axios.get('http://localhost:3000/products/admin')
   products.value = response.data
 }
 
@@ -342,7 +337,6 @@ form {
 }
 
 img {
-  max-width: 25%;
   cursor: pointer;
 }
 

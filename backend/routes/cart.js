@@ -72,7 +72,7 @@ function generateRandomPassword(length) {
   return password;
 }
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     const { userId, productId } = req.body;
 
@@ -116,7 +116,7 @@ router.post("/", async (req, res) => {
 });
 
 // Récupère tous les produits du panier d'un utilisateur
-router.get("/:userId", async (req, res) => {
+router.get("/:userId", async (req, res, next) => {
   try {
     const userId = parseInt(req.params.userId);
 
@@ -178,7 +178,7 @@ router.patch("/update-order/:cartId", async (req, res) => {
   res.status(200).json({ message: 'Cart order updated successfully' });
 });
 
-router.patch("/update-user/:cartId", async (req, res) => {
+router.patch("/update-user/:cartId", async (req, res, next) => {
   const cartId = parseInt(req.params.cartId);
   const userId = parseInt(req.body.userId);
 
@@ -215,7 +215,7 @@ router.patch("/update-user/:cartId", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req, res, next) => {
   const cartItemId = parseInt(req.params.id);
   const userId = parseInt(req.body.userId);
 

@@ -1,21 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const { Favorite, Product, User } = require('../models');
+const { Favorite, Product, Image, Category } = require('../models');
 const checkAuth = require('../middlewares/checkAuth');
 
-router.post('/', checkAuth, async (req, res) => {
+router.get('/', checkAuth, async (req, res) => {
+
+  const favorites = await Favorite.findAll({
+    where: { userId: req.user.id },
+    include: [
+      { model: Product, as: 'product',          
+        include: [Category, Image],
+      }
+    ]
+  });
+
+  res.json(favorites);
+});
+
+router.post('/', checkAuth, async (req, res, next) => {
   try {
+    console.log(req.body);
     const productId = req.body.productId;
 
     if (!productId) {
       return res.status(400).json({ error: 'ProductId is required' });
     }
 
-    const user = await User.findByPk(req.user.id);
     const product = await Product.findByPk(productId);
 
-    if (!user || !product) {
-      return res.status(404).json({ error: 'User or Product not found' });
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
     }
 
     const favorite = await Favorite.create({
@@ -29,11 +43,15 @@ router.post('/', checkAuth, async (req, res) => {
   }
 });
 
-router.get('/:userId', checkAuth, async (req, res) => {
+router.get('/:userId', checkAuth, async (req, res, next) => {
   try {
     const favorites = await Favorite.findAll({
         where: { userId: req.user.id },
-        include: [{ model: Product, as: 'product' }] // Utiliser l'alias défini dans l'association
+        include: [
+          { model: Product, as: 'product',          
+            include: [Category, Image],
+          }
+        ]
     });
 
     res.json(favorites);
@@ -43,12 +61,12 @@ router.get('/:userId', checkAuth, async (req, res) => {
 });
 
 // Supprimer un produit des favoris d'un utilisateur
-router.delete('/:productId', checkAuth, async (req, res) => {
+router.delete('/:productId', checkAuth, async (req, res, next) => {
   const productId = parseInt(req.params.productId);
 
   try {
-    await Favorite.destroy({ where: { userId: req.user.id, productId: productId } });
-    res.sendStatus(204);
+    const nbDeleted = await Favorite.destroy({ where: { userId: req.user.id, productId: productId } });
+    nbDeleted ? res.sendStatus(204) : res.sendStatus(404);
   } catch (e) {
     next(e)
   }

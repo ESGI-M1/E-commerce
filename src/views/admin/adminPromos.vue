@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import axios from '../../tools/axios';
 import { format, parseISO } from 'date-fns'
 
 interface Promo {

@@ -4,7 +4,7 @@ const { PromoCode, Cart } = require('../models');
 const checkRole = require("../middlewares/checkRole");
 
 //get
-router.get('/', checkRole({ roles: "admin" }), async (req, res) => {
+router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const promos = await PromoCode.findAll({
       order: [['code', 'ASC']]
@@ -15,8 +15,7 @@ router.get('/', checkRole({ roles: "admin" }), async (req, res) => {
   }
 });
 
-//add
-router.post('/', checkRole({ roles: "admin" }), async (req, res) => {
+router.post('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   const { code, startDate, endDate, discountPercentage } = req.body;
 
   try {
@@ -28,7 +27,7 @@ router.post('/', checkRole({ roles: "admin" }), async (req, res) => {
 });
 
 //edit
-router.put('/:id', checkRole({ roles: "admin" }), async (req, res) => {
+router.put('/:id', checkRole({ roles: "admin" }), async (req, res, next) => {
   const promoId = req.params.id;
   const { code, startDate, endDate, discountPercentage } = req.body;
 
@@ -45,7 +44,7 @@ router.put('/:id', checkRole({ roles: "admin" }), async (req, res) => {
 });
 
 // Route pour vérifier le code promo
-router.post('/:code', async (req, res) => { // TODO RATE LIMITER
+router.post('/:code', async (req, res, next) => { // TODO RATE LIMITER
   const promoCode = req.params.code;
 
   try {
@@ -68,7 +67,7 @@ router.post('/:code', async (req, res) => { // TODO RATE LIMITER
   }
 });
 
-router.post('/:code/apply', async (req, res) => {
+router.post('/:code/apply', async (req, res, next) => {
     const promoCode = req.params.code;
     const userId = req.query.userId;
   

@@ -33,12 +33,9 @@ router.post('/', async (req, res) => {
       cancel_url: `http://localhost:5173/error/${orderId}`,
     });
 
-    console.log('Stripe session created:', session.id);
-
     res.json({ sessionId: session.id });
 
   } catch (error) {
-    console.error('Erreur lors de la création de la session Stripe :', error);
     res.status(500).json({ error: error.message });
   }
 });

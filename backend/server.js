@@ -16,6 +16,7 @@ const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
+const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
 
@@ -29,6 +30,8 @@ const options = {
   origin: 'http://localhost:5173',
   credentials: true,
 };
+
+require('./migrate');
 
 
 app.use(express.json());
@@ -46,6 +49,7 @@ app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
+app.use('/paypal', PaypalRouter);
 app.use('/addressorders', AddressOrderRouter);
 app.use('/addressusers', AddressUserRouter);
 app.use(SecurityRouter, rateLimiter);

@@ -3,7 +3,7 @@ const router = new Router();
 const { ReturnProduct, User, Product } = require('../models');
 const checkAuth = require("../middlewares/checkAuth");
 
-router.get('/', checkAuth, async (req, res) => {
+router.get('/', checkAuth, async (req, res, next) => {
   try {
     const returns = await ReturnProduct.findAll({
       where: req.query,
@@ -25,7 +25,7 @@ router.get('/', checkAuth, async (req, res) => {
   }
 });
 
-router.post('/', checkAuth, async (req, res) => {
+router.post('/', checkAuth, async (req, res, next) => {
   try {
     const { userId, orderId, productId, quantityReturned, reason, deliveryMethod } = req.body; // TODO add parseInt
 
@@ -61,7 +61,8 @@ router.get("/:productId", async (req, res, next) => {
   const productId = req.params.productId;
   const { userId, orderId } = req.query;
 
-  if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
+  //if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
+  if(!userId || !req.user || ( userId !== req.user.id)) return res.sendStatus(403);
 
   try {
     const returnProduct = await ReturnProduct.findOne({
@@ -95,7 +96,7 @@ router.delete("/", async (req, res) => {
 });
   
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", async (req, res) => {
   const returned = await ReturnProduct.findByPk(req.params.id); // TODO security
 
   if (returned) {

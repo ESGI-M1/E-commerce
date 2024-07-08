@@ -14,11 +14,11 @@
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
             <div class="item-details" @click="showProductDetails(item.product.id)">
               <h3>{{ item.product.name }}</h3>
-              <img
-                :src="item.product.Images[0]?.url || require('../../assets/produit_avatar.jpg')"
-                :alt="item.product.Images[0]?.description || 'Produit'"
-                class="product-image"
-              />
+              <img :src="item.product.Images ? item.product.Images[0].url : 
+                  '../../produit_avatar.jpg'" 
+                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  item.product.name" class="product-image" 
+                  />
             </div>
             <div class="item-quantity">
               <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
@@ -89,9 +89,6 @@
           </div>
         </div>
         <button @click="checkout" class="checkout-button">Paiement</button>
-        <button @click="checkoutWithPaypal" class="paypal-button">
-          Paiement avec PayPal <i class="fab fa-paypal"></i>
-        </button>
       </div>
     </div>
   </div>
@@ -100,7 +97,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../tools/axios';
 
 const router = useRouter()
 const carts = ref(null)
@@ -195,10 +192,6 @@ const checkout = () => {
   } else {
     router.push('/payment')
   }
-}
-
-const checkoutWithPaypal = () => {
-  alert('Paiement effectué via PayPal.')
 }
 
 const showProductDetails = (id: string) => {
@@ -335,24 +328,6 @@ input[type='text'] {
 
 .checkout-button:hover {
   background-color: #333;
-}
-
-.paypal-button {
-  padding: 10px 20px;
-  background-color: #0070ba;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-  width: 100%;
-}
-
-.paypal-button:hover {
-  background-color: #005ea6;
-}
-
-.fa-paypal {
-  margin-left: 5px;
 }
 
 .total {

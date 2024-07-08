@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { z } from 'zod'
-import axios from 'axios'
+import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
 
@@ -48,8 +48,6 @@ const login = () => {
     .post('http://localhost:3000/login', {
       email: email.value,
       password: password.value
-    }, {
-      withCredentials: true
     })
     .then(async (response) => {
       const temporaryId = localStorage.getItem('temporaryId')

@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import axios from '../tools/axios';
 
 const route = useRoute()
 const cartId = ref(route.params.cartId as string);

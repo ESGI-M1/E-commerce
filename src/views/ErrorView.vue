@@ -16,8 +16,8 @@
 <script setup>
   import { ref, onMounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import axios from 'axios';
-
+  import axios from '../tools/axios';
+  
   const router = useRouter();
   const showErrorMessage = ref(false);
   const redirectMessage = ref('');

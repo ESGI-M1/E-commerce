@@ -4,9 +4,6 @@ const checkRole = require("../middlewares/checkRole");
 const router = new Router();
 
 router.get("/", async (req, res) => {
-
-    req.query.active = true;
-
     const categories = await Category.findAll({
         where: req.query,
         include: [Product],

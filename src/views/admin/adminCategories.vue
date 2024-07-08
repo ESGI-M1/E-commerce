@@ -8,7 +8,6 @@
     </div>
 
     <div class="category-table">
-      <h2>Liste des Catégories</h2>
       <table>
         <thead>
           <tr>
@@ -105,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios'
+import axios from '../../tools/axios';
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
@@ -148,6 +147,7 @@ const isEditing = ref(false)
 const fetchCategories = async () => {
   const response = await axios.get('http://localhost:3000/categories')
   categories.value = response.data
+  console.log(categories.value)
 }
 
 const fetchProducts = async () => {

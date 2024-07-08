@@ -5,20 +5,24 @@
       <p>Vous n'avez pas de produits favoris pour le moment.</p>
     </div>
     <div v-else>
-      <div v-for="product in favoriteProducts" :key="product.id" class="product">
-        <div class="product-content" @click="showProductDetails(product.id)">
+      <div v-for="favorite in favoriteProducts" :key="favorite.product.id" class="product">
+        <div class="product-content" @click="showProductDetails(favorite.product.id)">
           <div class="product-image-container">
-            <img :src="product.imageSrc" :alt="product.imageDesc" class="product-image" />
+            <img :src="favorite.product.Images ? favorite.product.Images[0].url : 
+            '../../produit_avatar.jpg'" 
+            :alt="favorite.product.Images ? favorite.product.Images[0].description : 
+            favorite.product.name" class="product-image" 
+            />
           </div>
           <div class="product-details">
-            <h2>{{ product.name }}</h2>
-            <p class="product-description">{{ product.description }}</p>
+            <h2>{{ favorite.product.name }}</h2>
+            <p class="product-description">{{ favorite.product.description }}</p>
             <p class="product-price">
-              <strong>Prix :</strong> ${{ parseFloat(product.price).toFixed(2) }}
+              <strong>Prix :</strong> ${{ parseFloat(favorite.product.price).toFixed(2) }}
             </p>
           </div>
         </div>
-        <button class="remove-button" @click="removeFromFavorites(product.id)">Supprimer</button>
+        <button class="remove-button" @click="removeFromFavorites(favorite.product.id)">Supprimer</button>
       </div>
     </div>
   </div>
@@ -26,23 +30,27 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
 
+interface Image {
+  url: string;
+}
+
 interface Product {
-  id: number
-  name: string
-  description: string
-  price: number
-  imageSrc: string
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  Images: Image[];
 }
 
 interface Favorite {
-  product: Product
+  product: Product;
 }
 
 const router = useRouter()
-const favoriteProducts = ref<Product[]>([])
+const favoriteProducts = ref<Favorite[]>([])
 
 const fetchFavorites = async () => {
   const userId = localStorage.getItem('authToken')
@@ -51,29 +59,7 @@ const fetchFavorites = async () => {
   }
 
   const response = await axios.get(`http://localhost:3000/favorites/${userId}`)
-  const favorites: Favorite[] = response.data
-
-  const products: Product[] = await Promise.all(
-    favorites.map(async (favorite) => {
-      const product = favorite.product
-      if (product.id) {
-          const imageResponse = await axios.get(
-            `http://localhost:3000/products/${product.id}/images`
-          )
-          if (imageResponse.data && imageResponse.data.length > 0) {
-            product.imageSrc = imageResponse.data[0].url
-            product.imageDesc = imageResponse.data[0].description
-          } else {
-            product.imageSrc = '../../produit_avatar.jpg'
-          }
-      } else {
-        product.imageSrc = '../../produit_avatar.jpg'
-      }
-      return product
-    })
-  )
-
-  favoriteProducts.value = products
+  favoriteProducts.value = response.data
 }
 
 const showProductDetails = (id: number) => {
@@ -88,12 +74,12 @@ const removeFromFavorites = async (productId: number) => {
 
   await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
 
-  favoriteProducts.value = favoriteProducts.value.filter((product) => product.id !== productId)
+  //favoriteProducts.value = favoriteProducts.value.filter((favorite) => favorite.product.id !== productId)
+  fetchFavorites()
 }
 
-const authToken = localStorage.getItem('authToken')
-
 onMounted(async () => {
+  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
     router.push('/login')
   } else {
@@ -101,6 +87,8 @@ onMounted(async () => {
   }
 })
 </script>
+
+
 
 <style scoped>
 .favorites-container {

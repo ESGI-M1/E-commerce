@@ -1,10 +1,8 @@
 const { Router } = require("express");
 const { User, AddressUser } = require("../models");
 const router = new Router();
-const jwt = require("jsonwebtoken");
 const checkRole = require("../middlewares/checkRole");
 const checkAuth = require("../middlewares/checkAuth");
-const { nb } = require("date-fns/locale");
 
 router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
 
@@ -16,18 +14,20 @@ router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
 });
 
 router.post("/", async (req, res, next) => {
-  const { code, startDate, endDate, discountPercentage } = req.body;
-
   try {
+    if(req.body.role && req.body.role === 'admin') return res.status(401).send('Unauthorized');
+
     const user = await User.create(req.body);
     res.status(201).json(user);
   } catch (e) {
     if (e.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
+      res.status(400).json({ error: 'Cet email est déjà utilisé.' });
+    } else {
+      next(e);
     }
-    next(e);
   }
 });
+
 
 router.get("/:id", checkAuth, async (req, res) => {
 

@@ -9,8 +9,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import MapComponent from '../../src/layout/livraison/MapComponent.vue';
 import { mockOrderData } from '../../src/map/mock'; // Importation des données mockées
-import axios from 'axios';
-
+import axios from '../tools/axios';
 const route = useRoute();
 const router = useRouter();
 const orderId = ref(route.params.id as string);
@@ -22,11 +21,7 @@ const mock = ref(null);
 const fetchOrder = async () => {
   if (authToken) {
     try {
-      const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+      const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`);
       order.value = response.data;
       if (order.value.status == 'completed') {
         router.push(`/order`);

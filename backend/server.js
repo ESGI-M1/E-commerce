@@ -1,44 +1,60 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const UserRouter = require("./routes/user");
-const SecurityRouter = require("./routes/security");
-const app = express();
+const rateLimiter = require('./rateLimiter');
 
-//function parseBody(req, res, next) {
-//  const data = [];
-//  req.on("data", (chunk) => {
-//    data.push(chunk);
-//  });
-//  req.on("end", () => {
-//    const buffer = Buffer.concat(data);
-//    const body = buffer.toString();
-//    try {
-//      const bodyParsed = JSON.parse(body);
-//      req.body = bodyParsed;
-//      next();
-//    } catch (e) {
-//      return res.sendStatus(400);
-//    }
-//  });
-//}
+const checkAuth = require("./middlewares/checkAuth");
+
+const UserRouter = require("./routes/user");
+const ProductRouter = require("./routes/product");
+const CategoryRouter = require("./routes/category");
+const ImageRouter = require("./routes/image");
+const CartRouter = require("./routes/cart");
+const CartProductsRouter = require("./routes/cartProducts");
+const SecurityRouter = require("./routes/security");
+const PromoRouter = require("./routes/promo");
+const FavoriteRouter = require("./routes/favorite");
+const OrderRouter = require("./routes/order");
+const ReturnRouter = require("./routes/return");
+const StripeRouter = require("./stripe/stripe");
+const PaypalRouter = require("./paypal/paypal");
+const AddressOrderRouter = require("./routes/addressOrder");
+const AddressUserRouter = require("./routes/addressUser");
+
+const app = express();
+const cors = require('cors')
+require('./services/cron');
+
+const options = {
+  origin: 'http://localhost:5173',
+  credentials: true,
+};
+
+require('./migrate');
+
 
 //app.use(parseBody);
 const cors = require('cors')
 
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
-app.use(cors());
+app.use(cors(options))
 
-app.get("/", (req, res, next) => {
-  res.send("Coucou " + JSON.stringify(req.query));
-});
+app.use("/users", UserRouter, checkAuth);
+app.use("/products", ProductRouter);
+app.use('/categories', CategoryRouter);
+app.use('/images', ImageRouter);
+app.use('/carts', CartRouter);
+app.use('/promos', PromoRouter);
+app.use('/favorites', FavoriteRouter);
+app.use('/orders', OrderRouter);
+app.use('/return', ReturnRouter);
+app.use('/cartproducts', CartProductsRouter);
+app.use('/stripe', StripeRouter);
+app.use('/paypal', PaypalRouter);
+app.use('/addressorders', AddressOrderRouter);
+app.use('/addressusers', AddressUserRouter);
+app.use(SecurityRouter, rateLimiter);
 
-app.post("/", (req, res, next) => {
-  res.send("Coucou FROM POST " + JSON.stringify(req.body));
-});
-
-app.use("/users", UserRouter);
-app.use(SecurityRouter);
 app.listen(process.env.PORT, () => {
   console.log("Server running on port " + process.env.PORT);
 });

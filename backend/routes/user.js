@@ -1,84 +1,105 @@
 const { Router } = require("express");
-const User = require("../models/user");
-const checkAuth = require("../middlewares/checkAuth");
+const { User, AddressUser } = require("../models");
 const router = new Router();
+const checkRole = require("../middlewares/checkRole");
+const checkAuth = require("../middlewares/checkAuth");
 
-router.get("/", checkAuth, async (req, res, next) => {
-  const users = await User.findAll({
-    where: req.query,
-  });
-  res.json(users);
+router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
+
+    const users = await User.findAll({
+      where: req.query,
+    });
+
+    res.json(users);
 });
 
 router.post("/", async (req, res, next) => {
   try {
+    if(req.body.role && req.body.role === 'admin') return res.status(401).send('Unauthorized');
+
     const user = await User.create(req.body);
     res.status(201).json(user);
   } catch (e) {
-    next(e);
-  }
-});
-
-router.get("/:id", async (req, res, next) => {
-  try {
-    const user = await User.findByPk(parseInt(req.params.id));
-    if (user) {
-      res.json(user);
+    if (e.name === 'SequelizeUniqueConstraintError') {
+      res.status(400).json({ error: 'Cet email est déjà utilisé.' });
     } else {
-      res.sendStatus(404);
+      next(e);
     }
-  } catch (e) {
-    next(e);
   }
 });
 
-router.patch("/:id", async (req, res, next) => {
+
+router.get("/:id", checkAuth, async (req, res) => {
+
+    const userId = parseInt(req.params.id);
+
+    if(!userId || userId !== req.user.id && req.user.role !== 'admin') return res.sendStatus(403);
+
+    const addresses = await AddressUser.findAll({
+      where: { userId: userId },
+    });
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.sendStatus(404);
+    }
+    user.dataValues.deliveryAddress = addresses;
+    res.json(user);
+});
+
+router.patch("/:id", checkAuth, async (req, res, next) => {
   try {
+    const userId = parseInt(req.params.id);
+    
+    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
+
     const [nbUpdated, users] = await User.update(req.body, {
       where: {
-        id: parseInt(req.params.id),
+        id: userId,
       },
-      returning: true,
       individualHooks: true,
+      returning: true,
     });
-    if (users[0]) {
-      res.json(users[0]);
-    } else {
-      res.sendStatus(404);
-    }
+
+    nbUpdated === 1 ? res.json(users[0]) : res.sendStatus(404);
   } catch (e) {
     next(e);
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
+
     const nbDeleted = await User.destroy({
       where: {
         id: parseInt(req.params.id),
       },
     });
-    if (nbDeleted === 1) {
-      res.sendStatus(204);
-    } else {
-      res.sendStatus(404);
-    }
+
+    res.sendStatus(nbDeleted === 1 ? 200 : 404);
   } catch (e) {
     next(e);
   }
 });
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", checkAuth, async (req, res, next) => {
   try {
+    const userId = parseInt(req.params.id);
+    
+    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
+
     const nbDeleted = await User.destroy({
       where: {
-        id: parseInt(req.params.id),
+        id: userId,
       },
     });
+    
     const user = await User.create({
       ...req.body,
-      id: parseInt(req.params.id),
+      id: userId,
     });
+
     res.status(nbDeleted ? 200 : 201).json(user);
   } catch (e) {
     next(e);

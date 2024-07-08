@@ -43,23 +43,6 @@ router.post('/', checkAuth, async (req, res, next) => {
   }
 });
 
-router.get('/:userId', checkAuth, async (req, res, next) => {
-  try {
-    const favorites = await Favorite.findAll({
-        where: { userId: req.user.id },
-        include: [
-          { model: Product, as: 'product',          
-            include: [Category, Image],
-          }
-        ]
-    });
-
-    res.json(favorites);
-  } catch (e){
-    next(e)
-  }
-});
-
 // Supprimer un produit des favoris d'un utilisateur
 router.delete('/:productId', checkAuth, async (req, res, next) => {
   const productId = parseInt(req.params.productId);

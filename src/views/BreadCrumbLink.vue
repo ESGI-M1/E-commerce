@@ -12,7 +12,7 @@ const category = ref()
 
 const fetchCategory = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/categories/' + props.categoryId)
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories/${props.categoryId}`);
     category.value = response.data
   } catch (error) {
     console.error('Error fetching categories:', error)

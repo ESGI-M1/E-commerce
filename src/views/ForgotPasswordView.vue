@@ -21,7 +21,7 @@ const forgotPassword = () => {
   if (!emailSchema.safeParse(email.value).success) return
 
   axios
-    .post('http://localhost:3000/forgot-password', {
+    .post(`${import.meta.env.VITE_API_BASE_URL}/forgot-password`, {
       email: email.value
     })
     .then(() => {

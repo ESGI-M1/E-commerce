@@ -150,14 +150,14 @@ router.get("/:userId", async (req, res, next) => {
 
       res.json(cartItems);
     } else {
-      res.status(404).json({ error: 'Cart items not found' });
+      res.status(200).json();
     }
   } catch (e) {
     next(e);
   }
 });
 
-router.patch("/update-order/:cartId", async (req, res) => {
+router.patch("/update-order/:cartId", async (req, res, next) => {
   const cartId = parseInt(req.params.cartId);
   const orderId = parseInt(req.body.orderId);
 
@@ -171,11 +171,6 @@ router.patch("/update-order/:cartId", async (req, res) => {
   } catch (e) {
     next(e);
   }
-
-  cart.orderId = orderId;
-  await cart.save();
-
-  res.status(200).json({ message: 'Cart order updated successfully' });
 });
 
 router.patch("/update-user/:cartId", async (req, res, next) => {

@@ -21,10 +21,11 @@ export default {
       <span v-else>Vue Sidebar</span>
     </h1>
 
-    <SidebarLink to="/" icon="fas fa-home">Home</SidebarLink>
+    <SidebarLink to="/" icon="fas fa-home">Accueil</SidebarLink>
+    <SidebarLink to="/product" icon="fa fa-tag">Produits</SidebarLink>
+    <SidebarLink to="/friends" icon="fas fa-users">Utilisateurs</SidebarLink>
     <SidebarLink to="/dashboard" icon="fas fa-columns">Dashboard</SidebarLink>
     <SidebarLink to="/analytics" icon="fas fa-chart-bar">Analytics</SidebarLink>
-    <SidebarLink to="/friends" icon="fas fa-users">Friends</SidebarLink>
     <SidebarLink to="/image" icon="fas fa-image">Images</SidebarLink>
     <SidebarLink to="/login" icon="fas fa-sign-in-alt">Login</SidebarLink>
     <SidebarLink to="/signup" icon="fas fa-user-plus">Signup</SidebarLink>

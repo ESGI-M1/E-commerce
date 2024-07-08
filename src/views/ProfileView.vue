@@ -89,10 +89,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
+import Cookies from 'js-cookie';
 
 const user = ref(null)
+const router = useRouter()
 const isOpen = ref(false)
 const mode = ref('')
 const form = ref({
@@ -104,14 +107,14 @@ const form = ref({
 });
 let modeLabel = ref('');
 let editingAddress = null;
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 
 const fetchUserProfile = async () => {
-  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
     return router.push('/')
   }
 
-  const response = await axios.get(`http://localhost:3000/users/${authToken}`);
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/details`);
   user.value = response.data;
 };
 
@@ -162,7 +165,7 @@ const closeModal = () => {
 
 const deleteAddress = async (id) => {
   try {
-    await axios.delete(`http://localhost:3000/addressusers/${id}`);
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/addressusers/${id}`);
     user.value.deliveryAddress = user.value.deliveryAddress.filter((address) => address.id !== id)
   } catch (error) {
     console.error(error)
@@ -170,7 +173,6 @@ const deleteAddress = async (id) => {
 }
 
 const handleSubmit = async () => {
-  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
     return router.push('/')
   }
@@ -178,18 +180,18 @@ const handleSubmit = async () => {
     let response;
     if (mode.value === 'addAddress') {
 
-      response = await axios.post(`http://localhost:3000/addressusers`, form.value);
+      response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addressusers`, form.value);
       user.value.deliveryAddress.push(response.data);
 
     } else if (mode.value === 'editAddress' && editingAddress) {
 
-      response = await axios.put(`http://localhost:3000/addressusers/` + form.value.id, form.value);
+      response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/addressusers/` + form.value.id, form.value);
       Object.assign(editingAddress, response.data);
 
     } else {
 
       const field = mode.value;
-      response = await axios.patch(`http://localhost:3000/users/${authToken}`, { [field]: form.value[field] });
+      response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/users/${authToken}`, { [field]: form.value[field] });
       user.value[field] = response.data[field];
       
     }

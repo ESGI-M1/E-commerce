@@ -34,17 +34,16 @@
 
         <div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
     <h3>Livraison à domicile</h3>
-    <div >
       <div v-if="carts[0].user && carts[0].user.deliveryAddress" v-for="(address, index) in carts[0].user.deliveryAddress" :key="address.id" class="delivery-address">
         <label>
           <input
-  type="radio"
-  :value="address"
-  v-model="selectedAddress"
-  name="deliveryAddress"
-  :checked="index === 0 ? true : false"
-  @click="updateLivraisonDomicileAddress(address)"
-/>
+          type="radio"
+          :value="address"
+          v-model="selectedAddress"
+          name="deliveryAddress"
+          :checked="index === 0 ? true : false"
+          @click="updateLivraisonDomicileAddress(address)"
+        />
           <div class="address-info">
             <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
             <p>{{ address.street }}</p>
@@ -53,8 +52,6 @@
           </div>
         </label>
       </div>
-    </div>
-
     <div>
             <input type="radio" value="newAddress" v-model="selectedAddress" name="deliveryAddress"/> Nouvelle adresse </input>
             <label>
@@ -93,9 +90,9 @@
               <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
                 <div class="item-details" @click="showProductDetails(item.product.id)">
                   <h3>{{ item.product.name }}</h3>
-                  <img :src="item.product.Images ? item.product.Images[0].url : 
+                  <img :src="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].url : 
                   '../../produit_avatar.jpg'" 
-                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  :alt="item.product.Images && item.product.Images.length > 0? item.product.Images[0].description : 
                   item.product.name" class="product-image" 
                   />
                 </div>
@@ -138,9 +135,9 @@
           Paiement avec stripe
         </button>
         &nbsp;
-        <button @click="handlePayment('paypal')" class="paypal-button">
+       <!-- <button @click="handlePayment('paypal')" class="paypal-button">
           Paiement avec PayPal <i class="fab fa-paypal"></i>
-        </button>
+        </button> -->
       </div>
     </div>
   </div>
@@ -151,12 +148,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import { loadStripe } from '@stripe/stripe-js'
+import Cookies from 'js-cookie'
 
-const stripePromise = loadStripe(
-  'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
-)
 const router = useRouter()
-const authToken = localStorage.getItem('authToken')
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const promo = ref(null)
 const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
@@ -185,14 +180,14 @@ const livraisonDomicileAddress = ref<Address>({
 
 const fetchCartItems = async () => {
   if (authToken) {
-    const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`, {
     })
 
     carts.value = response.data
 
     if (carts.value[0].promoCodeId) {
       const promoId = carts.value[0].promoCodeId
-      const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`)
+      const responsePromo = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos/${promoId}/detail`)
       promo.value = responsePromo.data
     } else {
       promo.value = null
@@ -203,8 +198,7 @@ const fetchCartItems = async () => {
     newLivraisonDomicileAddress.value.postalCode = carts.value[0].user.deliveryAddress[0].postalCode
     newLivraisonDomicileAddress.value.city = carts.value[0].user.deliveryAddress[0].city
     newLivraisonDomicileAddress.value.country = carts.value[0].user.deliveryAddress[0].country
-      }
-}
+  }}
 
 const updateLivraisonDomicileAddress = (address) => {
   newLivraisonDomicileAddress.value.street = address.street
@@ -216,7 +210,6 @@ const updateLivraisonDomicileAddress = (address) => {
   livraisonDomicileAddress.value.postalCode = '';
   livraisonDomicileAddress.value.country = '';
   livraisonDomicileAddress.value.city = '';
-
 }
 
 const subtotal = computed(() => {
@@ -249,7 +242,7 @@ const handlePayment = async (payment: string) => {
   
   if (deliveryOption.value === 'pointRelais') {
       const randomStreet = Math.random().toString(36).substring(7);
-      response = await axios.post('http://localhost:3000/addressorders', {
+      response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addressorders`, {
         street: randomStreet,
         postalCode: pointRelaisPostalCode.value,
         city: getCityFromPostalCode(pointRelaisPostalCode.value),
@@ -260,7 +253,7 @@ const handlePayment = async (payment: string) => {
     if (livraisonDomicileAddress.value.street != '') {
       newLivraisonDomicileAddress.value = livraisonDomicileAddress.value
     } 
-      response = await axios.post('http://localhost:3000/addressorders', {
+      response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addressorders`, {
         street: newLivraisonDomicileAddress.value.street,
         postalCode: newLivraisonDomicileAddress.value.postalCode,
         city: newLivraisonDomicileAddress.value.city,
@@ -273,15 +266,18 @@ const handlePayment = async (payment: string) => {
 
   if (newAddress) {
     try {
-      const order = await axios.post('http://localhost:3000/orders', {
+      const order = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/orders`, {
         total: discountedTotal.value,
         method: newAddress.id,
         userId: authToken,
       });
 
       if (payment == 'stripe') {
+        const stripePromise = loadStripe(
+          'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
+        )
       const stripe = await stripePromise;
-      const stripeSession = await axios.post('http://localhost:3000/stripe', {
+      const stripeSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe`, {
         cartId: carts.value[0].id,
         orderId: order.data.id,
         items: carts.value[0].CartProducts,
@@ -289,9 +285,9 @@ const handlePayment = async (payment: string) => {
       });
 
       const { sessionId } = stripeSession.data;
-      const { error } = await stripe.redirectToCheckout({ sessionId });
+      await stripe.redirectToCheckout({ sessionId });
     } else if(payment == 'paypal') {
-      const paypalSession = await axios.post('http://localhost:3000/paypal', {
+      const paypalSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/paypal`, {
         cartId: carts.value[0].id,
         orderId: order.data.id,
         items: carts.value[0].CartProducts,
@@ -301,10 +297,10 @@ const handlePayment = async (payment: string) => {
       const { sessionId } = paypalSession.data;
     }
 
-      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
     } catch (error) {
       if (typeof order !== 'undefined' && order) {
-      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
       }
     }
   }

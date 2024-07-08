@@ -89,10 +89,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
+import Cookies from 'js-cookie';
 
 const user = ref(null)
+const router = useRouter()
 const isOpen = ref(false)
 const mode = ref('')
 const form = ref({
@@ -104,14 +107,14 @@ const form = ref({
 });
 let modeLabel = ref('');
 let editingAddress = null;
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 
 const fetchUserProfile = async () => {
-  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
     return router.push('/')
   }
 
-  const response = await axios.get(`http://localhost:3000/users/${authToken}`);
+  const response = await axios.get(`http://localhost:3000/users/details`);
   user.value = response.data;
 };
 
@@ -170,7 +173,6 @@ const deleteAddress = async (id) => {
 }
 
 const handleSubmit = async () => {
-  const authToken = localStorage.getItem('authToken')
   if (!authToken) {
     return router.push('/')
   }

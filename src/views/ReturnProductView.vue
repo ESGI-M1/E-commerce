@@ -61,7 +61,6 @@ import FancyConfirm from '../components/ConfirmComponent.vue'
 
 const route = useRoute()
 const router = useRouter()
-const userId = localStorage.getItem('authToken')
 const orderId = ref(route.params.orderId as string)
 const productId = ref(route.params.productId as string)
 const quantity = ref(0)
@@ -105,11 +104,10 @@ const fetchProductDetails = async () => {
     const returnResponse = await axios.get(`http://localhost:3000/return/${productId.value}`, {
       params: {
         orderId: orderId.value,
-        userId
       }
     })
 
-    if (returnResponse.data) {
+    if (returnResponse.data && typeof(returnResponse.data) === 'object'){
       existingReturn.value = true
       quantityReturned.value = returnResponse.data.quantity
       returnReason.value = returnResponse.data.reason
@@ -126,7 +124,6 @@ const submitReturn = async () => {
       productId: productId.value,
       quantityReturned: quantityReturned.value,
       reason: returnReason.value,
-      userId,
       deliveryMethod: deliveryMethod.value
     })
     router.push(`/order/${orderId.value}`)
@@ -135,7 +132,6 @@ const submitReturn = async () => {
 const deleteReturn = async () => {
     await axios.delete(`http://localhost:3000/return`, {
       params: {
-        userId: userId,
         productId: productId.value,
         orderId: orderId.value
       }

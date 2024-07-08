@@ -42,15 +42,16 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
+import Cookies from 'js-cookie'
 
 const router = useRouter()
-const authToken = localStorage.getItem('authToken')
+const user = JSON.parse(Cookies.get('USER').substring(2)).id
 
 const orders = ref([])
 
 const fetchOrders = async () => {
-    if (authToken) {
-      const response = await axios.get(`http://localhost:3000/orders/user/${authToken}`)
+    if (user) {
+      const response = await axios.get('http://localhost:3000/orders/own')
       orders.value = response.data
     }
 }

@@ -14,9 +14,9 @@
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
             <div class="item-details" @click="showProductDetails(item.product.id)">
               <h3>{{ item.product.name }}</h3>
-              <img :src="item.product.Images ? item.product.Images[0].url : 
+              <img :src="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].url : 
                   '../../produit_avatar.jpg'" 
-                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  :alt="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].description : 
                   item.product.name" class="product-image" 
                   />
             </div>
@@ -98,10 +98,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
+import Cookies from 'js-cookie'
 
 const router = useRouter()
 const carts = ref(null)
-const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId')
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
 const promo = ref(null)
 const promoCode = ref('')
 const promoError = ref('')
@@ -187,7 +188,7 @@ const total = computed(() => {
 })
 
 const checkout = () => {
-  if (!localStorage.getItem('authToken')) {
+  if (!Cookies.get('USER')) {
     router.push('/login')
   } else {
     router.push('/payment')

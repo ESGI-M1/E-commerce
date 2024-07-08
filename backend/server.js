@@ -35,7 +35,6 @@ const options = {
 
 require('./migrate');
 
-
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
 app.use(cors(options))

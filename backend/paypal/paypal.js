@@ -3,7 +3,7 @@ const router = Router();
 const paypal = require('paypal-rest-sdk');
 
 paypal.configure({
-  mode: 'sandbox',
+  mode: 'sandbox', // Change to 'live' for production
   client_id: 'AY_zGN7odDXkUZKbzft6rgVyoIO6PCCwJFsGhfxqqexDfjjy9tmormcO6b7pv4dtd9yBLdN_v8YVJenp',
   client_secret: 'ED-r4LZIXqNWudkWznrWIvk4UOsEwALkyLfeoHIQItMpdmmcoDXc9J0-89NqVDblhNQZoNHpxllyU00Q'
 });
@@ -12,20 +12,21 @@ router.post('/', async (req, res) => {
   try {
     const { items, promo, orderId, cartId } = req.body;
 
-    console.log('Received request:', req.body);
-
     const paypalItems = items.map(item => {
       let unitAmount = item.product.price;
       if (promo && promo.discountPercentage) {
         unitAmount -= (unitAmount * promo.discountPercentage) / 100;
       }
+      unitAmount = parseFloat(unitAmount.toFixed(2)); // Ensure the amount is rounded to 2 decimal places
       return {
         name: item.product.name,
         quantity: item.quantity,
-        price: Math.round(unitAmount * 100),
+        price: unitAmount.toFixed(2), // Convert to string with 2 decimal places
         currency: 'EUR'
       };
     });
+
+    const totalAmount = paypalItems.reduce((acc, curr) => acc + parseFloat(curr.price) * curr.quantity, 0).toFixed(2);
 
     const create_payment_json = {
       intent: 'sale',
@@ -42,7 +43,7 @@ router.post('/', async (req, res) => {
         },
         amount: {
           currency: 'EUR',
-          total: paypalItems.reduce((acc, curr) => acc + curr.price * curr.quantity, 0) / 100
+          total: totalAmount
         },
         description: 'Achat via PayPal'
       }]
@@ -54,11 +55,13 @@ router.post('/', async (req, res) => {
         throw error;
       } else {
         console.log('Création du paiement PayPal réussie');
-        for (let i = 0; i < payment.links.length; i++) {
-          if (payment.links[i].rel === 'approval_url') {
-            res.json({ approvalUrl: payment.links[i].href });
-            break;
-          }
+        console.log('PayPal payment response:', payment);
+
+        const approvalUrl = payment.links.find(link => link.rel === 'approval_url');
+        if (approvalUrl) {
+          res.json({ approvalUrl: approvalUrl.href });
+        } else {
+          res.status(500).json({ error: 'No approval_url found in PayPal response' });
         }
       }
     });

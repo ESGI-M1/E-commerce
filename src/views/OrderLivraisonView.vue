@@ -8,20 +8,22 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import MapComponent from '../../src/layout/livraison/MapComponent.vue';
-import { mockOrderData } from '../../src/map/mock'; // Importation des données mockées
+import { mockOrderData } from '../../src/map/mock';
 import axios from '../tools/axios';
+import Cookies from 'js-cookie';
+
 const route = useRoute();
 const router = useRouter();
 const orderId = ref(route.params.id as string);
 
-const authToken = localStorage.getItem('authToken');
+const user = JSON.parse(Cookies.get('USER').substring(2)).id
 const order = ref(null);
 const mock = ref(null);
 
 const fetchOrder = async () => {
-  if (authToken) {
+  if (user) {
     try {
-      const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`);
       order.value = response.data;
       if (order.value.status == 'completed') {
         router.push(`/order`);
@@ -30,16 +32,15 @@ const fetchOrder = async () => {
       console.error('Error fetching order:', error);
     }
   }
-  loadMockData(); // Charger les données mockées
+  loadMockData();
 };
 
 const loadMockData = async () => {
-  await new Promise(resolve => setTimeout(resolve, 1000)); // Simuler un délai de chargement
+  await new Promise(resolve => setTimeout(resolve, 1000));
   mock.value = mockOrderData;
-  console.log(mock.value); // Vérifiez dans la console si mock.value est correctement défini
 };
 
 onMounted(() => {
-  fetchOrder(); // Appel pour récupérer l'ordre
+  fetchOrder();
 });
 </script>

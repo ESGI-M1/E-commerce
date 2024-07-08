@@ -25,12 +25,11 @@
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
       <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
         <div v-if="cartProduct.product" class="product-image-container">
-          <img
-            v-if="cartProduct.product.Images && cartProduct.product.Images.length > 0"
-            :src="cartProduct.product.Images[0].url"
-            :alt="cartProduct.product.Images[0].description"
-            class="product-image"
-          />
+          <img :src="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].url : 
+                  '../../produit_avatar.jpg'" 
+                  :alt="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].description : 
+                  cartProduct.product.name" class="product-image" 
+                  />
         </div>
         <div class="item-details" @click="showProductDetails(cartProduct.product.id)">
           <h3>{{ cartProduct.product.name }}</h3>
@@ -65,29 +64,29 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import { format, parseISO } from 'date-fns'
+import Cookies from 'js-cookie'
 
 const route = useRoute()
 const router = useRouter()
 const orderId = ref(route.params.id as string)
 const order = ref<any>(null)
 
-const authToken = localStorage.getItem('authToken')
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 
 const fetchOrder = async () => {
     if (authToken) {
-      const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`, {
       })
       order.value = response.data
 
       for (const cart of order.value.Cart.CartProducts) {
-        const returnProduct = await axios.get(`http://localhost:3000/return/${cart.product.id}`, {
+        const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.product.id}`, {
           params: {
             orderId: orderId.value,
-            userId: authToken
           }
         })
 
-        if (returnProduct.data) {
+        if (returnProduct.data && typeof returnProduct.data === 'object') {
           cart.product.returned = returnProduct.data
         }
       }
@@ -110,7 +109,7 @@ const isFutureDate = (dateStr: string) => {
 
 const downloadInvoice = async (orderId) => {
   try {
-    const response = await axios.get(`http://localhost:3000/orders/invoice/${orderId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/invoice/${orderId}`, {
       responseType: 'blob',
       headers: {
         Authorization: `Bearer ${authToken}`
@@ -150,7 +149,7 @@ const formatHeure = (dateStr: string) => {
 }
 
 const addToCart = async (id: number, quantity: number) => {
-    await axios.post('http://localhost:3000/carts', {
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
       userId: authToken,
       productId: id,
       quantity: quantity

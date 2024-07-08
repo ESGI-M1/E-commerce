@@ -7,6 +7,7 @@
   "scripts": {
     "d:s:u": "node migrate.js",
     "dev": "node --watch server.js",
+    "run": "node server.js",
     "test": "jest"
   },
   "author": "",

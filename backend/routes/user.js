@@ -29,9 +29,9 @@ router.post("/", async (req, res, next) => {
 });
 
 
-router.get("/:id", checkAuth, async (req, res) => {
+router.get("/details", checkAuth, async (req, res) => {
 
-    const userId = parseInt(req.params.id);
+    const userId = req.user.id;
 
     if(!userId || userId !== req.user.id && req.user.role !== 'admin') return res.sendStatus(403);
 

@@ -14,9 +14,9 @@
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
             <div class="item-details" @click="showProductDetails(item.product.id)">
               <h3>{{ item.product.name }}</h3>
-              <img :src="item.product.Images ? item.product.Images[0].url : 
+              <img :src="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].url : 
                   '../../produit_avatar.jpg'" 
-                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  :alt="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].description : 
                   item.product.name" class="product-image" 
                   />
             </div>
@@ -98,18 +98,19 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
+import Cookies from 'js-cookie'
 
 const router = useRouter()
 const carts = ref(null)
-const authToken = localStorage.getItem('authToken') || localStorage.getItem('temporaryId')
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
 const promo = ref(null)
 const promoCode = ref('')
 const promoError = ref('')
 
 const removePromo = async () => {
     const cartIds = carts.value[0].id;
-    const response = await axios.post(
-      'http://localhost:3000/carts/remove-promo',
+    await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
       { userId: authToken, cartIds },
       {
         headers: { Authorization: `Bearer ${authToken}` }
@@ -122,7 +123,7 @@ const removePromo = async () => {
 
 const applyPromoCode = async () => {
   const response = await axios.post(
-    `http://localhost:3000/promos/${promoCode.value}/apply`,
+    `${import.meta.env.VITE_API_BASE_URL}/promos/${promoCode.value}/apply`,
     null,
     { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
   )
@@ -139,14 +140,14 @@ const applyPromoCode = async () => {
 const fetchCartItems = async () => {
   if (authToken) {
     try {
-      const response = await axios.get(`http://localhost:3000/carts/${authToken}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
 
       if (response.data && response.data.length > 0) {
         carts.value = response.data;
 
         if (carts.value[0].promoCodeId) {
           const promoId = carts.value[0].promoCodeId;
-          const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
+          const responsePromo = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos/${promoId}/detail`);
           promo.value = responsePromo.data;
         } else {
           promo.value = null;
@@ -165,9 +166,9 @@ const fetchCartItems = async () => {
 
 const updateCartQuantity = async (id, quantity) => {
   if (quantity === 'remove') {
-    await axios.delete(`http://localhost:3000/cartproducts/${id}`);
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`);
   } else {
-    await axios.patch(`http://localhost:3000/cartproducts/${id}`, { quantity });
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`, { quantity });
 
   }
   fetchCartItems();
@@ -187,7 +188,7 @@ const total = computed(() => {
 })
 
 const checkout = () => {
-  if (!localStorage.getItem('authToken')) {
+  if (!Cookies.get('USER')) {
     router.push('/login')
   } else {
     router.push('/payment')

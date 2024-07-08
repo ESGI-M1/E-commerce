@@ -3,12 +3,14 @@ import BreadCrumb from './BreadCrumb.vue'
 
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../tools/axios';
+import Cookies from 'js-cookie'
 
 const route = useRoute()
 const router = useRouter()
 const isFavorite = ref(false)
 const productId = ref(route.params.id as string)
+const user = JSON.parse(Cookies.get('USER').substring(2)).id
 
 interface Product {
   id: string;
@@ -31,25 +33,22 @@ const product = ref<Product>({
 })
 
 const fetchProductById = async (id: string) => {
-  const response = await axios.get(`http://localhost:3000/products/${id}`)
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${id}`)
   product.value = response.data
 
-  const userId = localStorage.getItem('authToken')
-  if (userId) {
-    const favoriteResponse = await axios.get(`http://localhost:3000/favorites/${userId}`)
+  if (user) {
+    const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`)
     const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId)
     isFavorite.value = favoriteProductIds.includes(product.value.id)
   }
 }
 
 const addToFavorites = async (productId: string) => {
-  const token = localStorage.getItem('temporaryId')
-  if (token || !localStorage.getItem('authToken')) {
+  if (!user) {
     router.push('/login')
     return
   }
-    const userId = localStorage.getItem('authToken')
-    const response = await axios.post('http://localhost:3000/favorites', {
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/favorites`, {
       productId
     })
 
@@ -60,35 +59,29 @@ const addToFavorites = async (productId: string) => {
 }
 
 const removeFromFavorites = async (productId: string) => {
-  const userId = localStorage.getItem('authToken')
-  if (!userId) {
+  if (!user) {
     throw new Error('User is not authenticated')
   }
 
-  await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
+  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
   isFavorite.value = false
   alert('Produit supprimé des favoris avec succès')
 }
 
 const addToCart = async (quantity: number) => {
-  let userId
-  const isAuthenticated = localStorage.getItem('authToken')
-    ? localStorage.getItem('authToken')
-    : null
-  if (isAuthenticated) {
-    userId = isAuthenticated
-  } else {
+  if (!user) {
+    let user = null;
     if (localStorage.getItem('temporaryId')) {
-      userId = localStorage.getItem('temporaryId')
+      user = localStorage.getItem('temporaryId')
     } else {
-      userId = Math.floor(Math.random() * 2147483647).toString()
-      localStorage.setItem('temporaryId', userId)
+      user = Math.floor(Math.random() * 2147483647).toString()
+      localStorage.setItem('temporaryId', user)
     }
   }
 
   try {
-    await axios.post('http://localhost:3000/carts', {
-      userId: userId,
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
+      userId: user,
       productId: product.value.id,
       quantity: quantity
     })
@@ -111,8 +104,8 @@ onMounted(() => {
   />
   <div v-if="product" class="product-page">
     <div class="product-image-container">
-      <img :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'" 
-      :alt="product.Images ? product.Images[0].description : product.name" 
+      <img :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'" 
+      :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name" 
       class="product-image" 
       />
     </div>

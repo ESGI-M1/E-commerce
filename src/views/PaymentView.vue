@@ -135,9 +135,9 @@
           Paiement avec stripe
         </button>
         &nbsp;
-        <button @click="handlePayment('paypal')" class="paypal-button">
+       <!-- <button @click="handlePayment('paypal')" class="paypal-button">
           Paiement avec PayPal <i class="fab fa-paypal"></i>
-        </button>
+        </button> -->
       </div>
     </div>
   </div>
@@ -150,9 +150,6 @@ import axios from '../tools/axios';
 import { loadStripe } from '@stripe/stripe-js'
 import Cookies from 'js-cookie'
 
-const stripePromise = loadStripe(
-  'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
-)
 const router = useRouter()
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const promo = ref(null)
@@ -276,6 +273,9 @@ const handlePayment = async (payment: string) => {
       });
 
       if (payment == 'stripe') {
+        const stripePromise = loadStripe(
+          'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
+        )
       const stripe = await stripePromise;
       const stripeSession = await axios.post('http://localhost:3000/stripe', {
         cartId: carts.value[0].id,
@@ -285,7 +285,7 @@ const handlePayment = async (payment: string) => {
       });
 
       const { sessionId } = stripeSession.data;
-      const { error } = await stripe.redirectToCheckout({ sessionId });
+      await stripe.redirectToCheckout({ sessionId });
     } else if(payment == 'paypal') {
       const paypalSession = await axios.post('http://localhost:3000/paypal', {
         cartId: carts.value[0].id,

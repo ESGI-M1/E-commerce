@@ -2,19 +2,47 @@ const request = require('supertest');
 const { User, AddressOrder } = require('../models'); // Assurez-vous que AddressOrder est bien défini dans vos modèles
 const server = request('http://localhost:3000');
 
-let uniqueUserId = 9000;
-let uniqueEmailCount = 1;
+let user;
+let cookie;
+
+const getUser = async () => {
+
+  if (user) return user;
+
+  user = await User.create({
+    firstname: 'John',
+    lastname: 'Doe',
+    email: 'zorglux+addressorders@zorglux.com',
+    password: 'Password123254369!',
+  });
+
+  return user;
+  
+};
+
+const getCookie = async () => {
+
+  if(!user) await getUser();
+
+  if (cookie) return cookie;
+
+  const loginResponse = await server
+    .post('/login')
+    .send({
+      email: user.email,
+      password: 'Password123254369!',
+    })
+    .expect(200);
+
+  cookie = loginResponse.headers['set-cookie'];
+
+  return cookie;
+
+}
 
 describe('Commandes routes', () => {
 
   it('should create a new address order', async () => {
-    const user = await User.create({
-      firstname: 'User',
-      lastname: `Test`,
-      email: `addressOrder${uniqueEmailCount}@zorglux.com`,
-      password: 'Password123456789!',
-    });
-    uniqueEmailCount++;
 
     const newAddressData = {
       street: '123 Rue de Test',
@@ -23,18 +51,10 @@ describe('Commandes routes', () => {
       country: 'Test Country',
     };
 
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password123456789!',
-      })
-      .expect(200);
-
     const response = await server
       .post('/addressorders')
       .send(newAddressData)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', await getCookie())
       .expect(201);
 
     expect(response.body.street).toBe(newAddressData.street);
@@ -44,15 +64,6 @@ describe('Commandes routes', () => {
   });
 
   it('should return 200 if address order is present', async () => {
-    const nonExistentUserId = uniqueUserId++;
-
-    const user = await User.create({
-      firstname: 'User',
-      lastname: `Test`,
-      email: `addressOrder${uniqueEmailCount}@zorglux.com`,
-      password: 'Password123456789!',
-    });
-    uniqueEmailCount++;
 
     const newAddressData = {
       street: '1278 Rue de Moulin',
@@ -68,17 +79,9 @@ describe('Commandes routes', () => {
       country: newAddressData.country,
     });
 
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password123456789!',
-      })
-      .expect(200);
-
     const response = await server
       .get(`/addressorders/${addressOrder.id}`)
-      .set('Cookie', loginResponse.headers['set-cookie'])
+      .set('Cookie', await getCookie())
       .expect(200);
 
     expect(response.body.street).toBe(newAddressData.street);

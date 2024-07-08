@@ -27,8 +27,21 @@ module.exports = function (connection) {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      }
     },
-    { sequelize: connection }
+    {
+      sequelize: connection,
+      modelName: 'AddressOrder',
+      tableName: 'AddressOrders',
+      timestamps: true,
+    }
   );
 
   return AddressOrder;

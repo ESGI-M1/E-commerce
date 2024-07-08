@@ -20,6 +20,8 @@ const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
 
+//const migrate = require("./migrate");
+
 const app = express();
 const cors = require('cors')
 require('./services/cron');
@@ -30,6 +32,7 @@ const options = {
 };
 
 require('./migrate');
+
 
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));

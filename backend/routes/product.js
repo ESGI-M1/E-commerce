@@ -7,6 +7,8 @@ const router = new Router();
 
 router.get("/", async (req, res) => {
 
+    req.query.active = true;
+
     const products = await Product.findAll({
         where: req.query,
         include: [Category, Image],

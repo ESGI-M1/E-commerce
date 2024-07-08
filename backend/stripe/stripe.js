@@ -7,8 +7,6 @@ router.post('/', async (req, res) => {
   try {
     const { items, promo, orderId, cartId } = req.body;
 
-    console.log('Received request:', req.body);
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: items.map(item => {

@@ -31,7 +31,7 @@ const productsStore = useProductsStore()
 const router = useRouter()
 
 const fetchProducts = async () => {
-  const response = await axios.get('http://localhost:3000/products')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`)
   productsStore.products = response.data
 }
 

@@ -23,7 +23,7 @@ const mock = ref(null);
 const fetchOrder = async () => {
   if (user) {
     try {
-      const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`);
       order.value = response.data;
       if (order.value.status == 'completed') {
         router.push(`/order`);

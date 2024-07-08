@@ -59,7 +59,7 @@ const fetchFavorites = async () => {
     throw new Error('User is not authenticated')
   }
 
-  const response = await axios.get('http://localhost:3000/favorites')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`)
   favoriteProducts.value = response.data
 }
 
@@ -72,7 +72,7 @@ const removeFromFavorites = async (productId: number) => {
     throw new Error('User is not authenticated')
   }
 
-  await axios.delete(`http://localhost:3000/favorites/${productId}`)
+  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
 
   //favoriteProducts.value = favoriteProducts.value.filter((favorite) => favorite.product.id !== productId)
   fetchFavorites()

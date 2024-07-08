@@ -45,7 +45,7 @@ const login = () => {
   }
 
   axios
-    .post('http://localhost:3000/login', {
+    .post(`${import.meta.env.VITE_API_BASE_URL}/login`, {
       email: email.value,
       password: password.value
     })
@@ -53,13 +53,13 @@ const login = () => {
       const temporaryId = localStorage.getItem('temporaryId')
       try {
         if (temporaryId) {
-          const cartResponse = await axios.get(`http://localhost:3000/carts/${temporaryId}`)
+          const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
           const cartId = cartResponse.data[0].id;
-            await axios.patch(`http://localhost:3000/carts/update-user/${cartId}`, {
+            await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {
               userId: response.data.id
             })
           
-          await axios.delete(`http://localhost:3000/users/${temporaryId}`)
+          await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
           localStorage.removeItem('temporaryId')
         }
         router.push('/')

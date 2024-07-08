@@ -15,7 +15,7 @@ const route = useRoute()
 const category = ref()
 // Function to fetch category
 const fetchCategory = async () => {
-  const response = await axios.get('http://localhost:3000/categories/' + route.params.slug)
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories/${route.params.slug}`)
   categoriesStore.addCategory(response.data)
   category.value = response.data
   productsStore.setProducts(response.data.Products)

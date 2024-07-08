@@ -2,16 +2,16 @@
   <div class="cart">
     <header class="header">
       <h1>Ma commande n°{{ orderId }}</h1>
-      <button v-if="order" @click="downloadInvoice(order.id)" class="button-order">
+      <button v-if="order" @click="downloadInvoice(order.id)" class="btn-details">
         Télécharger ma facture
       </button>
       <p v-if="order">Date de la commande: {{ formatDate(order.createdAt) }}</p>
     </header>
     <div v-if="order" class="order-details">
       <h2>Détails de la commande</h2>
-      <div v-if="order.adressOrder">
+      <div v-if="order.addressOrder">
       <p>
-        Adresse: {{ order.adressOrder.street }}, {{ order.adressOrder.postalCode }} {{ order.adressOrder.city }}, {{ order.adressOrder.country }}
+        Adresse: {{ order.addressOrder.street }}, {{ order.addressOrder.postalCode }} {{ order.addressOrder.city }}, {{ order.addressOrder.country }}
       </p>    
     </div>
       <small v-if="order.deliveryDate">
@@ -51,9 +51,9 @@
             <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.Cart.promoCode.discountPercentage) }} €</p>
           </div>
           <p v-else class="new-price">{{ cartProduct.product.price }} €</p>
-          <button @click="addToCart(cartProduct.product.id, 1)" class="button-order">Commander à nouveau</button>
-          <button v-if="!cartProduct.product.returned" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="button-order">Retourner l'article</button>
-          <button v-else @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="button-order">Voir les détails ({{ cartProduct.product.returned.status }})</button>
+          <button @click="addToCart(cartProduct.product.id, 1)" class="btn-details">Commander à nouveau</button>
+          <button v-if="!cartProduct.product.returned && order.status == 'completed'" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="btn-details">Retourner l'article</button>
+          <button v-else-if="cartProduct.product.returned" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="btn-details">Voir les détails ({{ cartProduct.product.returned.status }})</button>
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../tools/axios';
 import { format, parseISO } from 'date-fns'
 
 const route = useRoute()
@@ -289,25 +289,6 @@ onMounted(() => {
 .item-price {
   font-weight: bold;
   margin-bottom: 10px;
-}
-
-.button-order {
-  padding: 10px 20px;
-  background-color: white;
-  color: black;
-  border: 1px solid black;
-  border-radius: 20px;
-  cursor: pointer;
-  transition:
-    background-color 0.3s,
-    transform 0.3s,
-    box-shadow 0.3s;
-}
-
-.button-order:hover {
-  background-color: #f0f0f0;
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive design */

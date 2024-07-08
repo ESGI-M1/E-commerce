@@ -23,8 +23,9 @@ jobs:
         run: sleep 120;
 
       - name: Run tests
-        run: |
-          cd backend
-          npm run test
+        run: docker-compose exec -T node npm run d:s:u --force
+
+      - name: Run tests
+        run: docker-compose exec -T node npm run test
       
 

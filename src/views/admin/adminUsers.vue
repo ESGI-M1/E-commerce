@@ -1,6 +1,6 @@
 <template>
   <div class="users">
-    <h1>Utilisateurs</h1>
+    <h1>Utilisateurs ({{ users.length }})</h1>
     <div class="text-right">
       <button class="btn btn-success" @click="showAddUserModal">
         <i class="fa fa-plus"></i> Ajouter Utilisateur
@@ -24,22 +24,30 @@
           <td>{{ user.firstname }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.role }}</td>
-          <td>
-            <button @click="showEditUserModal(user)" class="btn btn-primary">
+          <td class="flex flex-center">
+            <a @click="showEditUserModal(user)" class="a-primary">
               <i class="fa fa-edit"></i>
-            </button>
+            </a>
+            &nbsp;
+            <fancy-confirm
+                :class="'a-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer l\'utilisateur ?'"
+                :elementType="'a'"
+                @confirmed="deleteUser(user.id)"
+            >
+            <template #buttonText>
+              <i class="fa fa-trash"></i>
+            </template>
+          </fancy-confirm>
+          &nbsp;
             <button @click="resetPassword(user.id)" class="btn btn-warning">
               Réinitialiser MDP
-            </button>
-            <button @click="deleteUser(user.id)" class="btn btn-danger">
-              <i class="fa fa-trash"></i>
             </button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Modal pour Ajouter/Modifier Utilisateur -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal">
         <span class="close" @click="closeModal">&times;</span>
@@ -79,51 +87,79 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios'
+import axios from '../../tools/axios';
 import { ref, onMounted } from 'vue'
 import { z } from 'zod'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const userSchema = z.object({
   id: z.number().optional(),
   firstname: z.string().min(1, 'Le prénom est requis'),
   lastname: z.string().min(1, 'Le nom est requis'),
   email: z.string().email('Adresse email invalide'),
-  role: z.string()
+  role: z.string(),
+  password: z.string().optional()
 })
 
-const users = ref([])
-const currentUser = ref({
-  id: null,
+type User = z.infer<typeof userSchema>
+
+const users = ref<User[]>([])
+const currentUser = ref<User>({
   firstname: '',
   lastname: '',
   email: '',
-  role: ''
+  role: '',
+  password: generateRandomPassword(12)
 })
+
 const showModal = ref(false)
 const isEditing = ref(false)
+const numberOfUsers = ref(0)
 
 const fetchUsers = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/users')
-    users.value = response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des utilisateurs :', error)
+  const response = await axios.get('http://localhost:3000/users')
+
+  users.value = response.data
+}
+
+function generateRandomPassword(length: number): string {
+  const lowercaseLetters = 'abcdefghijklmnopqrstuvwxyz';
+  const uppercaseLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  const specialChars = '!@#$%^&*()-_=+[{]}|;:,<.>/?';
+
+  const allChars = lowercaseLetters + uppercaseLetters + numbers + specialChars;
+
+  let password = '';
+  let charTypesCount = 0;
+
+  while (password.length < length || charTypesCount < 4) {
+    password = '';
+    charTypesCount = 0;
+
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * allChars.length);
+      password += allChars[randomIndex];
+    }
+
+    if (/[a-z]/.test(password)) charTypesCount++;
+    if (/[A-Z]/.test(password)) charTypesCount++;
+    if (/\d/.test(password)) charTypesCount++;
+    if (/[^a-zA-Z\d]/.test(password)) charTypesCount++;
   }
+
+  return password;
 }
 
 const addUser = async () => {
-  try {
     const parsedUser = userSchema.parse(currentUser.value)
+    parsedUser.password = generateRandomPassword(15)
     const response = await axios.post('http://localhost:3000/users', parsedUser)
     users.value.push(response.data)
     closeModal()
-  } catch (error) {
-    console.error("Erreur lors de l'ajout de l'utilisateur :", error)
-  }
 }
 
 const updateUser = async () => {
-  try {
     const parsedUser = userSchema.parse(currentUser.value)
     const response = await axios.patch(
       `http://localhost:3000/users/${currentUser.value.id}`,
@@ -135,23 +171,17 @@ const updateUser = async () => {
       users.value.splice(index, 1, updatedUser)
     }
     closeModal()
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour de l'utilisateur :", error)
-  }
 }
 
 const deleteUser = async (userId: number) => {
-  try {
     await axios.delete(`http://localhost:3000/users/${userId}`)
-  } catch (error) {
-    console.error("Erreur lors de la suppression de l'utilisateur :", error)
-  }
+    users.value = users.value.filter(user => user.id !== userId)
 }
 
+// Fonction pour afficher le modal d'ajout d'utilisateur
 const showAddUserModal = () => {
   isEditing.value = false
   currentUser.value = {
-    id: null,
     firstname: '',
     lastname: '',
     email: '',
@@ -160,14 +190,22 @@ const showAddUserModal = () => {
   showModal.value = true
 }
 
-const showEditUserModal = (user) => {
+// Fonction pour afficher le modal de modification d'utilisateur
+const showEditUserModal = (user: User) => {
   isEditing.value = true
   currentUser.value = { ...user }
   showModal.value = true
 }
 
+// Fonction pour fermer le modal
 const closeModal = () => {
   showModal.value = false
+}
+
+// Fonction pour réinitialiser le mot de passe d'un utilisateur
+const resetPassword = async (userId: number) => {
+  await axios.post(`http://localhost:3000/users/${userId}/reset-password`)
+  alert('Le mot de passe a été réinitialisé.')
 }
 
 onMounted(() => {
@@ -175,30 +213,7 @@ onMounted(() => {
 })
 </script>
 
-
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal {
-  background-color: #fefefe;
-  padding: 20px;
-  border-radius: 8px;
-  width: 80%;
-  max-width: 600px;
-  position: relative;
-}
-
 .close {
   position: absolute;
   top: 10px;

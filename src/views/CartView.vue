@@ -14,11 +14,11 @@
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
             <div class="item-details" @click="showProductDetails(item.product.id)">
               <h3>{{ item.product.name }}</h3>
-              <img
-                :src="item.product.Images[0]?.url || require('../../assets/produit_avatar.jpg')"
-                :alt="item.product.Images[0]?.description || 'Produit'"
-                class="product-image"
-              />
+              <img :src="item.product.Images ? item.product.Images[0].url : 
+                  '../../produit_avatar.jpg'" 
+                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  item.product.name" class="product-image" 
+                  />
             </div>
             <div class="item-quantity">
               <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
@@ -89,9 +89,6 @@
           </div>
         </div>
         <button @click="checkout" class="checkout-button">Paiement</button>
-        <button @click="checkoutWithPaypal" class="paypal-button">
-          Paiement avec PayPal <i class="fab fa-paypal"></i>
-        </button>
       </div>
     </div>
   </div>
@@ -100,7 +97,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../tools/axios';
 
 const router = useRouter()
 const carts = ref(null)
@@ -118,65 +115,62 @@ const removePromo = async () => {
         headers: { Authorization: `Bearer ${authToken}` }
       }
     )
-
-    if (response.data.success) {
-      promo.value = null
-      fetchCartItems()
-      promoError.value = ''
-    } else {
-      console.error('Erreur lors de la suppression du code promo :', response.data.error)
-    }
+    promo.value = null
+    fetchCartItems()
+    promoError.value = ''
 }
 
 const applyPromoCode = async () => {
-  try {
-    const response = await axios.post(
-      `http://localhost:3000/promos/${promoCode.value}/apply`,
-      null,
-      { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
-    )
+  const response = await axios.post(
+    `http://localhost:3000/promos/${promoCode.value}/apply`,
+    null,
+    { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
+  )
 
-    if (response.data.success) {
-      promo.value = response.data
-      fetchCartItems()
-      promoError.value = ''
-    } else {
-      promoError.value = response.data.error || 'Ce code promo a expiré.'
-    }
-  } catch (error) {
-    promoError.value = 'Ce code promo est invalide.'
+  if (response.data.success) {
+    promo.value = response.data
+    fetchCartItems()
+    promoError.value = ''
+  } else {
+    promoError.value = response.data.error || 'Ce code promo a expiré.'
   }
 }
 
 const fetchCartItems = async () => {
-    if (authToken) {
-      const response = await axios.get(`http://localhost:3000/carts/${authToken}`, {
-      });
-      if (response.data) {
-      carts.value = response.data;
-      if (carts.value[0] && carts.value[0].promoCodeId) {
-        const promoId = carts.value[0].promoCodeId;
-        const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
-        promo.value = responsePromo.data;
+  if (authToken) {
+    try {
+      const response = await axios.get(`http://localhost:3000/carts/${authToken}`);
+
+      if (response.data && response.data.length > 0) {
+        carts.value = response.data;
+
+        if (carts.value[0].promoCodeId) {
+          const promoId = carts.value[0].promoCodeId;
+          const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
+          promo.value = responsePromo.data;
+        } else {
+          promo.value = null;
+        }
       } else {
+        carts.value = null;
         promo.value = null;
       }
+    } catch (error) {
+      carts.value = null;
+      promo.value = null; 
     }
-    }
+  }
 };
 
-const updateCartQuantity = async (id, quantity) => {
-  try {
-    if (quantity === 'remove') {
-      await axios.delete(`http://localhost:3000/cartproducts/${id}`);
-    } else {
-      await axios.patch(`http://localhost:3000/cartproducts/${id}`, { quantity });
 
-    }
-    fetchCartItems();
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour du panier :', error);
+const updateCartQuantity = async (id, quantity) => {
+  if (quantity === 'remove') {
+    await axios.delete(`http://localhost:3000/cartproducts/${id}`);
+  } else {
+    await axios.patch(`http://localhost:3000/cartproducts/${id}`, { quantity });
+
   }
+  fetchCartItems();
 };
 
 const subtotal = computed(() => {
@@ -198,10 +192,6 @@ const checkout = () => {
   } else {
     router.push('/payment')
   }
-}
-
-const checkoutWithPaypal = () => {
-  alert('Paiement effectué via PayPal.')
 }
 
 const showProductDetails = (id: string) => {
@@ -338,24 +328,6 @@ input[type='text'] {
 
 .checkout-button:hover {
   background-color: #333;
-}
-
-.paypal-button {
-  padding: 10px 20px;
-  background-color: #0070ba;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-  width: 100%;
-}
-
-.paypal-button:hover {
-  background-color: #005ea6;
-}
-
-.fa-paypal {
-  margin-left: 5px;
 }
 
 .total {

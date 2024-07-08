@@ -26,11 +26,17 @@ module.exports = function(connection) {
             description: {
                 type: DataTypes.TEXT,
             },
+            createdAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              },
+              updatedAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              }
+            
         },
-        {
-            timestamps: false,
-            sequelize: connection
-        }
+        { sequelize: connection, timestamps: true, }
     );
     return Image;
 }

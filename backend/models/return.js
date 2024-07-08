@@ -37,7 +37,7 @@ module.exports = function (connection) {
         },
         },
       status: {
-        type: DataTypes.ENUM('returned', 'processing', 'cancelled'),
+        type: DataTypes.ENUM('returned', 'processing'),
         allowNull: false,
         defaultValue: 'processing',
       },
@@ -54,11 +54,20 @@ module.exports = function (connection) {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      }
     },
     {
       sequelize: connection,
       modelName: 'ReturnProduct',
       tableName: 'ReturnProducts',
+      timestamps: true,
     }
   );
 

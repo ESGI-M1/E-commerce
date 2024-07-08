@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 const bcrypt = require("bcryptjs");
+const mailer = require('../services/mailer');
 
 module.exports = function (connection) {
   class User extends Model {
@@ -18,6 +19,11 @@ module.exports = function (connection) {
           user.lastPasswordUpdate = Date.now();
         }
       });
+
+      User.addHook("afterCreate", async (user) => {
+        mailer.sendValidateInscription(user);
+      });
+
     }
   }
 
@@ -70,9 +76,17 @@ module.exports = function (connection) {
       },
       lastPasswordUpdate: {
         type: DataTypes.DATE
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
       }
     },
-    { sequelize: connection }
+    { sequelize: connection, timestamps: true}
   );
 
   return User;

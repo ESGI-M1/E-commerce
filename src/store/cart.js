@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import axios from '../tools/axios';
 
 export const useCartStore = defineStore('cart', {
   state: () => ({

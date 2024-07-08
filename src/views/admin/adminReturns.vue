@@ -1,6 +1,6 @@
 <template>
   <div class="returns">
-    <h1>Retours</h1>
+    <h1>Retours ({{ returnProducts.length }})</h1>
 
     <div class="return-table">
       <table>
@@ -13,6 +13,7 @@
             <th>Statut</th>
             <th>Raison</th>
             <th>Methode de retour</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -24,12 +25,23 @@
               {{ returnProduct.user.firstname }}
             </td>
             <td class="product-info">
-              <span class="product-name">{{ returnProduct.product.name }}</span>
+              <span class="product-name">#{{ returnProduct.product.id }} {{ returnProduct.product.name }}</span>
               <span class="product-quantity">x{{ returnProduct.quantity }}</span>
             </td>
-            <td>{{ returnProduct.status }}</td>
+            <td :title="returnProduct.status === 'returned' ? 'Terminé' : 'En attente'">
+              <i :class="returnProduct.status === 'returned' ? 'fas fa-check-circle status-returned' : 'fas fa-hourglass-half status-processing'"></i>
+            </td>
             <td>{{ returnProduct.reason }}</td>
             <td>{{ returnProduct.deliveryMethod }}</td>
+            <td>
+              <fancy-confirm v-if="returnProduct.status === 'processing'"
+                :buttonText="'Valider'"
+                :class="'btn btn-success'"
+                :confirmationMessage="'Etes-vous sûr de vouloir valider le retour du produit ?'"
+                @confirmed="validate(returnProduct.id)"
+              >
+              </fancy-confirm>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -38,19 +50,44 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios'
+import axios from '../../tools/axios';
 import { ref, onMounted } from 'vue'
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
-const returnProducts = ref([])
+// Interfaces
+interface User {
+  id: number
+  lastname: string
+  firstname: string
+}
+
+interface Product {
+  id: number
+  name: string
+}
+
+interface ReturnProduct {
+  id: number
+  orderId: number
+  createdAt: string
+  user: User
+  product: Product
+  quantity: number
+  status: string
+  reason: string
+  deliveryMethod: string
+}
+
+const returnProducts = ref<ReturnProduct[]>([])
 
 const fetchReturnProducts = async () => {
-    const response = await axios.get('http://localhost:3000/return')
-    returnProducts.value = response.data
+  const response = await axios.get('http://localhost:3000/return')
+  returnProducts.value = response.data
 }
 
 // Fonction pour formater la date de retour
-const formatReturnDate = (returnDate) => {
-  const options = {
+const formatReturnDate = (returnDate: string): string => {
+  const options: Intl.DateTimeFormatOptions = {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -60,6 +97,11 @@ const formatReturnDate = (returnDate) => {
   }
   const formattedDate = new Date(returnDate).toLocaleDateString('fr-FR', options)
   return formattedDate
+}
+
+const validate = async (id: number) => {
+  await axios.patch(`http://localhost:3000/return/${id}`)
+  fetchReturnProducts()
 }
 
 onMounted(() => {
@@ -89,5 +131,13 @@ onMounted(() => {
   background-color: #f0f0f0;
   border-radius: 5px;
   padding: 2px 6px;
+}
+
+.status-returned {
+  color: green;
+}
+
+.status-processing {
+  color: orange;
 }
 </style>

@@ -11,9 +11,9 @@ module.exports = function (connection) {
         foreignKey: 'orderId',
         as: 'carts',
       });
-      Order.belongsTo(models.AdressOrder, {
+      Order.belongsTo(models.AddressOrder, {
         foreignKey: 'deliveryMethod',
-        as: 'adressOrder',
+        as: 'addressOrder',
         allowNull: false,
       });
     }
@@ -34,7 +34,7 @@ module.exports = function (connection) {
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM('pending', 'completed', 'returned'),
+        type: DataTypes.ENUM('pending', 'completed'),
         allowNull: false,
         defaultValue: 'pending',
       },
@@ -46,15 +46,24 @@ module.exports = function (connection) {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'AdressOrders',
+          model: 'AddressOrders',
           key: 'id',
         },
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      }
     },
     {
       sequelize: connection,
       modelName: 'Order',
       tableName: 'Orders',
+      timestamps: true,
     }
   );
 

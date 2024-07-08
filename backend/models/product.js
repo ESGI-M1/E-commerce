@@ -16,6 +16,7 @@ module.exports = function(connection) {
         }
 
         static addHooks(models) {
+            /*
             Product.addHook("afterCreate", (product) =>
                 productMongo(product.id, models.Category, models.Product)
             );
@@ -25,6 +26,7 @@ module.exports = function(connection) {
             Product.addHook("afterDestroy", (product) =>
                 productMongo(product.id, models.Category, models.Product, true)
             );
+            */
         }
     }
 
@@ -83,20 +85,7 @@ module.exports = function(connection) {
             sequelize: connection,
             modelName: 'Product',
             tableName: 'Products',
-            hooks: {
-                beforeCreate: (product) => {
-                    const now = new Date();
-                    if (!product.createdAt) {
-                        product.createdAt = now;
-                    }
-                    if (!product.updatedAt) {
-                        product.updatedAt = now;
-                    }
-                },
-                beforeUpdate: (product) => {
-                    product.updatedAt = new Date();
-                }
-            }
+            timestamps: true,
         }
     );
 

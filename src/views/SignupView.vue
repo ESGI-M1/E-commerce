@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed} from 'vue'
 import axios from 'axios'
 import { z } from 'zod'
 import { useRouter } from 'vue-router'
@@ -95,12 +95,6 @@ const signup = async () => {
   }
 }
 
-onMounted(() => {
-  const authToken = localStorage.getItem('authToken')
-  if (authToken) {
-    router.push('/')
-  }
-})
 </script>
 
 <template>

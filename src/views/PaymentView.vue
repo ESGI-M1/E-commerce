@@ -93,10 +93,10 @@
               <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
                 <div class="item-details" @click="showProductDetails(item.product.id)">
                   <h3>{{ item.product.name }}</h3>
-                  <img
-                    :src="item.product.Images[0]?.url ?? '../../produit_avatar.jpg'"
-                    :alt="item.product.Images[0]?.description"
-                    class="product-image"
+                  <img :src="item.product.Images ? item.product.Images[0].url : 
+                  '../../produit_avatar.jpg'" 
+                  :alt="item.product.Images ? item.product.Images[0].description : 
+                  item.product.name" class="product-image" 
                   />
                 </div>
                 <div class="item-quantity">
@@ -134,8 +134,12 @@
     <div class="payment">
       <div class="payment-form">
         <h2>Paiement sécurisé</h2>
-        <button class="pay-button" @click="handlePayment">
-          {{ promo ? 'Payer ' + discountedTotal + ' €' : 'Payer ' + total + ' €' }}
+        <button class="pay-button" @click="handlePayment('stripe')">
+          Paiement avec stripe
+        </button>
+        &nbsp;
+        <button @click="handlePayment('paypal')" class="paypal-button">
+          Paiement avec PayPal <i class="fab fa-paypal"></i>
         </button>
       </div>
     </div>
@@ -145,7 +149,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../tools/axios';
 import { loadStripe } from '@stripe/stripe-js'
 
 const stripePromise = loadStripe(
@@ -158,19 +162,26 @@ const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
 const carts = ref(null)
 
-const newLivraisonDomicileAddress = ref({
+interface Address {
+  street: string;
+  postalCode: string;
+  city: string;
+  country: string;
+}
+
+const newLivraisonDomicileAddress = ref<Address>({
   street: '',
   postalCode: '',
   city: '',
   country: '',
 })
 
-const livraisonDomicileAddress = ref({
-      street: '',
-      postalCode: '',
-      city: '',
-      country: '',
-    });
+const livraisonDomicileAddress = ref<Address>({
+  street: '',
+  postalCode: '',
+  city: '',
+  country: '',
+})
 
 const fetchCartItems = async () => {
   if (authToken) {
@@ -231,37 +242,34 @@ const showProductDetails = (id: string) => {
   router.push({ name: 'ProductDetail', params: { id } })
 }
 
-const handlePayment = async () => {
+const handlePayment = async (payment: string) => {
   let newAddress = null;
-  let adressorders = null;
-
+  let addressorders = null;
+  let response = null;
+  
   if (deliveryOption.value === 'pointRelais') {
-    try {
       const randomStreet = Math.random().toString(36).substring(7);
-      const response = await axios.post('http://localhost:3000/adressorders', {
+      response = await axios.post('http://localhost:3000/addressorders', {
         street: randomStreet,
         postalCode: pointRelaisPostalCode.value,
         city: getCityFromPostalCode(pointRelaisPostalCode.value),
         country: getCountryFromPostalCode(pointRelaisPostalCode.value),
       });
 
-      newAddress = response.data;
-    } catch (error) {
-      console.error('Error creating address (Point Relais):', error);
-    }
   } else if (deliveryOption.value === 'livraisonDomicile') {
     if (livraisonDomicileAddress.value.street != '') {
       newLivraisonDomicileAddress.value = livraisonDomicileAddress.value
     } 
-      const response = await axios.post('http://localhost:3000/adressorders', {
+      response = await axios.post('http://localhost:3000/addressorders', {
         street: newLivraisonDomicileAddress.value.street,
         postalCode: newLivraisonDomicileAddress.value.postalCode,
         city: newLivraisonDomicileAddress.value.city,
         country: newLivraisonDomicileAddress.value.country,
       });
 
-      newAddress = response.data;
   }
+  newAddress = response.data;
+
 
   if (newAddress) {
     try {
@@ -271,6 +279,7 @@ const handlePayment = async () => {
         userId: authToken,
       });
 
+      if (payment == 'stripe') {
       const stripe = await stripePromise;
       const stripeSession = await axios.post('http://localhost:3000/stripe', {
         cartId: carts.value[0].id,
@@ -281,12 +290,22 @@ const handlePayment = async () => {
 
       const { sessionId } = stripeSession.data;
       const { error } = await stripe.redirectToCheckout({ sessionId });
+    } else if(payment == 'paypal') {
+      const paypalSession = await axios.post('http://localhost:3000/paypal', {
+        cartId: carts.value[0].id,
+        orderId: order.data.id,
+        items: carts.value[0].CartProducts,
+        promo: promo.value,
+      });
 
-      if (error) {
-        console.error('Error redirecting to checkout:', error);
-      }
+      const { sessionId } = paypalSession.data;
+    }
+
+      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
     } catch (error) {
-      console.error('Error handling payment:', error);
+      if (typeof order !== 'undefined' && order) {
+      await axios.delete(`http://localhost:3000/orders/${order.value.id}`);
+      }
     }
   }
 };
@@ -440,13 +459,6 @@ input[type='text'] {
   align-items: center;
 }
 
-.product-image {
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  margin-left: 10px;
-}
-
 .item-quantity {
   display: flex;
   align-items: center;
@@ -492,5 +504,22 @@ input[type='text'] {
 
 .new-price {
   text-align: right;
+}
+
+.paypal-button {
+  padding: 10px 20px;
+  background-color: #0070ba;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.paypal-button:hover {
+  background-color: #005ea6;
+}
+
+.fa-paypal {
+  margin-left: 5px;
 }
 </style>

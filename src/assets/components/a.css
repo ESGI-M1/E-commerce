@@ -1,0 +1,31 @@
+.a-primary {
+  color: #007bff;
+}
+
+.a-primary:hover {
+  color: #0069d9;
+}
+
+.a-success {
+  color: #28a745;
+}
+
+.a-success:hover {
+  color: #218838;
+}
+
+.a-danger {
+  color: #dc3545;
+}
+
+.a-danger:hover {
+  color: #c82333;
+}
+
+.a-warning {
+  color: #ffc107;
+}
+
+.a-warning:hover {
+  color: #e0a800;
+}

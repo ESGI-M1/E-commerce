@@ -10,10 +10,19 @@ const router = useRouter()
 const isFavorite = ref(false)
 const productId = ref(route.params.id as string)
 
-const product = ref({
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  reference: string;
+  comments: string[];
+  Categories: number[];
+}
+
+const product = ref<Product>({
   id: '',
   name: '',
-  imageSrc: '',
   description: '',
   price: 0,
   reference: '',
@@ -22,31 +31,14 @@ const product = ref({
 })
 
 const fetchProductById = async (id: string) => {
-  try {
-    const response = await axios.get(`http://localhost:3000/products/${id}`)
-    product.value = response.data
+  const response = await axios.get(`http://localhost:3000/products/${id}`)
+  product.value = response.data
 
-    // Fetch the image for the product
-    if (product.value.id) {
-      const imageResponse = await axios.get(
-        `http://localhost:3000/products/${product.value.id}/images`
-      )
-      if (imageResponse.data && imageResponse.data.length > 0) {
-        product.value.imageSrc = imageResponse.data[0].url
-      } else {
-        product.value.imageSrc = '../../produit_avatar.jpg'
-      }
-    }
-
-    const userId = localStorage.getItem('authToken')
-    if (userId) {
-      const favoriteResponse = await axios.get(`http://localhost:3000/favorites/${userId}`)
-      const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId)
-      isFavorite.value = favoriteProductIds.includes(product.value.id)
-    }
-  } catch (error) {
-    console.error('Error fetching product:', error)
-    alert('There was an error fetching the product details. Please try again later.')
+  const userId = localStorage.getItem('authToken')
+  if (userId) {
+    const favoriteResponse = await axios.get(`http://localhost:3000/favorites/${userId}`)
+    const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId)
+    isFavorite.value = favoriteProductIds.includes(product.value.id)
   }
 }
 
@@ -56,10 +48,8 @@ const addToFavorites = async (productId: string) => {
     router.push('/login')
     return
   }
-  try {
     const userId = localStorage.getItem('authToken')
-    const response = await axios.post('http://localhost:3000/favorites/add', {
-      userId,
+    const response = await axios.post('http://localhost:3000/favorites', {
       productId
     })
 
@@ -67,26 +57,17 @@ const addToFavorites = async (productId: string) => {
       isFavorite.value = true
       alert('Produit ajouté aux favoris avec succès')
     }
-  } catch (error) {
-    console.error('Error adding product to favorites:', error)
-    alert("Échec de l'ajout du produit aux favoris")
-  }
 }
 
 const removeFromFavorites = async (productId: string) => {
-  try {
-    const userId = localStorage.getItem('authToken')
-    if (!userId) {
-      throw new Error('User is not authenticated')
-    }
-
-    await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
-    isFavorite.value = false
-    alert('Produit supprimé des favoris avec succès')
-  } catch (error) {
-    console.error('Error removing favorite product:', error)
-    alert('Échec de la suppression du produit des favoris')
+  const userId = localStorage.getItem('authToken')
+  if (!userId) {
+    throw new Error('User is not authenticated')
   }
+
+  await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
+  isFavorite.value = false
+  alert('Produit supprimé des favoris avec succès')
 }
 
 const addToCart = async (quantity: number) => {
@@ -128,9 +109,12 @@ onMounted(() => {
     v-if="product.Categories && product.Categories[0]"
     :category="product.Categories[0]"
   />
-  <div class="product-page">
+  <div v-if="product" class="product-page">
     <div class="product-image-container">
-      <img :src="product.imageSrc" :alt="product.name" class="product-image" />
+      <img :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'" 
+      :alt="product.Images ? product.Images[0].description : product.name" 
+      class="product-image" 
+      />
     </div>
     <div class="product-info">
       <h2>{{ product.name }}</h2>

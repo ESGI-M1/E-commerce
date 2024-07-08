@@ -2,10 +2,24 @@ const { Router } = require("express");
 const { Op } = require("sequelize");
 const { Product, Category, Image, User, AlerteUser, Alerte } = require("../models");
 const mailer = require('../services/mailer');
+const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
 router.get("/", async (req, res) => {
+
+    req.query.active = true;
+
+    const products = await Product.findAll({
+        where: req.query,
+        include: [Category, Image],
+    });
+
+    res.json(products);
+});
+
+router.get("/admin", checkRole({ roles: "admin" }), async (req, res) => {
+
     const products = await Product.findAll({
         where: req.query,
         include: [Category, Image],
@@ -15,7 +29,6 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/search", async (req, res) => {
-
     try{
         const { q } = req.query;
         const products = await Product.findAll({
@@ -23,29 +36,18 @@ router.get("/search", async (req, res) => {
                 name: {
                     [Op.iLike]: `%${q}%`,
                 },
+                active: true,
             },
         });
         res.json(products);
         
-    } catch (error) {
-        console.error("Error fetching products by search query:", error);
-        res.status(500).json({ error: "Failed to fetch products by search query" });
+    } catch (e) {
+        next(e);
     }
 
 });
 
-router.get("/:id/images", async (req, res) => {
-    try {
-        const productId = req.params.id;
-        const images = await Image.findAll({ where: { productId } });
-        res.json(images);
-    } catch (error) {
-        console.error("Error fetching images for product:", error);
-        res.status(500).json({ error: "Failed to fetch images for product" });
-    }
-});
-
-router.post("/", async (req, res, next) => {
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { ...productData } = req.body;
         const product = await Product.create(productData);
@@ -78,25 +80,21 @@ router.post("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);
-        console.log(`Fetching product with ID: ${productId}`);
         
         const product = await Product.findByPk(productId, {
             include: [
-                { model: Category, required: false },
-                { model: Image, required: false }
+                { model: Category },
+                { model: Image }
             ]
         });
 
         if (product ? res.json(product) : res.sendStatus(404));
     } catch (e) {
-        console.error('Error fetching product by ID:', e);
         next(e);
     }
 });
 
-
-
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;
         const product = await Product.findByPk(parseInt(req.params.id));
@@ -140,7 +138,7 @@ router.patch("/:id", async (req, res, next) => {
     }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const nbDeleted = await Product.destroy({
             where: {
@@ -153,7 +151,7 @@ router.delete("/:id", async (req, res, next) => {
     }
 });
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;
         await Product.destroy({

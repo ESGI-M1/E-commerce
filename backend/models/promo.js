@@ -33,12 +33,20 @@ module.exports = function(connection) {
       discountPercentage: {
         type: DataTypes.DECIMAL(5, 2),
         allowNull: false
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
       }
     },
     {
       sequelize: connection,
       modelName: 'PromoCode',
-      timestamps: false
+      timestamps: true,
     }
   );
 

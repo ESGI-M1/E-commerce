@@ -150,7 +150,7 @@ router.get("/:userId", async (req, res, next) => {
 
       res.json(cartItems);
     } else {
-      res.status(404).json({ error: 'Cart items not found' });
+      res.status(200).json();
     }
   } catch (e) {
     next(e);

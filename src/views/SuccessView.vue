@@ -15,7 +15,7 @@ const cartId = ref(route.params.cartId as string);
 const orderId = ref(route.params.orderId as string);
 
 const updateCartOrder = async () => {
-    const response = await axios.patch(`http://localhost:3000/carts/update-order/${cartId.value}`, {
+    const response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-order/${cartId.value}`, {
       orderId: orderId.value,
     });
 };

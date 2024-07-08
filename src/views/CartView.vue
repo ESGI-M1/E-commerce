@@ -109,8 +109,8 @@ const promoError = ref('')
 
 const removePromo = async () => {
     const cartIds = carts.value[0].id;
-    const response = await axios.post(
-      'http://localhost:3000/carts/remove-promo',
+    await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
       { userId: authToken, cartIds },
       {
         headers: { Authorization: `Bearer ${authToken}` }
@@ -123,7 +123,7 @@ const removePromo = async () => {
 
 const applyPromoCode = async () => {
   const response = await axios.post(
-    `http://localhost:3000/promos/${promoCode.value}/apply`,
+    `${import.meta.env.VITE_API_BASE_URL}/promos/${promoCode.value}/apply`,
     null,
     { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
   )
@@ -140,14 +140,14 @@ const applyPromoCode = async () => {
 const fetchCartItems = async () => {
   if (authToken) {
     try {
-      const response = await axios.get(`http://localhost:3000/carts/${authToken}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
 
       if (response.data && response.data.length > 0) {
         carts.value = response.data;
 
         if (carts.value[0].promoCodeId) {
           const promoId = carts.value[0].promoCodeId;
-          const responsePromo = await axios.get(`http://localhost:3000/promos/${promoId}/detail`);
+          const responsePromo = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos/${promoId}/detail`);
           promo.value = responsePromo.data;
         } else {
           promo.value = null;
@@ -166,9 +166,9 @@ const fetchCartItems = async () => {
 
 const updateCartQuantity = async (id, quantity) => {
   if (quantity === 'remove') {
-    await axios.delete(`http://localhost:3000/cartproducts/${id}`);
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`);
   } else {
-    await axios.patch(`http://localhost:3000/cartproducts/${id}`, { quantity });
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`, { quantity });
 
   }
   fetchCartItems();

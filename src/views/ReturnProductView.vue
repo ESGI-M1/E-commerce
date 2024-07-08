@@ -81,7 +81,7 @@ const quantityOptions = computed(() => {
 })
 
 const fetchProductDetails = async () => {
-    const response = await axios.get(`http://localhost:3000/orders/${orderId.value}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`);
     if (response.data.status == 'pending') {
       router.push(`/order/${orderId.value}`) ;
     }
@@ -97,11 +97,11 @@ const fetchProductDetails = async () => {
     }
 
     // Obtenir les détails du produit
-    const productResponse = await axios.get(`http://localhost:3000/products/${productId.value}`);
+    const productResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${productId.value}`);
     product.value = productResponse.data;
 
     // Obtenir les informations de retour existantes
-    const returnResponse = await axios.get(`http://localhost:3000/return/${productId.value}`, {
+    const returnResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${productId.value}`, {
       params: {
         orderId: orderId.value,
       }
@@ -119,7 +119,7 @@ const fetchProductDetails = async () => {
 onMounted(() => fetchProductDetails())
 
 const submitReturn = async () => {
-    const response = await axios.post(`http://localhost:3000/return`, {
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/return`, {
       orderId: orderId.value,
       productId: productId.value,
       quantityReturned: quantityReturned.value,
@@ -130,7 +130,7 @@ const submitReturn = async () => {
 }
 
 const deleteReturn = async () => {
-    await axios.delete(`http://localhost:3000/return`, {
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/return`, {
       params: {
         productId: productId.value,
         orderId: orderId.value

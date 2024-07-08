@@ -51,7 +51,7 @@ const orders = ref([])
 
 const fetchOrders = async () => {
     if (user) {
-      const response = await axios.get('http://localhost:3000/orders/own')
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/own`)
       orders.value = response.data
     }
 }

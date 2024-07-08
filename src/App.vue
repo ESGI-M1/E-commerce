@@ -15,7 +15,7 @@ export default {
   <Navbar />
   <!--<Sidebar />-->
   <!--<div :style="{ 'margin-left': sidebarWidth }">-->
-  <div>
+  <div class="background">
     <router-view />
   </div>
 </template>
@@ -41,4 +41,9 @@ export default {
 #nav a.router-link-exact-active {
   color: #42b983;
 }
+
+.background {
+  height: 90vh;
+}
+
 </style>

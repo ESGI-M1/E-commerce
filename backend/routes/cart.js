@@ -171,11 +171,6 @@ router.patch("/update-order/:cartId", async (req, res) => {
   } catch (e) {
     next(e);
   }
-
-  cart.orderId = orderId;
-  await cart.save();
-
-  res.status(200).json({ message: 'Cart order updated successfully' });
 });
 
 router.patch("/update-user/:cartId", async (req, res, next) => {

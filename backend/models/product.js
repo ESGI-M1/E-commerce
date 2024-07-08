@@ -66,10 +66,6 @@ module.exports = function(connection) {
             description: {
                 type: DataTypes.TEXT,
             },
-            imageId: {
-                type: DataTypes.INTEGER,
-                allowNull: true,
-            },
             createdAt: {
                 type: DataTypes.DATE,
                 allowNull: false,

@@ -65,13 +65,14 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import { format, parseISO } from 'date-fns'
+import Cookies from 'js-cookie'
 
 const route = useRoute()
 const router = useRouter()
 const orderId = ref(route.params.id as string)
 const order = ref<any>(null)
 
-const authToken = localStorage.getItem('authToken')
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 
 const fetchOrder = async () => {
     if (authToken) {
@@ -83,11 +84,10 @@ const fetchOrder = async () => {
         const returnProduct = await axios.get(`http://localhost:3000/return/${cart.product.id}`, {
           params: {
             orderId: orderId.value,
-            userId: authToken
           }
         })
 
-        if (returnProduct.data) {
+        if (returnProduct.data && typeof returnProduct.data === 'object') {
           cart.product.returned = returnProduct.data
         }
       }

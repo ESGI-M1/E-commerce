@@ -157,7 +157,7 @@ router.get("/:userId", async (req, res, next) => {
   }
 });
 
-router.patch("/update-order/:cartId", async (req, res) => {
+router.patch("/update-order/:cartId", async (req, res, next) => {
   const cartId = parseInt(req.params.cartId);
   const orderId = parseInt(req.body.orderId);
 

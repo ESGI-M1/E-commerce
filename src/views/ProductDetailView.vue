@@ -36,8 +36,7 @@ const fetchProductById = async (id: string) => {
   const response = await axios.get(`http://localhost:3000/products/${id}`)
   product.value = response.data
 
-  const userId = localStorage.getItem('authToken')
-  if (userId) {
+  if (user) {
     const favoriteResponse = await axios.get('http://localhost:3000/favorites')
     const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId)
     isFavorite.value = favoriteProductIds.includes(product.value.id)

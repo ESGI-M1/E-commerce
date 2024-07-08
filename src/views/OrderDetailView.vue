@@ -25,12 +25,11 @@
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
       <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
         <div v-if="cartProduct.product" class="product-image-container">
-          <img
-            v-if="cartProduct.product.Images && cartProduct.product.Images.length > 0"
-            :src="cartProduct.product.Images[0].url"
-            :alt="cartProduct.product.Images[0].description"
-            class="product-image"
-          />
+          <img :src="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].url : 
+                  '../../produit_avatar.jpg'" 
+                  :alt="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].description : 
+                  cartProduct.product.name" class="product-image" 
+                  />
         </div>
         <div class="item-details" @click="showProductDetails(cartProduct.product.id)">
           <h3>{{ cartProduct.product.name }}</h3>

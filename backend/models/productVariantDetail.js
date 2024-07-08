@@ -26,14 +26,16 @@ module.exports = function(connection) {
             },
             variantOptionId: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
+                allowNull: true,
+                defaultValue: 1,
                 validate: {
                     notEmpty: true,
                 },
             },
             variantValueId: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
+                allowNull: true,
+                defaultValue: 1,
                 validate: {
                     notEmpty: true,
                 },

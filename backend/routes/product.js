@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { Op } = require("sequelize");
-const { Product, Category, Image } = require("../models");
+const { Product, ProductVariant, ProductVariantDetail, Category, Image } = require("../models");
 const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
@@ -49,7 +49,21 @@ router.get("/search", async (req, res) => {
 router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { ...productData } = req.body;
+
+        // Product
         const product = await Product.create(productData);
+
+        // Product Variant
+        const productVariant = await ProductVariant.create({
+            productId: product.id,
+            stockQuantity: 0,
+            active: true,
+        });
+
+        // Product Variant Detail
+        const productVariantDetail = await ProductVariantDetail.create({
+            productVariantId: productVariant.id,
+        });
 
         res.status(201).json(product);
     } catch (e) {

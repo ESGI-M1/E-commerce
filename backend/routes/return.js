@@ -27,7 +27,8 @@ router.get('/', checkAuth, async (req, res, next) => {
 
 router.post('/', checkAuth, async (req, res, next) => {
   try {
-    const { userId, orderId, productId, quantityReturned, reason, deliveryMethod } = req.body; // TODO add parseInt
+    const { orderId, productId, quantityReturned, reason, deliveryMethod } = req.body; // TODO add parseInt*
+    const userId = req.user.id;
 
     if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
 
@@ -57,36 +58,37 @@ router.post('/', checkAuth, async (req, res, next) => {
   }
 });
 
-router.get("/:productId", async (req, res, next) => {
+router.get("/:productId", checkAuth, async (req, res, next) => {
   const productId = req.params.productId;
-  const { userId, orderId } = req.query;
+  const { orderId } = req.query;
+  const userId = req.user.id;
 
-  //if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
-  if(!userId || !req.user || ( userId !== req.user.id)) return res.sendStatus(403);
+  if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
 
   try {
     const returnProduct = await ReturnProduct.findOne({
       where: {
         orderId: parseInt(orderId),
-        userId: parseInt(userId),
+        userId: userId,
         productId: parseInt(productId),
       }
     });
 
-    returnProduct ? res.json(returnProduct) : res.sendStatus(404);
+    returnProduct ? res.json(returnProduct) : res.sendStatus(200);
   } catch (e) {
     next(e);
   }
 });
 
-router.delete("/", async (req, res) => {
-  const { productId, orderId, userId } = req.query;
+router.delete("/", checkAuth, async (req, res) => {
+  const { productId, orderId } = req.query;
+  const userId = req.user.id;
 
   if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
 
   const deleted = await ReturnProduct.destroy({
      where: {
-       userId: parseInt(userId),
+       userId: userId,
        orderId: parseInt(orderId),
        productId: parseInt(productId),
      }

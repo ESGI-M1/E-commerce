@@ -7,8 +7,8 @@
       @click="showProductDetails(product.id)"
     >
       <img
-        :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'"
-        :alt="product.Images ? product.Images[0].description : product.name"
+        :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'"
+        :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name"
         class="product-image"
       />
       <div class="product-info">

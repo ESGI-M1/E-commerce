@@ -8,9 +8,9 @@
       <div v-for="favorite in favoriteProducts" :key="favorite.product.id" class="product">
         <div class="product-content" @click="showProductDetails(favorite.product.id)">
           <div class="product-image-container">
-            <img :src="favorite.product.Images ? favorite.product.Images[0].url : 
+            <img :src="favorite.product.Images && favorite.product.Images.length > 0 ? favorite.product.Images[0].url : 
             '../../produit_avatar.jpg'" 
-            :alt="favorite.product.Images ? favorite.product.Images[0].description : 
+            :alt="favorite.product.Images && favorite.product.Images.length > 0 ? favorite.product.Images[0].description : 
             favorite.product.name" class="product-image" 
             />
           </div>
@@ -32,6 +32,7 @@
 import { ref, onMounted } from 'vue'
 import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
+import Cookies from 'js-cookie'
 
 interface Image {
   url: string;
@@ -51,14 +52,14 @@ interface Favorite {
 
 const router = useRouter()
 const favoriteProducts = ref<Favorite[]>([])
+const user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 
 const fetchFavorites = async () => {
-  const userId = localStorage.getItem('authToken')
-  if (!userId) {
+  if (!user) {
     throw new Error('User is not authenticated')
   }
 
-  const response = await axios.get(`http://localhost:3000/favorites/${userId}`)
+  const response = await axios.get('http://localhost:3000/favorites')
   favoriteProducts.value = response.data
 }
 
@@ -67,20 +68,18 @@ const showProductDetails = (id: number) => {
 }
 
 const removeFromFavorites = async (productId: number) => {
-  const userId = localStorage.getItem('authToken')
-  if (!userId) {
+  if (!user) {
     throw new Error('User is not authenticated')
   }
 
-  await axios.delete(`http://localhost:3000/favorites/${userId}/${productId}`)
+  await axios.delete(`http://localhost:3000/favorites/${productId}`)
 
   //favoriteProducts.value = favoriteProducts.value.filter((favorite) => favorite.product.id !== productId)
   fetchFavorites()
 }
 
 onMounted(async () => {
-  const authToken = localStorage.getItem('authToken')
-  if (!authToken) {
+  if (!user) {
     router.push('/login')
   } else {
     await fetchFavorites()

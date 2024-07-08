@@ -28,11 +28,81 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/:id', checkAuth, async (req, res) => {
+router.get('/own', checkAuth, async (req, res, next) => {
+  const userId = req.user.id;
+
+  try {
+      const carts = await Cart.findAll({
+          where: { userId },
+          include: [
+              {
+                  model: PromoCode,
+                  as: 'promoCode',
+                  attributes: ['discountPercentage']
+              },
+              {
+                  model: CartProduct,
+                  as: 'CartProducts',
+                  include: [
+                      {
+                          model: Product,
+                          as: 'product',
+                          attributes: ['id', 'name', 'price'],
+                          include: [Category, Image],
+                      }
+                  ]
+              }
+          ]
+      });
+
+      // Transformez les résultats pour avoir une structure avec commandes et paniers
+      const orderMap = {};
+
+      for (const cart of carts) {
+          const orderId = cart.orderId;
+
+          if (!orderMap[orderId]) {
+              const order = await Order.findByPk(orderId);
+              if (order) {
+                  orderMap[orderId] = {
+                      id: order.id,
+                      userId: order.userId,
+                      totalAmount: order.totalAmount,
+                      status: order.status,
+                      createdAt: order.createdAt,
+                      updatedAt: order.updatedAt,
+                      carts: []
+                  };
+              }
+          }
+
+          if (orderMap[orderId]) {
+              orderMap[orderId].carts.push({
+                  id: cart.id,
+                  quantity: cart.quantity,
+                  product: cart.CartProducts.map(cp => ({
+                      id: cp.productId,
+                      quantity: cp.quantity,
+                      product: cp.product,
+                  })),
+                  promo: cart.promoCode,
+              });
+          }
+      }
+
+      const ordersWithCarts = Object.values(orderMap);
+
+      res.json(ordersWithCarts);
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/:id', checkAuth, async (req, res, next) => {
   try {
     const cart = await Cart.findOne({
       where: {
-        orderId: parseInt(req.params.id),
+        orderId: req.params.id,
         userId: req.user.id
       },
       include: [
@@ -54,7 +124,7 @@ router.get('/:id', checkAuth, async (req, res) => {
 
     const order = await Order.findOne({
       where: {
-        id: parseInt(req.params.id),
+        id: req.params.id,
         userId: req.user.id
       },
       include: [
@@ -107,78 +177,6 @@ router.post('/', checkAuth, async (req, res, next) => {
     next(e)
   }
 });
-
-router.get("/user/:idUser", async (req, res, next) => {   // TODO SECURITY
-
-  const { idUser } = req.params;
-
-  try {
-      const carts = await Cart.findAll({
-          where: { userId: parseInt(idUser) },
-          include: [
-              {
-                  model: PromoCode,
-                  as: 'promoCode',
-                  attributes: ['discountPercentage']
-              },
-              {
-                  model: CartProduct,
-                  as: 'CartProducts', // Nom de l'association dans votre modèle Cart
-                  include: [
-                      {
-                          model: Product,
-                          as: 'product', // Nom de l'association dans votre modèle CartProduct
-                          attributes: ['id', 'name', 'price'],
-                          include: [Category, Image], // Incluez d'autres associations si nécessaire
-                      }
-                  ]
-              }
-          ]
-      });
-
-      // Transformez les résultats pour avoir une structure avec commandes et paniers
-      const orderMap = {};
-
-      for (const cart of carts) {
-          const orderId = cart.orderId;
-
-          if (!orderMap[orderId]) {
-              const order = await Order.findByPk(orderId);
-              if (order) {
-                  orderMap[orderId] = {
-                      id: order.id,
-                      userId: order.userId,
-                      totalAmount: order.totalAmount,
-                      status: order.status,
-                      createdAt: order.createdAt,
-                      updatedAt: order.updatedAt,
-                      carts: [] // Initialiser le tableau de paniers
-                  };
-              }
-          }
-
-          if (orderMap[orderId]) {
-              orderMap[orderId].carts.push({
-                  id: cart.id,
-                  quantity: cart.quantity,
-                  product: cart.CartProducts.map(cp => ({
-                      id: cp.productId,
-                      quantity: cp.quantity,
-                      product: cp.product,
-                  })),
-                  promo: cart.promoCode, // Associer le promoCode au niveau du cart
-              });
-          }
-      }
-
-      const ordersWithCarts = Object.values(orderMap);
-
-      res.json(ordersWithCarts);
-  } catch (e) {
-    next(e);
-  }
-});
-
 
 router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
   const idUser = parseInt(req.params.idUser);

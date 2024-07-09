@@ -194,7 +194,6 @@ const updateProduct = async () => {
     ...currentProduct.value,
     price: parseFloat(currentProduct.value.price)
   })
-  console.log(parsedProduct)
   await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/products/${currentProduct.value.id}`, parsedProduct, { withCredentials: true })
   const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
   if (index !== -1) {

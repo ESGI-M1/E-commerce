@@ -95,7 +95,6 @@ const fetchOrder = async () => {
           cart.product.returned = returnProduct.data
         }
       }
-      console.log(order.value)
     }
 }
 

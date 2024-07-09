@@ -147,7 +147,6 @@ const isEditing = ref(false)
 const fetchCategories = async () => {
   const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
   categories.value = response.data
-  console.log(categories.value)
 }
 
 const fetchProducts = async () => {

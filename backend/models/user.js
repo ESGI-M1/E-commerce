@@ -1,13 +1,14 @@
 const { Model, DataTypes } = require("sequelize");
 const bcrypt = require("bcryptjs");
 const mailer = require('../services/mailer');
+const denormalizeUser = require('../dtos/denormalization/user');
 
 module.exports = function (connection) {
   class User extends Model {
     static associate(models) {
       User.hasOne(models.AddressUser, { foreignKey: "userId", as: "deliveryAddress" });
     }
-    static addHooks() {
+    static addHooks(models) {
       User.addHook("beforeCreate", async (user) => {
         user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
         user.lastPasswordUpdate = Date.now();
@@ -22,7 +23,15 @@ module.exports = function (connection) {
 
       User.addHook("afterCreate", async (user) => {
         mailer.sendValidateInscription(user);
+        await denormalizeUser(user, models);
       });
+
+      User.addHook("afterUpdate", async (user, { fields }) => {
+        if (fields.includes("firstname") || fields.includes("lastname") || fields.includes("email") || fields.includes("role") || fields.includes("active")) {
+          await denormalizeUser(user, models);
+        }
+      });
+      
 
     }
   }

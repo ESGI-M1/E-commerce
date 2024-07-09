@@ -26,10 +26,7 @@ module.exports = function (connection) {
       description: {
         type: String,
       },
-      categories: [{
-        type: Number,
-        ref: 'Category',
-      }],
+      categories: Array,
     },
     {
       timestamps: true,

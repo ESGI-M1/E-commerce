@@ -18,13 +18,10 @@ module.exports = function (connection) {
         type: String,
       },
       parentCategory: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
       },
-      products: [{
-        type: Number,
-        ref: 'Product',
-      }],
+      products: Array
     },
     {
       timestamps: true,

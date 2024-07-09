@@ -10,21 +10,21 @@ router.get("/", async (req, res) => {
     res.json(images);
 });
 
-router.post("/", async (req, res, next) => {
-    try {
-        const image = await Image.create(req.body);
-        res.status(201).json(image);
-    } catch (e) {
-        next(e);
-    }
-});
-
 router.get("/:id", async (req, res, next) => {
     try {
         const product = await Product.findByPk(req.params.id, {
             include: Image
         });
         if (product ? res.json(product) : res.sendStatus(404));
+    } catch (e) {
+        next(e);
+    }
+});
+
+router.post("/", async (req, res, next) => {
+    try {
+        const image = await Image.create(req.body);
+        res.status(201).json(image);
     } catch (e) {
         next(e);
     }
@@ -70,6 +70,5 @@ router.put("/:id", async (req, res, next) => {
         next(e);
     }
 });
-
 
 module.exports = router;

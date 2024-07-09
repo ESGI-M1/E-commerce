@@ -27,7 +27,7 @@ module.exports = function (connection) {
       });
 
       User.addHook("afterUpdate", async (user, { fields }) => {
-        if (fields.includes("firstname") || fields.includes("lastname") || fields.includes("email") || fields.includes("role") || fields.includes("active")) {
+        if (fields.includes("firstname") || fields.includes("lastname") || fields.includes("email") || fields.includes("phone") || fields.includes("role") || fields.includes("active")) {
           await denormalizeUser(user, models);
         }
       });
@@ -61,6 +61,14 @@ module.exports = function (connection) {
         validate: {
           notEmpty: true,
           isEmail: true,
+        },
+      },
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          isNumeric: true,
+          regex: /^\+33[1-9]\d{8}$/g,
         },
       },
       password: {

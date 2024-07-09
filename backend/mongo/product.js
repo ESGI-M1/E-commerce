@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 module.exports = function (connection) {
   const ProductSchema = new mongoose.Schema(
     {
+      _id: Number,
       name: {
         type: String,
         required: true,
@@ -27,9 +28,6 @@ module.exports = function (connection) {
         type: String,
       },
       categories: Array,
-    },
-    {
-      timestamps: true,
     }
   );
 

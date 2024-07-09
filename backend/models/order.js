@@ -5,14 +5,22 @@ module.exports = function (connection) {
   class Order extends Model {
 
     static associate(models) {
+
       Order.belongsTo(models.User, {
         foreignKey: 'userId',
         as: 'user',
       });
+
+      models.User.hasMany(models.Order, {
+        foreignKey: 'userId',
+        as: 'orders',
+      });
+
       Order.hasMany(models.Cart, {
         foreignKey: 'orderId',
         as: 'carts',
       });
+      
       Order.belongsTo(models.AddressOrder, {
         foreignKey: 'deliveryMethod',
         as: 'addressOrder',

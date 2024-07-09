@@ -1,6 +1,6 @@
-const CategoryMongo = require("../../mongo/category");
+const { Category : CategoryMongo } = require("../../mongo");
 
-module.exports = async function (category, models) {
+module.exports = async function denormalizeCategory (category, models) {
     
     const { Category, Product } = models;
     const categoryDenormalized = await Category.findByPk(category.id, {
@@ -22,9 +22,7 @@ module.exports = async function (category, models) {
         ]
     });
 
-    console.log(categoryDenormalized.toJSON());
-
-    const categoryMongo = await CategoryMongo.findByIdAndUpdate(
+    await CategoryMongo.findByIdAndUpdate(
         category.id,
         categoryDenormalized.toJSON(),
         {

@@ -13,7 +13,10 @@
       <p>
         <strong>Email:</strong> {{ user.email }}
         <a @click="openeditEmailModal(user.email)"><i class="fa fa-edit edit-icon" ></i></a>
-
+      </p>
+      <p>
+        <strong>Numéro de téléphone:</strong> {{ user.phone }}
+        <a @click="openeditEmailModal(user.phone)"><i class="fa fa-edit edit-icon" ></i></a>
       </p>
 
       <div v-if="user.deliveryAddress && user.deliveryAddress.length > 0">

@@ -1,6 +1,6 @@
-const ProductMongo = require("../../mongo/product");
+const { Product : ProductMongo } = require("../../mongo");
 
-module.exports = async function (product, models) {
+module.exports = async function denormalizeProduct (product, models) {
 
     const { Product, Category } = models;
     const productDenormalized = await Product.findByPk(product.id, {
@@ -16,9 +16,7 @@ module.exports = async function (product, models) {
         ]
     });
 
-    console.log(productDenormalized.toJSON());
-
-    const productMongo = await ProductMongo.findByIdAndUpdate(
+    await ProductMongo.findByIdAndUpdate(
         product.id,
         productDenormalized.toJSON(),
         {

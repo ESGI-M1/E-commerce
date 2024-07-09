@@ -1,14 +1,11 @@
-const { create } = require('domain');
 const mongoose = require('mongoose'); 
 
 module.exports = function (connection) {
   const OrderSchema = new mongoose.Schema(
     {
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-        },
-        products: Array,
+        _id: Number,
+        user: Array,
+        carts: Array,
         totalAmount: {
             type: mongoose.Schema.Types.Decimal128,
             required: true,

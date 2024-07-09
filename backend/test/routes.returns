@@ -51,7 +51,7 @@ const getProduct = async () => {
 const getOrder = async () => {
 
   if (order) return order;
-  if (!addressOrder) getAddressOrder();
+  if (!addressOrder) await getAddressOrder();
 
   order = Order.create({
     totalAmount: 100,

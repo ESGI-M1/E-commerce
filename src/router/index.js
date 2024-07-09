@@ -30,7 +30,7 @@ import Users from '../views/admin/adminUsers.vue'
 import Promos from '../views/admin/adminPromos.vue'
 import Categories from '../views/admin/adminCategories.vue'
 import Ressources from '../views/admin/adminRessources.vue'
-import Locker from '../views/admin/adminLocker.vue'
+import Products from '../views/admin/adminProducts.vue'
 import Orders from '../views/admin/adminOrders.vue'
 import Returns from '../views/admin/adminReturns.vue'
 
@@ -155,9 +155,9 @@ const routes = [
     meta: { requiresAdmin: true }
   },
   {
-    path: '/locker',
+    path: '/products',
     name: 'Produits',
-    component: Locker,
+    component: Products,
     meta: { requiresAdmin: true }
   },
   {

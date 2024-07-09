@@ -5,7 +5,7 @@
       <div class="resource-item" @click="navigateTo('/users')">
         <h1>Utilisateurs</h1>
       </div>
-      <div class="resource-item" @click="navigateTo('/locker')">
+      <div class="resource-item" @click="navigateTo('/products')">
         <h1>Produits</h1>
       </div>
       <div class="resource-item" @click="navigateTo('/orders')">

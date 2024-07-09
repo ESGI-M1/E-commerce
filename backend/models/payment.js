@@ -55,6 +55,7 @@ module.exports = function (connection) {
       cardLast4: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue: '4242',
       },
       cardBrand: {
         type: DataTypes.STRING,

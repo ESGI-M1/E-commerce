@@ -36,7 +36,7 @@
         :key="item.i"
         :data-grid="item"
         :is="item.component"
-        :props="item.props" <!-- Passez les props au composant -->
+        :props="item.props"
         class="widget"
       ></vue-grid-layout-item>
     </vue-grid-layout>
@@ -47,14 +47,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import VueGridLayout, { GridLayoutItem } from 'vue-grid-layout';
-import ChartWidget from '../../../src/layout/dashboard/Chart.vue'; // Importez le composant de graphique
+import ChartWidget from '../../../src/layout/dashboard/Chart.vue';
 
-// Liste des widgets disponibles (y compris le widget de graphique)
 const widgets = [
   { i: 'widget1', x: 0, y: 0, w: 4, h: 4, component: 'WidgetA' },
   { i: 'widget2', x: 4, y: 0, w: 4, h: 4, component: 'WidgetB' },
   { i: 'widget3', x: 8, y: 0, w: 4, h: 4, component: 'WidgetC' },
-  { i: 'widget4', x: 0, y: 4, w: 12, h: 6, component: ChartWidget, props: { title: 'Graphique des Ventes' } }, // Utilisation du composant de graphique
+  { i: 'widget4', x: 0, y: 4, w: 12, h: 6, component: ChartWidget, props: { title: 'Graphique des Ventes' } },
 ];
 
 const router = useRouter();
@@ -63,7 +62,6 @@ const navigateTo = (route: string) => {
   router.push(route);
 };
 
-// Layout initial pour Vue Grid Layout
 const layout = ref(widgets.map((widget) => ({ ...widget })));
 
 </script>

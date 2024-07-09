@@ -101,13 +101,13 @@ const editMode = ref(false)
 const showAddEditForm = ref(false)
 
 const fetchPromos = async () => {
-  const response = await axios.get('http://localhost:3000/promos')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos`)
   promos.value = response.data
 }
 
 const handleSubmit = async () => {
   if (editMode.value) {
-    await axios.put(`http://localhost:3000/promos/${promo.value.id}`, promo.value)
+    await axios.put(`${import.meta.env.VITE_API_BASE_URL}/promos/${promo.value.id}`, promo.value)
     editMode.value = false
   } else {
     await addPromo()
@@ -117,12 +117,12 @@ const handleSubmit = async () => {
 }
 
 const addPromo = async () => {
-  const response = await axios.post('http://localhost:3000/promos', promo.value)
+  const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/promos`, promo.value)
   promos.value.push(response.data) // Ajouter le nouveau promo à la liste locale
 }
 
 const editPromo = async (promoId: number) => {
-  const response = await axios.put(`http://localhost:3000/promos/${promoId}`)
+  const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/promos/${promoId}`)
   promo.value = response.data
   editMode.value = true
   showAddEditForm.value = true

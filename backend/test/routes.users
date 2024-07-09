@@ -1,6 +1,6 @@
 let request = require('supertest');
 const { User } = require('../models');
-server = request('http://localhost:3000');
+const server = request('http://localhost:3000');
 
 describe('Utilisateurs routes', () => {
 

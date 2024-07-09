@@ -46,17 +46,6 @@ router.get("/search", async (req, res) => {
 
 });
 
-router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
-    try {
-        const { ...productData } = req.body;
-        const product = await Product.create(productData);
-
-        res.status(201).json(product);
-    } catch (e) {
-        next(e);
-    }
-});
-
 router.get("/:id", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);
@@ -69,6 +58,17 @@ router.get("/:id", async (req, res, next) => {
         });
 
         if (product ? res.json(product) : res.sendStatus(404));
+    } catch (e) {
+        next(e);
+    }
+});
+
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
+    try {
+        const { ...productData } = req.body;
+        const product = await Product.create(productData);
+
+        res.status(201).json(product);
     } catch (e) {
         next(e);
     }

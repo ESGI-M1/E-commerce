@@ -49,14 +49,13 @@ const login = () => {
       email: email.value,
       password: password.value
     })
-    .then(async (response) => {
+    .then(async () => {
       const temporaryId = localStorage.getItem('temporaryId')
       try {
         if (temporaryId) {
           const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
           const cartId = cartResponse.data[0].id;
             await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {
-              userId: response.data.id
             })
           
           await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)

@@ -122,18 +122,24 @@ const removePromo = async () => {
 }
 
 const applyPromoCode = async () => {
+  try {
   const response = await axios.post(
     `${import.meta.env.VITE_API_BASE_URL}/promos/${promoCode.value}/apply`,
     null,
-    { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
+    { params: { userId: authToken } }
   )
 
   if (response.data.success) {
     promo.value = response.data
     fetchCartItems()
     promoError.value = ''
-  } else {
-    promoError.value = response.data.error || 'Ce code promo a expiré.'
+  }
+} catch (error) {
+    if (error.response.status === 400) {
+        promoError.value = 'Ce code promo a expiré.'
+      } else {
+        promoError.value = 'Ce code promo n\'est pas valide.'
+      }
   }
 }
 
@@ -156,13 +162,22 @@ const fetchCartItems = async () => {
         carts.value = null;
         promo.value = null;
       }
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = ('0' + (date.getMonth() + 1)).slice(-2);
+        let day = ('0' + date.getDate()).slice(-2);
+        let formattedDate = `${year}-${month}-${day}`;
+
+      if (promo.value && promo.value.endDate < formattedDate) {
+        removePromo()
+        alert('Le code promo a expiré !')
+      }
     } catch (error) {
       carts.value = null;
       promo.value = null; 
     }
   }
 };
-
 
 const updateCartQuantity = async (id, quantity) => {
   if (quantity === 'remove') {

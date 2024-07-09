@@ -26,6 +26,10 @@ module.exports = function (connection) {
         as: 'addressOrder',
         allowNull: false,
       });
+      Order.hasOne(models.PaymentMethod, {
+        foreignKey: 'orderId',
+        as: 'paymentMethod',
+      });
     }
 
     static addHooks(models) {

@@ -81,7 +81,7 @@ interface ReturnProduct {
 const returnProducts = ref<ReturnProduct[]>([])
 
 const fetchReturnProducts = async () => {
-  const response = await axios.get('http://localhost:3000/return')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return`)
   returnProducts.value = response.data
 }
 
@@ -100,7 +100,7 @@ const formatReturnDate = (returnDate: string): string => {
 }
 
 const validate = async (id: number) => {
-  await axios.patch(`http://localhost:3000/return/${id}`)
+  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/return/${id}`)
   fetchReturnProducts()
 }
 

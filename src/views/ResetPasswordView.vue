@@ -51,7 +51,7 @@ const changePassword = () => {
     return
 
   axios
-    .post('http://localhost:3000/reset-password', {
+    .post(`${import.meta.env.VITE_API_BASE_URL}/reset-password`, {
       password: password.value,
       token: $route.params.token
     })

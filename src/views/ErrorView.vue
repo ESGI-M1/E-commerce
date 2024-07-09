@@ -42,7 +42,7 @@
   };
 
   onMounted(async () => {
-      await axios.delete(`http://localhost:3000/orders/${id.value}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/orders/${id.value}`);
       redirectToPayment();
   });
 </script>

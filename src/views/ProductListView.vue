@@ -7,8 +7,8 @@
       @click="showProductDetails(product.id)"
     >
       <img
-        :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'"
-        :alt="product.Images ? product.Images[0].description : product.name"
+        :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'"
+        :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name"
         class="product-image"
       />
       <div class="product-info">
@@ -31,7 +31,7 @@ const productsStore = useProductsStore()
 const router = useRouter()
 
 const fetchProducts = async () => {
-  const response = await axios.get('http://localhost:3000/products')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`)
   productsStore.products = response.data
 }
 

@@ -29,8 +29,8 @@
                 accept="image/*"
                 style="display: none"
               />
-              <img :src="product.Images ? product.Images[0].url : '../../produit_avatar.jpg'" 
-              :alt="product.Images ? product.Images[0].description : product.name" 
+              <img :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'" 
+              :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name" 
               class="product-image" 
               />
             </label>

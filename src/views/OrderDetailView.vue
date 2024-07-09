@@ -107,16 +107,11 @@ const isFutureDate = (dateStr: string) => {
   return date.getTime() > today.getTime();
 }
 
-const downloadInvoice = async (orderId) => {
+const downloadInvoice = async (orderId: number) => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/invoice/${orderId}`, {
-      responseType: 'blob',
-      headers: {
-        Authorization: `Bearer ${authToken}`
-      }
-    })
+    const invoice = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/stripe/invoice/${orderId}`)
 
-    const blob = new Blob([response.data], { type: 'application/pdf' })
+    const blob = new Blob([invoice.data], { type: 'application/pdf' })
     const url = window.URL.createObjectURL(blob)
 
     const link = document.createElement('a')

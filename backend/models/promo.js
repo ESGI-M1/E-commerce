@@ -31,9 +31,9 @@ module.exports = function(connection) {
         allowNull: false
       },
       discountPercentage: {
-        type: DataTypes.DECIMAL(5, 2),
+        type: DataTypes.INTEGER,
         allowNull: false
-      }
+    }    
     },
     {
       sequelize: connection,

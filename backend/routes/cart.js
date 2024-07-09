@@ -2,6 +2,7 @@ const { Router } = require("express");
 const { Cart, Product, User, CartProduct, Image, Category, AddressUser } = require("../models");
 const router = new Router();
 const crypto = require('crypto');
+const checkAuth = require("../middlewares/checkAuth");
 
 router.get("/", async (req, res) => {
   const cartItems = await Cart.findAll({ include: [{ model: Product, as: 'product' }] });
@@ -83,7 +84,7 @@ router.post("/", async (req, res, next) => {
     let user = await User.findByPk(parseInt(userId));
 
     if (!user) {
-      const tempPassword = generateRandomPassword(12);
+      const tempPassword = generateRandomPassword(15);
       user = await User.create({
         id: parseInt(userId),
         firstname: 'Temp',
@@ -173,9 +174,9 @@ router.patch("/update-order/:cartId", async (req, res, next) => {
   }
 });
 
-router.patch("/update-user/:cartId", async (req, res, next) => {
+router.patch("/update-user/:cartId", checkAuth, async (req, res, next) => {
   const cartId = parseInt(req.params.cartId);
-  const userId = parseInt(req.body.userId);
+  const userId = req.user.id;
 
   try {
     const cart = await Cart.findByPk(cartId, { include: 'CartProducts' });

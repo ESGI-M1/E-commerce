@@ -1,8 +1,6 @@
 const { Router } = require("express");
 const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder } = require("../models");
 const router = new Router();
-const { PDFDocument } = require('pdf-lib');
-const { format } = require('date-fns');
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
 
@@ -120,7 +118,7 @@ router.get('/:id', checkAuth, async (req, res, next) => {
           as: 'promoCode',
         }
       ]
-    });      
+    });
 
     const order = await Order.findOne({
       where: {
@@ -237,42 +235,6 @@ router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
       res.json(ordersWithCarts);
   } catch (e) {
       next(e);
-  }
-});
-
-// Télécharger la facture PDF
-router.get('/invoice/:orderId', async (req, res, next) => {
-  const orderId = parseInt(req.params.orderId);
-  
-  try {
-    const order = await Order.findByPk(orderId);
-  
-    if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
-  
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage();
-  
-    page.setFontSize(20);
-    page.drawText(`Invoice for Order ${order.id}`, {
-      x: 50,
-      y: 700,
-      size: 20,
-    });
-  
-    page.setFontSize(12);
-    page.drawText(`Date: ${format(order.createdAt, 'dd/MM/yyyy')}`, {
-      x: 50,
-      y: 650,
-      size: 12,
-    });
-  
-    const pdfBytes = await pdfDoc.save();
-  
-    res.setHeader('Content-Type', 'application/pdf');
-    res.send(pdfBytes);
-  
-  } catch (e){
-    next(e);
   }
 });
 

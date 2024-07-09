@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod } = require("../models");
 const router = new Router();
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
@@ -120,6 +120,13 @@ router.get('/:id', checkAuth, async (req, res, next) => {
       ]
     });
 
+    const payment = await PaymentMethod.findOne({
+      where: {
+        orderId: req.params.id,
+        userId: req.user.id
+      },
+    });
+
     const order = await Order.findOne({
       where: {
         id: req.params.id,
@@ -140,7 +147,8 @@ router.get('/:id', checkAuth, async (req, res, next) => {
 
     if (!order || !cart) return res.status(404).json({ error: 'Commande ou panier non trouvé' });
     
-    order.dataValues.Cart = cart;
+    order.dataValues.cart = cart;
+    order.dataValues.payment = payment;
 
     res.json(order);
   } catch (error) {

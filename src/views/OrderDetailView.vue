@@ -6,6 +6,11 @@
         Télécharger ma facture
       </button>
       <p v-if="order">Date de la commande: {{ formatDate(order.createdAt) }}</p>
+      <p class="payment-details" v-if="order && order.payment">
+        Paiement effectué via <span>{{ order.payment.method }}</span>, 
+        <span>{{ order.payment.currency }}</span>, 
+        <small><span>**** **** **** {{ order.payment.cardLast4 }}</span></small>
+      </p>
     </header>
     <div v-if="order" class="order-details">
       <h2>Détails de la commande</h2>
@@ -23,7 +28,7 @@
         <p :class="['order-status', order.status]">{{ order.status }}</p>
       </div>
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
-      <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
+      <div v-for="cartProduct in order.cart.CartProducts" :key="cartProduct.id" class="cart-item">
         <div v-if="cartProduct.product" class="product-image-container">
           <img :src="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].url : 
                   '../../produit_avatar.jpg'" 
@@ -42,12 +47,12 @@
           <p>Quantité: {{ cartProduct.quantity }}</p>
         </div>
         <div class="order-actions">
-          <div v-if="order.Cart.promoCode">
+          <div v-if="order.cart.promoCode">
             <div class="first-price">
               <p class="old-price">{{ cartProduct.product.price }} €</p>
-              <span class="discount">(-{{ order.Cart.promoCode.discountPercentage }}%)</span>
+              <span class="discount">(-{{ order.cart.promoCode.discountPercentage }}%)</span>
             </div>
-            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.Cart.promoCode.discountPercentage) }} €</p>
+            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.cart.promoCode.discountPercentage) }} €</p>
           </div>
           <p v-else class="new-price">{{ cartProduct.product.price }} €</p>
           <button @click="addToCart(cartProduct.product.id, 1)" class="btn-details">Commander à nouveau</button>
@@ -79,7 +84,7 @@ const fetchOrder = async () => {
       })
       order.value = response.data
 
-      for (const cart of order.value.Cart.CartProducts) {
+      for (const cart of order.value.cart.CartProducts) {
         const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.product.id}`, {
           params: {
             orderId: orderId.value,
@@ -90,6 +95,7 @@ const fetchOrder = async () => {
           cart.product.returned = returnProduct.data
         }
       }
+      console.log(order.value)
     }
 }
 
@@ -314,4 +320,24 @@ onMounted(() => {
     align-items: flex-start;
   }
 }
+
+.payment-details {
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+.payment-details span {
+  margin-right: 10px;
+  /* Pour espacer les éléments */
+}
+
+.payment-details span:last-child {
+  margin-right: 0;
+  /* Pour enlever la marge à droite du dernier élément */
+}
+
 </style>

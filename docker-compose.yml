@@ -85,6 +85,28 @@ services:
     volumes:
       - ./serv/fail2ban:/config
 
+  samba:
+    image: dperson/samba
+    environment:
+      TZ: 'Europe/Paris'
+    networks:
+      - default
+    ports:
+      - "139:139/tcp"
+      - "445:445/tcp"
+    read_only: false
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./:/projet:z
+    command: '-s "projet;/projet;yes;no;no;damien,jules,melvin" 
+              -u "damien;damien" 
+              -u "jules;jules" 
+              -u "melvin;melvin" -p'
+
   adminer:
     image: adminer
     ports:

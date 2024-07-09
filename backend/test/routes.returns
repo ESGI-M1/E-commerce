@@ -1,0 +1,135 @@
+let request = require('supertest');
+const server = request('http://localhost:3000');
+const { ReturnProduct, User, Order, Product, AddressOrder } = require('../models');
+let user;
+let product;
+let order;
+let addressOrder;
+
+const getUser = async () => {
+
+  if (user) return user;
+
+  user = User.create({
+    firstname: 'John',
+    lastname: 'Doe',
+    email: 'zorglux+addressusers@zorglux.com',
+    password: 'Password123254369!',
+  });
+
+  return user;
+};
+
+const getAddressOrder = async () => {
+
+  if (addressOrder) return addressOrder;
+
+  addressOrder = AddressOrder.create({
+    userId: getUser().id,
+    street: '123 rue de la rue',
+    city: 'Paris',
+    postalCode: '75000',
+    country: 'France',
+  });
+
+  return addressOrder;
+};
+
+const getProduct = async () => {
+
+  if (product) return product;
+
+  product = Product.create({
+    name: 'Itachi',
+    reference: '123456',
+    price: 100,
+  });
+
+  return product;
+};
+
+const getOrder = async () => {
+
+  if (order) return order;
+  if (!addressOrder) getAddressOrder();
+
+  order = Order.create({
+    totalAmount: 100,
+    status: 'pending',
+    deliveryDate: new Date(),
+    deliveryMethod: addressOrder.id,
+  });
+
+  return order;
+};
+
+describe('Retour routes', () => {
+  it('should create a new return product', async () => {
+    if(!user) getUser();
+    if(!product) getProduct();
+    if(!order) getOrder();
+
+    const response = await server
+      .post('/return')
+      .send({
+        userId: user.id,
+        orderId: order.id,
+        productId: product.id,
+        quantityReturned: 1,
+        reason: 'Defective',
+        deliveryMethod: 'Mail'
+      })
+      .expect(201);
+
+    expect(response.body.userId).toEqual(user.id);
+    expect(response.body.orderId).toEqual(order.id);
+    expect(response.body.productId).toEqual(product.id);
+    expect(response.body.quantity).toEqual(1);
+    expect(response.body.reason).toEqual('Defective');
+  });
+
+  it('should delete a return product', async () => {
+    if(!user) getUser();
+
+    const returnProduct = ReturnProduct.create({
+      userId: user.id,
+      orderId: 2,
+      productId: 2,
+      quantity: 1,
+      reason: 'Defective',
+      deliveryMethod: 'Mail'
+    });
+
+    const response = await server
+      .delete(`/return`)
+      .query({
+        userId: user.id,
+        orderId: returnProduct.orderId,
+        productId: returnProduct.productId
+      })
+      .expect(200);
+
+    const deletedReturnProduct = ReturnProduct.findByPk(returnProduct.id);
+    expect(deletedReturnProduct).toBeNull();
+  });
+
+  it('should update the status of a return product', async () => {
+    const returnProduct = ReturnProduct.create({
+      userId: 3,
+      orderId: 3,
+      productId: 3,
+      quantity: 1,
+      reason: 'Defective',
+      deliveryMethod: 'Mail',
+      status: 'pending'
+    });
+
+    const response = await server
+      .patch(`/return/${returnProduct.id}`)
+      .send({ status: 'returned' })
+      .expect(200);
+
+    const updatedReturnProduct = ReturnProduct.findByPk(returnProduct.id);
+    expect(updatedReturnProduct.status).toEqual('returned');
+  });
+});

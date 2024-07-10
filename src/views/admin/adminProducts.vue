@@ -49,7 +49,10 @@
           </td>
           <td>
             <div class="flex">
-            <a @click="showEditProductModal(product)" class="a-primary">
+            <a @click="showEditProductModal(product)" class="a-primary" title="Modifier">
+              <i class="fa fa-edit"></i>
+            </a>
+            <a :href="'/product_variants/' + product.id" class="a-primary" title="Modifier les déclinaisons">
               <i class="fa fa-edit"></i>
             </a>
             &nbsp;

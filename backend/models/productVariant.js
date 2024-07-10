@@ -5,6 +5,7 @@ module.exports = function(connection) {
     class ProductVariant extends Model {
         static associate(models) {
             ProductVariant.belongsTo(models.Product, { foreignKey: 'productId', as: 'product' });
+            ProductVariant.hasMany(models.ProductVariantDetail, { foreignKey: 'productVariantId', as: 'productVariantDetails' });
         }
     }
 

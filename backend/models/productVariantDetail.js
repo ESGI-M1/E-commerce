@@ -27,7 +27,6 @@ module.exports = function(connection) {
             variantOptionId: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-                defaultValue: 1,
                 validate: {
                     notEmpty: true,
                 },
@@ -35,7 +34,6 @@ module.exports = function(connection) {
             variantValueId: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-                defaultValue: 1,
                 validate: {
                     notEmpty: true,
                 },

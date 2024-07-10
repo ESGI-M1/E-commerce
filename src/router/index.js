@@ -31,6 +31,7 @@ import Promos from '../views/admin/adminPromos.vue'
 import Categories from '../views/admin/adminCategories.vue'
 import Ressources from '../views/admin/adminRessources.vue'
 import Products from '../views/admin/adminProducts.vue'
+import ProductVariants from '../views/admin/adminProductVariants.vue'
 import Orders from '../views/admin/adminOrders.vue'
 import Returns from '../views/admin/adminReturns.vue'
 
@@ -158,6 +159,12 @@ const routes = [
     path: '/products',
     name: 'Produits',
     component: Products,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/product_variants/:id',
+    name: 'Déclinaisons du produit',
+    component: ProductVariants,
     meta: { requiresAdmin: true }
   },
   {

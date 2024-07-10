@@ -26,6 +26,7 @@ import Error from '../views/ErrorView.vue'
 import Livraison from '../views/OrderLivraisonView.vue'
 
 //Admin
+import Dashboard from '../views/admin/adminDashboard.vue'
 import Users from '../views/admin/adminUsers.vue'
 import Promos from '../views/admin/adminPromos.vue'
 import Categories from '../views/admin/adminCategories.vue'

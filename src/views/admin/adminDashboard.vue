@@ -1,42 +1,69 @@
 <template>
 
     <h1>Tableau de bord</h1>
-    <GridLayout v-model:layout="layout" :row-height="40">
+    <GridLayout v-model:layout="userDashboard" :row-height="40">
         <template #item="{ item }">
-            <span class="text">{{ `${item.i}${item.static ? '- Static' : ''}` }}</span>
+            <ChartWidget v-if="item.type === 'Chart'" :title="item.title" :values="item.data" :labels="item.labels"/>
         </template>
     </GridLayout>
+
+    <button @click="saveDashboard">Sauvegarder</button>
+
+    <div>
+      <a @click="showAddWidget = !showAddWidget">
+        <i class="fa fa-plus"></i>
+      </a>
+
+      <div v-if="showAddWidget">
+          toto
+      </div>
+    </div>
+
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue';
+import z from 'zod';
+import axios from '../../axios';
+import { useUserStore } from '@/store/user';
 
 import { GridLayout, GridItem } from 'grid-layout-plus'
 import ChartWidget from '../../../src/layout/dashboard/Chart.vue';
+import FancyConfirm from '../components/ConfirmComponent.vue';
+
+const userStore = useUserStore()
+const showAddWidget = ref(false);
+const enumType = ["Chart", "Table", "Text"];
+const widget = z.object({
+  x: z.number(),
+  y: z.number(),
+  w: z.number(),
+  h: z.number(),
+  i: z.string(),
+  type: z.enum(enumType),
+  labels: z.array(z.string()),
+  data: z.array(z.number()),
+})
+const userDashboard = ref([]);
 
 
-const layout = reactive([
-  { x: 0, y: 0, w: 2, h: 2, i: '0', static: false },
-  { x: 2, y: 0, w: 2, h: 4, i: '1', static: true },
-  { x: 4, y: 0, w: 2, h: 5, i: '2', static: false },
-  { x: 6, y: 0, w: 2, h: 3, i: '3', static: false },
-  { x: 8, y: 0, w: 2, h: 3, i: '4', static: false },
-  { x: 10, y: 0, w: 2, h: 3, i: '5', static: false },
-  { x: 0, y: 5, w: 2, h: 5, i: '6', static: false },
-  { x: 2, y: 5, w: 2, h: 5, i: '7', static: false },
-  { x: 4, y: 5, w: 2, h: 5, i: '8', static: false },
-  { x: 6, y: 3, w: 2, h: 4, i: '9', static: true },
-  { x: 8, y: 4, w: 2, h: 4, i: '10', static: false },
-  { x: 10, y: 4, w: 2, h: 4, i: '11', static: false },
-  { x: 0, y: 10, w: 2, h: 5, i: '12', static: false },
-  { x: 2, y: 10, w: 2, h: 5, i: '13', static: false },
-  { x: 4, y: 8, w: 2, h: 4, i: '14', static: false },
-  { x: 6, y: 8, w: 2, h: 4, i: '15', static: false },
-  { x: 8, y: 10, w: 2, h: 5, i: '16', static: false },
-  { x: 10, y: 4, w: 2, h: 2, i: '17', static: false },
-  { x: 0, y: 9, w: 2, h: 3, i: '18', static: false },
-  { x: 2, y: 6, w: 2, h: 2, i: '19', static: false }
+userDashboard.value = reactive([
+  { x: 0, y: 0, w: 3, h: 3, i: '0', type: 'Chart', labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'], data: [65, 59, 80, 81, 56, 55, 40] , title:"Commandes"},
+  { x: 3, y: 0, w: 3, h: 3, i: '1'},
+  { x: 6, y: 0, w: 3, h: 3, i: '2'}
 ])
+
+const saveDashboard = async () => {
+  userStore.patch(userDashboard);
+}
+
+const fetchDashboard = async () => {
+  return await userStore.getDashboard;
+}
+
+onMounted(() => {
+  fetchDashboard();
+})
 
 
 </script>

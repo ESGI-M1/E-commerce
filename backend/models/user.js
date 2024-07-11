@@ -19,6 +19,11 @@ module.exports = function (connection) {
           user.password = await bcrypt.hash(user.password, await bcrypt.genSalt(10));
           user.lastPasswordUpdate = Date.now();
         }
+
+        if(options.fields.includes("dashboard") && user.role !== 'admin') {
+          user.dashboard = null;
+        }
+
       });
 
       User.addHook("afterCreate", async (user) => {
@@ -90,6 +95,10 @@ module.exports = function (connection) {
         type: DataTypes.ENUM("user", "admin", "temp", "store"),
         allowNull: false,
         defaultValue: "user",
+      },
+      dashboard: {
+        type: DataTypes.JSON,
+        allowNull: true,
       },
       lastPasswordUpdate: {
         type: DataTypes.DATE

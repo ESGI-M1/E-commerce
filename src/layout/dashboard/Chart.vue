@@ -1,58 +1,32 @@
 <template>
-    <div>
-      <h3>{{ title }}</h3>
-      <canvas ref="chartCanvas"></canvas>
-    </div>
-  </template>
+  <div>
+    <Bar :data="data" :options="options"/>
+  </div>
+</template>
   
-  <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
-  import { Chart, ChartConfiguration, LineController, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip } from 'chart.js';
-  
-  Chart.register(LineController, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip);
+<script setup lang="ts">
+  import { Chart as ChartJS, BarElement,  Tooltip, Legend, Colors, CategoryScale, LinearScale } from 'chart.js'
+  import { Bar } from 'vue-chartjs'
   
   const props = defineProps<{
     title: string;
+    labels: array;
+    values: array
   }>()
   
-  const chart = ref<Chart | null>(null);
-  
+  const options = {
+    responsive: true,
+  }
+
   const data = {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    labels: props.labels,
     datasets: [{
-      label: 'Sales',
-      data: [65, 59, 80, 81, 56, 55, 40],
-      fill: false,
-      borderColor: 'rgb(75, 192, 192)',
-      tension: 0.1
+      label: props.title,
+      data: props.values,
     }]
   };
   
-  const chartConfig: ChartConfiguration = {
-    type: 'line',
-    data: data,
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  };
+  ChartJS.register(BarElement, Tooltip, Legend, Colors, CategoryScale, LinearScale)
   
-  onMounted(() => {
-    if (chart.value) {
-      chart.value.destroy();
-    }
-    chart.value = new Chart($refs.chartCanvas, chartConfig);
-  });
-  
-  </script>
-  
-  <style scoped>
-  canvas {
-    width: 100%;
-    height: 300px;
-  }
-  </style>
+</script>
   

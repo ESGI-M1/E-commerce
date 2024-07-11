@@ -20,14 +20,6 @@ module.exports = function (connection) {
 
     Cart.init(
         {
-            userId: {
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                references: {
-                    model: 'Users',
-                    key: 'id',
-                },
-            },
             promoCodeId: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
@@ -36,11 +28,18 @@ module.exports = function (connection) {
                     key: 'id',
                 },
             },
+            createdAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              },
+            updatedAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+            }
         },
         {
             sequelize: connection,
-            modelName: 'Cart',
-            tableName: 'carts',
+            timestamps: true,
         }
     );
 

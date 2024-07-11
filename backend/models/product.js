@@ -1,5 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
-const productMongo = require("../dtos/denormalization/productMongo");
+const denormalizeProduct = require("../dtos/denormalization/product");
 
 module.exports = function(connection) {
     class Product extends Model {
@@ -16,17 +16,21 @@ module.exports = function(connection) {
         }
 
         static addHooks(models) {
-            /*
+            
             Product.addHook("afterCreate", (product) =>
-                productMongo(product.id, models.Category, models.Product)
+                denormalizeProduct(product, models)
             );
-            Product.addHook("afterUpdate", (product) =>
-                productMongo(product.id, models.Category, models.Product)
-            );
+
+            Product.addHook("afterUpdate", (product, { fields }) => {
+                if (fields.includes("active") || fields.includes("price") || fields.includes("name") || fields.includes("description") || fields.includes("reference")) {
+                    denormalizeProduct(product, models);
+                }
+            });
+
             Product.addHook("afterDestroy", (product) =>
-                productMongo(product.id, models.Category, models.Product, true)
+                denormalizeProduct(product, models)
             );
-            */
+            
         }
     }
 
@@ -77,7 +81,12 @@ module.exports = function(connection) {
                 defaultValue: DataTypes.NOW,
             }
         },
-        { sequelize: connection }
+        {
+            sequelize: connection,
+            modelName: 'Product',
+            tableName: 'Products',
+            timestamps: true,
+        }
     );
 
     return Product;

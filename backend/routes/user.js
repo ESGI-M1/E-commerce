@@ -13,8 +13,48 @@ router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
     res.json(users);
 });
 
+router.get("/details", checkAuth, async (req, res) => {
+
+  const userId = req.user.id;
+
+  if(!userId || userId !== req.user.id && req.user.role !== 'admin') return res.sendStatus(403);
+
+  const addresses = await AddressUser.findAll({
+    where: { userId: userId },
+  });
+
+  const user = await User.findByPk(userId);
+
+  if (!user) {
+    return res.sendStatus(404);
+  }
+  user.dataValues.deliveryAddress = addresses;
+  res.json(user);
+});
+
+router.get("/:id", checkAuth, async (req, res, next) => {
+  try{
+    const id = parseInt(req.params.id);
+
+    if(!id) return res.sendStatus(400);
+
+    if(id !== req.user.id && req.user.role !== 'admin') return res.sendStatus(403);
+  
+    const user = await User.findByPk(id);
+    if (user) {
+      res.json(user);
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (e) {
+    next(e);
+  }
+
+});
+
 router.post("/", async (req, res, next) => {
   try {
+
     if(req.body.role && req.body.role === 'admin') return res.status(401).send('Unauthorized');
 
     const user = await User.create(req.body);
@@ -28,25 +68,6 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-
-router.get("/details", checkAuth, async (req, res) => {
-
-    const userId = req.user.id;
-
-    if(!userId || userId !== req.user.id && req.user.role !== 'admin') return res.sendStatus(403);
-
-    const addresses = await AddressUser.findAll({
-      where: { userId: userId },
-    });
-
-    const user = await User.findByPk(userId);
-
-    if (!user) {
-      return res.sendStatus(404);
-    }
-    user.dataValues.deliveryAddress = addresses;
-    res.json(user);
-});
 
 router.patch("/:id", checkAuth, async (req, res, next) => {
   try {

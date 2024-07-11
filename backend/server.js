@@ -19,6 +19,9 @@ const StripeRouter = require("./stripe/stripe");
 const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
+const StatsRouter = require("./routes/stats");
+
+//const migrate = require("./migrate");
 
 const app = express();
 const cors = require('cors')
@@ -49,6 +52,7 @@ app.use('/stripe', StripeRouter);
 app.use('/paypal', PaypalRouter);
 app.use('/addressorders', AddressOrderRouter);
 app.use('/addressusers', AddressUserRouter);
+app.use('/stats', StatsRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

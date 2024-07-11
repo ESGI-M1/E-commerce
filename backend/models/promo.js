@@ -38,6 +38,7 @@ module.exports = function(connection) {
     {
       sequelize: connection,
       modelName: 'PromoCode',
+      timestamps: true,
     }
   );
 

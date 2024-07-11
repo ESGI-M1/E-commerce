@@ -3,7 +3,9 @@ import { ref, computed } from 'vue'
 import { z } from 'zod'
 import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
-import Cookies from 'js-cookie'
+import { useUserStore } from '@/store/user'
+
+const userStore = useUserStore()
 
 const email = ref('')
 const password = ref('')
@@ -30,10 +32,6 @@ const passwordError = computed(() => {
   }
 
   return parsedPassword.error.issues[0].message
-})
-
-const isAuthenticated = computed(() => {
-  return Cookies.get('USER') !== undefined
 })
 
 const login = () => {
@@ -78,7 +76,7 @@ const login = () => {
 <template>
   <div class="login auth-form">
     <h1>Connexion</h1>
-    <form @submit.prevent="login" v-if="!isAuthenticated">
+    <form @submit.prevent="login" v-if="!userStore.isAuthenticated">
       <div>
         <label for="email">Email</label>
         <input type="email" placeholder="Email" v-model="email" required />

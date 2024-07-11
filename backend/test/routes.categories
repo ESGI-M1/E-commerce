@@ -1,0 +1,139 @@
+const request = require('supertest');
+const { Category, Product, User } = require('../models');
+const server = request('http://localhost:3000');
+
+let cookie;
+let user;
+
+const getUser = async () => {
+    if (user) return user;
+  
+    user = User.create({
+      firstname: 'John',
+      lastname: 'Doe',
+      email: 'admin@zorglux.com',
+      password: 'Password123254369!',
+      role: 'admin'
+    });
+  
+    return user;
+  };
+
+  const getCookie = async () => {
+
+    if(!user) await getUser();
+  
+    if (cookie) return cookie;
+  
+    const loginResponse = await server
+      .post('/login')
+      .send({
+        email: user.email,
+        password: 'Password123254369!',
+      })
+      .expect(200);
+  
+    cookie = loginResponse.headers['set-cookie'];
+  
+    return cookie;
+  
+  }
+
+beforeAll(async () => {
+    cookie = getCookie();
+});
+
+describe('Category routes', () => {
+
+  it('should create a new category', async () => {
+    const newCategory = {
+      name: 'Electronics',
+      slug: 'electronics',
+      description: 'All kinds of electronic items',
+    };
+
+    const response = await server
+      .post('/categories')
+      .send(newCategory)
+      .expect(201);
+
+    expect(response.body.name).toBe(newCategory.name);
+    expect(response.body.description).toBe(newCategory.description);
+  });
+
+  it('should update a category with products', async () => {
+    const category = Category.create({
+      name: 'Home Appliances',
+      description: 'Appliances for home use',
+    });
+
+    const product1 = Product.create({
+      name: 'Washing Machine',
+      reference: 'WM123',
+      price: 500,
+      active: true,
+      description: 'Efficient washing machine',
+    });
+
+    const product2 = Product.create({
+      name: 'Refrigerator',
+      reference: 'RF456',
+      price: 800,
+      active: true,
+      description: 'Large refrigerator',
+    });
+
+    const response = await server
+      .patch(`/categories/${category.id}`)
+      .set('Cookie', cookie)
+      .send({
+        name: 'Updated Home Appliances',
+        Products: [product1.id, product2.id],
+      })
+      .expect(200);
+
+    expect(response.body.name).toBe('Updated Home Appliances');
+    const updatedCategory = Category.findByPk(category.id, { include: Product });
+    expect(updatedCategory.Products.length).toBe(2);
+  });
+
+  it('should delete a category', async () => {
+    const category = Category.create({
+      name: 'Temporary Category',
+      description: 'This category will be deleted',
+    });
+
+    await server
+      .delete(`/categories/${category.id}`)
+      .set('Cookie', cookie)
+      .expect(204);
+
+    const deletedCategory = Category.findByPk(category.id);
+    expect(deletedCategory).toBeNull();
+  });
+
+  it('should replace a category', async () => {
+    const category = Category.create({
+      name: 'Old Category',
+      description: 'This category will be replaced',
+    });
+
+    const newCategoryData = {
+      name: 'New Category',
+      description: 'This is the new category',
+    };
+
+    const response = await server
+      .put(`/categories/${category.id}`)
+      .set('Cookie', cookie)
+      .send(newCategoryData)
+      .expect(200);
+
+    expect(response.body.name).toBe(newCategoryData.name);
+    expect(response.body.description).toBe(newCategoryData.description);
+
+    const replacedCategory = Category.findByPk(category.id);
+    expect(replacedCategory.name).toBe(newCategoryData.name);
+  });
+
+});

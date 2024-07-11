@@ -3,7 +3,9 @@ import { ref, computed } from 'vue'
 import { z } from 'zod'
 import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
-import Cookies from 'js-cookie'
+import { useUserStore } from '@/store/user'
+
+const userStore = useUserStore()
 
 const email = ref('')
 const password = ref('')
@@ -37,10 +39,6 @@ const passwordError = computed(() => {
   return parsedPassword.error.issues[0].message
 })
 
-const isAuthenticated = computed(() => {
-  return Cookies.get('USER') !== undefined
-})
-
 const login = () => {
   if (
     !emailSchema.safeParse(email.value).success ||
@@ -54,14 +52,13 @@ const login = () => {
       email: email.value,
       password: password.value
     })
-    .then(async (response) => {
+    .then(async () => {
       const temporaryId = localStorage.getItem('temporaryId')
       try {
         if (temporaryId) {
           const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
           const cartId = cartResponse.data[0].id;
             await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {
-              userId: response.data.id
             })
           
           await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
@@ -89,7 +86,7 @@ const login = () => {
 <template>
   <div class="login auth-form">
     <h1>Connexion</h1>
-    <form @submit.prevent="login" v-if="!isAuthenticated">
+    <form @submit.prevent="login" v-if="!userStore.isAuthenticated">
       <div>
         <label for="email">Email</label>
         <input type="email" placeholder="Email" v-model="email" required />

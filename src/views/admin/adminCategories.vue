@@ -145,19 +145,18 @@ const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchCategories = async () => {
-  const response = await axios.get('http://localhost:3000/categories')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
   categories.value = response.data
-  console.log(categories.value)
 }
 
 const fetchProducts = async () => {
-  const response = await axios.get('http://localhost:3000/products')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`)
   products.value = response.data
 }
 
 const addCategory = async () => {
     const parsedCategory = categorySchema.parse(currentCategory.value)
-    const response = await axios.post('http://localhost:3000/categories', parsedCategory)
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
     categories.value.push(response.data)
     closeModal()
 }
@@ -165,7 +164,7 @@ const addCategory = async () => {
 const updateCategory = async () => {
   const parsedCategory = categorySchema.parse(currentCategory.value)
   await axios.patch(
-    `http://localhost:3000/categories/${currentCategory.value.id}`,
+    `${import.meta.env.VITE_API_BASE_URL}/categories/${currentCategory.value.id}`,
     parsedCategory
   )
   const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
@@ -176,7 +175,7 @@ const updateCategory = async () => {
 }
 
 const deleteCategory = async (category: Category) => {
-  await axios.delete(`http://localhost:3000/categories/${category.id}`)
+  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
   categories.value = categories.value.filter((cat) => cat.id !== category.id)
 }
 

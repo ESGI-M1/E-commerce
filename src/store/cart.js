@@ -27,7 +27,7 @@ export const useCartStore = defineStore('cart', {
     },
     async fetchCartItems() {
       try {
-        const response = await axios.get('http://localhost:3000/cart', {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/cart`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }

@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const rateLimiter = require('./rateLimiter');
 
 const checkAuth = require("./middlewares/checkAuth");
 
@@ -15,12 +16,12 @@ const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
-const rateLimiter = require('./rateLimiter');
 const AlertesRouter = require("./routes/alerteUser")
 const NewsLetterRouter = require("./routes/newLetter");
 const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
+const StatsRouter = require("./routes/stats");
 
 //const migrate = require("./migrate");
 
@@ -50,11 +51,12 @@ app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
-app.use('/adressorders', AddressOrderRouter);
-app.use('/adressusers', AddressUserRouter);
 app.use('/alertes', AlertesRouter);
 app.use('/newsletters', NewsLetterRouter);
 app.use('/paypal', PaypalRouter);
+app.use('/addressorders', AddressOrderRouter);
+app.use('/addressusers', AddressUserRouter);
+app.use('/stats', StatsRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

@@ -94,6 +94,17 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
+    try {
+        const { ...productData } = req.body;
+        const product = await Product.create(productData);
+
+        res.status(201).json(product);
+    } catch (e) {
+        next(e);
+    }
+});
+
 router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;

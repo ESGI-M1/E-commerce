@@ -1,0 +1,155 @@
+const request = require('supertest');
+const { User, Cart, CartProduct, Order, AddressOrder, Product } = require('../models');
+const server = request('http://localhost:3000');
+
+let user;
+let cookie;
+let addressOrder;
+let order;
+let cart;
+
+const getUser = async () => {
+  if (user) return user;
+
+  user = User.create({
+    firstname: 'John',
+    lastname: 'Doe',
+    email: 'zorglux+addressusers@zorglux.com',
+    password: 'Password123254369!',
+  });
+
+  return user;
+};
+
+const getAddressOrder = async () => {
+
+    if (addressOrder) return addressOrder;
+  
+    addressOrder = AddressOrder.create({
+      userId: getUser().id,
+      street: '123 rue de la rue',
+      city: 'Paris',
+      postalCode: '75000',
+      country: 'France',
+    });
+  
+    return addressOrder;
+  };
+  
+  const getOrder = async () => {
+  
+    if (order) return order;
+    if (!addressOrder) await getAddressOrder();
+  
+    order = Order.create({
+      totalAmount: 100,
+      status: 'pending',
+      deliveryDate: new Date(),
+      deliveryMethod: addressOrder.id,
+    });
+  
+    return order;
+  };
+
+const getCookie = async () => {
+
+    if(!user) await getUser();
+  
+    if (cookie) return cookie;
+  
+    const loginResponse = await server
+      .post('/login')
+      .send({
+        email: user.email,
+        password: 'Password123254369!',
+      })
+      .expect(200);
+  
+    cookie = loginResponse.headers['set-cookie'];
+  
+    return cookie;
+  
+  }
+
+  const getCart = async () => {
+    if (cart) return cart;
+
+     cart = Cart.create({
+        orderId: order.id,
+        user
+    });
+
+    return cart;
+  };
+
+beforeAll(async () => {
+  user = getUser();
+  cookie = getCookie();
+  order = getOrder();
+  cart = getCart();
+});
+
+describe('Cart routes', () => {
+
+  it('should add a product to the cart', async () => {
+    const product = Product.create({
+      name: 'Product',
+      reference: '123456',
+      price: 100,
+      active: true,
+      description: 'Product description',
+    });
+  
+    const response = await server
+      .post('/carts')
+      .send({ userId: user.id, productId: product.id })
+      .expect(200);
+  
+    expect(response.body.message).toBe('Product added to cart');
+  
+    const cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, productId: product.id } });
+  
+    expect(cartProduct).toBeDefined();
+    expect(cartProduct.quantity).toBe(1); // Vérifiez que la quantité est correcte
+  });  
+
+  it('should update a cart with orderId', async () => {
+   let order2 = Order.create({
+        totalAmount: 100,
+        status: 'pending',
+        deliveryDate: new Date(),
+        deliveryMethod: addressOrder.id,
+      });
+
+    const response = await server
+      .patch(`/carts/update-order/${cart.id}`)
+      .send(order2.id)
+      .expect(200);
+
+    expect(response.body.id).toBe(cart.id);
+    expect(response.body.orderId).toBe(order2.id);
+  });
+
+  it('should update a cart for the user', async () => {
+    const response = await server
+      .patch(`/carts/update-user/${cart.id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+
+    expect(response.body.message).toBe('Cart order updated successfully');
+  });
+
+  it('should delete a cart item', async () => {
+    const response = await server
+      .delete(`/carts/${cart.id}`)
+      .send({ userId: user.id })
+      .expect(204);
+  });
+
+  it('should remove promo code from cart', async () => {
+    const response = await server
+      .post('/carts/remove-promo')
+      .send({ userId: user.id, cartIds: [cart.id] })
+      .expect(200);
+  });
+});

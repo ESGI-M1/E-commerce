@@ -1,13 +1,14 @@
 <template>
+      <Sidebar />
 
     <h1>Tableau de bord</h1>
+
     <GridLayout v-model:layout="userDashboard" :row-height="40">
         <template #item="{ item }">
             <ChartWidget v-if="item.type === 'Chart' && !item.call" :data="item.data" :labels="item.labels" :title="item.title" />
             <ChartWidget v-if="item.type === 'Chart' && item.call && getData(item.call)" :data="getData(item.call).data" :labels="getData(item.call).labels" :title="item.title" />
         </template>
     </GridLayout>
-
     <FancyConfirm
           :class="'a-danger'"
           :confirmationMessage="'Etes-vous sûr de vouloir sauvegarder le tableau de bord ?'"
@@ -40,6 +41,7 @@ import { useUserStore } from '@/store/user';
 import { GridLayout } from 'grid-layout-plus'
 import ChartWidget from '../../../src/layout/dashboard/Chart.vue';
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+import Sidebar from '../../../src/components/sidebar/SidebarComponent.vue';
 
 const userStore = useUserStore()
 const showAddWidget = ref(false);
@@ -106,8 +108,6 @@ const getData = async (call: string) => {
 onMounted(() => {
   fetchDashboard();
 })
-
-
 </script>
 
 <style scoped>

@@ -28,7 +28,7 @@
         <p :class="['order-status', order.status]">{{ order.status }}</p>
       </div>
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
-      <div v-for="cartProduct in order.cart.CartProducts" :key="cartProduct.id" class="cart-item">
+      <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
         <div v-if="cartProduct.product" class="product-image-container">
           <img :src="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].url : 
                   '../../produit_avatar.jpg'" 
@@ -40,19 +40,19 @@
           <h3>{{ cartProduct.product.name }}</h3>
           <p>
             Catégorie:
-            <span v-for="category in cartProduct.product.Categories" :key="category.id">
+            <span v-if="cartProduct" v-for="category in cartProduct.product.Categories" :key="category.id">
               {{ category.name }}
             </span>
           </p>
           <p>Quantité: {{ cartProduct.quantity }}</p>
         </div>
         <div class="order-actions">
-          <div v-if="order.cart.promoCode">
+          <div v-if="order.Cart.promoCode">
             <div class="first-price">
               <p class="old-price">{{ cartProduct.product.price }} €</p>
-              <span class="discount">(-{{ order.cart.promoCode.discountPercentage }}%)</span>
+              <span class="discount">(-{{ order.Cart.promoCode.discountPercentage }}%)</span>
             </div>
-            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.cart.promoCode.discountPercentage) }} €</p>
+            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.Cart.promoCode.discountPercentage) }} €</p>
           </div>
           <p v-else class="new-price">{{ cartProduct.product.price }} €</p>
           <button @click="addToCart(cartProduct.product.id, 1)" class="btn-details">Commander à nouveau</button>
@@ -84,7 +84,8 @@ const fetchOrder = async () => {
       })
       order.value = response.data
 
-      for (const cart of order.value.cart.CartProducts) {
+      if (order.value.Cart) {
+      for (const cart of order.value.Cart.CartProducts) {
         const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.product.id}`, {
           params: {
             orderId: orderId.value,
@@ -95,6 +96,7 @@ const fetchOrder = async () => {
           cart.product.returned = returnProduct.data
         }
       }
+    }
     }
 }
 

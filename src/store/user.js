@@ -18,9 +18,6 @@ export const useUserStore = defineStore('user', {
     isAuthenticated: () => {
       return Cookies.get('USER') !== undefined
     },
-    getDashboard: (state) => {
-      return state.user ? state.user.dashboard : null
-    }
   },
   actions: {
     async fetchUser() {
@@ -57,7 +54,6 @@ export const useUserStore = defineStore('user', {
         return user ? user.dashboard : null
       } catch (e) {
         console.error(e)
-        throw e
       }
     }
   }

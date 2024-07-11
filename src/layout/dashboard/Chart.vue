@@ -1,7 +1,5 @@
 <template>
-  <div>
-    <Bar :data="data" :options="options"/>
-  </div>
+  <Bar :data="data" :options="options"/>
 </template>
   
 <script setup lang="ts">
@@ -10,8 +8,8 @@
   
   const props = defineProps<{
     title: string;
-    labels: array;
-    values: array
+    labels: Array,
+    data: Array
   }>()
   
   const options = {
@@ -22,7 +20,7 @@
     labels: props.labels,
     datasets: [{
       label: props.title,
-      data: props.values,
+      data: props.data,
     }]
   };
   

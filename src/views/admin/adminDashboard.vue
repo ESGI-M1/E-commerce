@@ -3,11 +3,21 @@
     <h1>Tableau de bord</h1>
     <GridLayout v-model:layout="userDashboard" :row-height="40">
         <template #item="{ item }">
-            <ChartWidget v-if="item.type === 'Chart'" :title="item.title" :values="item.data" :labels="item.labels"/>
+            <ChartWidget v-if="item.type === 'Chart' && !item.call" :data="item.data" :labels="item.labels" :title="item.title" />
+            <ChartWidget v-if="item.type === 'Chart' && item.call && getData(item.call)" :data="getData(item.call).data" :labels="getData(item.call).labels" :title="item.title" />
         </template>
     </GridLayout>
 
-    <button @click="saveDashboard">Sauvegarder</button>
+    <FancyConfirm
+          :class="'a-danger'"
+          :confirmationMessage="'Etes-vous sûr de vouloir sauvegarder le tableau de bord ?'"
+          :elementType="'a'"
+          @confirmed="saveDashboard"
+      >
+      <template #buttonText>
+        <i class="fa fa-save"></i>
+      </template>
+    </FancyConfirm>
 
     <div>
       <a @click="showAddWidget = !showAddWidget">
@@ -15,25 +25,26 @@
       </a>
 
       <div v-if="showAddWidget">
-          toto
+          TODO
       </div>
     </div>
 
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import z from 'zod';
-import axios from '../../axios';
+import axios from '../../tools/axios';
 import { useUserStore } from '@/store/user';
 
-import { GridLayout, GridItem } from 'grid-layout-plus'
+import { GridLayout } from 'grid-layout-plus'
 import ChartWidget from '../../../src/layout/dashboard/Chart.vue';
-import FancyConfirm from '../components/ConfirmComponent.vue';
+import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const userStore = useUserStore()
 const showAddWidget = ref(false);
 const enumType = ["Chart", "Table", "Text"];
+
 const widget = z.object({
   x: z.number(),
   y: z.number(),
@@ -41,24 +52,55 @@ const widget = z.object({
   h: z.number(),
   i: z.string(),
   type: z.enum(enumType),
+  call: z.string(),
   labels: z.array(z.string()),
   data: z.array(z.number()),
 })
+
 const userDashboard = ref([]);
-
-
-userDashboard.value = reactive([
-  { x: 0, y: 0, w: 3, h: 3, i: '0', type: 'Chart', labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'], data: [65, 59, 80, 81, 56, 55, 40] , title:"Commandes"},
-  { x: 3, y: 0, w: 3, h: 3, i: '1'},
-  { x: 6, y: 0, w: 3, h: 3, i: '2'}
-])
+const callData = ref([]);
+const callInProgess = ref([]);
 
 const saveDashboard = async () => {
-  userStore.patch(userDashboard);
+  console.log(userDashboard.value);
+  userStore.patch({dashboard: userDashboard.value});
 }
 
 const fetchDashboard = async () => {
-  return await userStore.getDashboard;
+  const dashboard = await userStore.fetchDashboard()
+
+  if(dashboard) {
+    userDashboard.value = dashboard;
+  }
+  else{
+    userDashboard.value = [
+      { x: 0, y: 0, w: 3, h: 3, i: '0', type: 'Chart', labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'], data: [65, 59, 80, 81, 56, 55, 40] , title:"Commandes"},
+      { x: 3, y: 0, w: 3, h: 3, i: '1', type: 'Chart', call:'orders', title:"Commandes"},
+      { x: 6, y: 0, w: 3, h: 3, i: '2'}
+    ]
+  }
+}
+
+const getData = async (call: string) => {
+
+  if(callInProgess[call]) return;
+
+  if(callData[call]) return callData[call];
+
+  callInProgess[call] = true;
+
+  axios.get(`${import.meta.env.VITE_API_BASE_URL}/stats/${call}`)
+  .then((response) => {
+    callData[call] = response.data;
+    return response.data;
+  })
+  .catch((error) => {
+    console.error(error);
+  })
+  .finally(() => {
+    callInProgess[call] = false;
+  });
+
 }
 
 onMounted(() => {

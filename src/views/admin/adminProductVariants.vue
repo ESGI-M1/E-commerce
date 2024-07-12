@@ -1,8 +1,8 @@
 <template>
   <div class="content">
-    <div class="infos">
+    <div class="product-infos">
       <div>
-        <div class="table-header">
+        <div class="div-header">
           <h2>Informations du produit</h2>
         </div>
         <div>
@@ -18,8 +18,23 @@
           </p>
         </div>
       </div>
-      <div>
-        <div class="table-header">
+
+      <form v-if="productOptions.length === 0" @submit.prevent="setProductOptions">
+        <div class="div-header">
+          <h2>Options de déclinaison</h2>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa fa-floppy-disk"></i> Enregistrer
+          </button>
+        </div>
+
+        <ul v-for="option in variantOptions" :key="option.id">
+          <input type="checkbox" :id="option.id" :value="option.id" class="option-checkbox" />
+          <label :for="option.id">{{ option.name }}</label>
+        </ul>
+      </form>
+
+      <div v-else>
+        <div class="div-header">
           <h2>Options de déclinaison</h2>
         </div>
         <table>
@@ -27,6 +42,7 @@
             <tr>
               <th>Nom</th>
               <th>Valeurs</th>
+              <th>Nombre de produits</th>
             </tr>
           </thead>
 
@@ -40,14 +56,15 @@
                   </li>
                 </ul>
               </td>
+              <td>{{ option.productVariantDetails.length }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <div class="productVariants">
-      <div class="table-header">
+    <div class="product-variants" v-if="productOptions.length !== 0">
+      <div class="div-header">
         <h2>Déclinaisons du produit : {{ product.name }} ({{ productVariants.length }})</h2>
       </div>
       <table>
@@ -135,7 +152,7 @@
   </div>
 </template>
 
-<script setup lan g="ts">
+<script setup lang="ts">
 
 import { z } from 'zod';
 import { ref, onMounted } from 'vue';
@@ -155,6 +172,7 @@ const product = ref({
   Categories: [],
 });
 
+const productOptions = ref([]);
 const productVariants = ref([]);
 const variantOptions = ref([]);
 const currentProductVariant = ref({
@@ -169,9 +187,25 @@ const fetchProduct = async (id) => {
   product.value = response.data;
 };
 
+const fetchProductOptions = async (productId) => {
+  const response = await axios.get(`http://localhost:3000/products/${productId}/options`);
+  productOptions.value = response.data;
+};
+
+const setProductOptions = async () => {
+  const options = Array.from(document.querySelectorAll('.option-checkbox:checked')).map((checkbox) => parseInt(checkbox.value));
+  await axios.post(`http://localhost:3000/products/${productId.value}/options`, { options }, { withCredentials: true });
+  //fetchProductOptions(productId.value);
+};
+
 const fetchProductVariants = async (productId) => {
   const response = await axios.get(`http://localhost:3000/product_variants/${productId}`);
   productVariants.value = response.data;
+};
+
+const fetchAllVariantOptions = async () => {
+  const response = await axios.get(`http://localhost:3000/variant_options`);
+  variantOptions.value = response.data;
 };
 
 const fetchVariantOptions = async (productId) => {
@@ -230,8 +264,10 @@ const closeModal = () => {
 
 onMounted(() => {
   fetchProduct(productId.value);
+  fetchProductOptions(productId.value);
   fetchProductVariants(productId.value);
   fetchVariantOptions(productId.value);
+  fetchAllVariantOptions();
 })
 
 </script>
@@ -242,12 +278,13 @@ onMounted(() => {
   padding: 20px;
 }
 
-.infos {
+.product-infos {
   display: flex;
   justify-content: space-between;
 }
 
-.infos > div {
+.product-infos > div,
+.product-infos > form {
   width: 100%;
 }
 
@@ -297,6 +334,10 @@ form {
 
 .buttons button {
   margin-right: 10px;
+}
+
+.option-checkbox {
+  margin-right: 8px;
 }
 
 .close {

@@ -162,7 +162,7 @@ const routes = [
     meta: { requiresAdmin: true }
   },
   {
-    path: '/product_variants/:id',
+    path: '/products/:id/variants',
     name: 'Déclinaisons du produit',
     component: ProductVariants,
     meta: { requiresAdmin: true }

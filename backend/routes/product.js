@@ -1,6 +1,6 @@
 const { Router } = require("express");
-const { Op } = require("sequelize");
-const { Product, ProductVariant, ProductVariantDetail, Category, Image } = require("../models");
+const { Op, QueryTypes } = require("sequelize");
+const { connection, Category, Image, Product, ProductOption, ProductVariant, ProductVariantDetail } = require("../models");
 const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
@@ -71,6 +71,22 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     }
 });
 
+router.post("/:id/options", checkRole({ roles: "admin" }), async (req, res, next) => {
+    try {
+        const { options } = req.body;
+        const productId = parseInt(req.params.id);
+
+        await connection.query(
+            `INSERT INTO "ProductOptions" ("ProductId", "VariantOptionId", "createdAt", "updatedAt") VALUES ${options.map(option => `(${productId}, ${option}, NOW(), NOW())`).join(",")}`,
+            { type: QueryTypes.INSERT }
+        );
+
+        res.sendStatus(201);
+    } catch (e) {
+        next(e);
+    }
+});
+
 router.get("/:id", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);
@@ -83,6 +99,21 @@ router.get("/:id", async (req, res, next) => {
         });
 
         if (product ? res.json(product) : res.sendStatus(404));
+    } catch (e) {
+        next(e);
+    }
+});
+
+router.get("/:id/options", async (req, res, next) => {
+    try {
+        const productId = parseInt(req.params.id);
+
+        const result = await ProductOption.findAll({
+            where: { ProductId: productId },
+            attributes: ['ProductId', 'VariantOptionId'],
+        });
+
+        if (result ? res.json(result) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }

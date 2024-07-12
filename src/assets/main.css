@@ -59,7 +59,7 @@ a.icon:hover {
   margin-left: 10px;
 }
 
-.table-header {
+.div-header {
   display: flex;
   justify-content: space-between;
   align-items: center;

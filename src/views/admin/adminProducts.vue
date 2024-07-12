@@ -1,6 +1,6 @@
 <template>
   <div class="products">
-    <div class="table-header">
+    <div class="div-header">
       <h2>Produits ({{ products.length }})</h2>
       <button @click="showAddProductModal" class="btn btn-success">
         <i class="fa fa-plus"></i> Ajouter Produit
@@ -52,7 +52,7 @@
             <a @click="showEditProductModal(product)" class="a-primary" title="Modifier">
               <i class="fa fa-edit"></i>
             </a>
-            <a :href="'/product_variants/' + product.id" class="a-primary" title="Modifier les déclinaisons">
+            <a :href="'/products/' + product.id + '/variants'" class="a-primary" title="Modifier les déclinaisons">
               <i class="fa fa-edit"></i>
             </a>
             <fancy-confirm

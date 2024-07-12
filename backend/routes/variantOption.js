@@ -1,7 +1,5 @@
 const { Router } = require("express");
-const { Op } = require("sequelize");
 const { Product, VariantOption, VariantValue } = require("../models");
-const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 

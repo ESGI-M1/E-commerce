@@ -1,35 +1,35 @@
 <template>
-      <Sidebar />
+  <Sidebar />
 
-    <h1>Tableau de bord</h1>
+  <h1>Tableau de bord</h1>
 
-    <GridLayout v-model:layout="userDashboard" :row-height="40">
-        <template #item="{ item }">
-            <ChartWidget v-if="item.type === 'Chart' && !item.call" :data="item.data" :labels="item.labels" :title="item.title" />
-            <ChartWidget v-if="item.type === 'Chart' && item.call && getData(item.call)" :data="getData(item.call).data" :labels="getData(item.call).labels" :title="item.title" />
-        </template>
-    </GridLayout>
-    <FancyConfirm
-          :class="'a-danger'"
-          :confirmationMessage="'Etes-vous sûr de vouloir sauvegarder le tableau de bord ?'"
-          :elementType="'a'"
-          @confirmed="saveDashboard"
-      >
-      <template #buttonText>
-        <i class="fa fa-save"></i>
-      </template>
-    </FancyConfirm>
+  <GridLayout v-model:layout="userDashboard" :row-height="40">
+    <template #item="{ item }">
+      <ChartWidget v-if="item.type === 'Chart' && !item.call" :data="item.data" :labels="item.labels" :title="item.title" />
+      <ChartWidget v-if="item.type === 'Chart' && item.call && callData[item.call]" :data="callData[item.call].data" :labels="callData[item.call].labels" :title="item.title" />
+    </template>
+  </GridLayout>
 
-    <div>
-      <a @click="showAddWidget = !showAddWidget">
-        <i class="fa fa-plus"></i>
-      </a>
+  <FancyConfirm
+    :class="'a-danger'"
+    :confirmationMessage="'Etes-vous sûr de vouloir sauvegarder le tableau de bord ?'"
+    :elementType="'a'"
+    @confirmed="saveDashboard"
+  >
+    <template #buttonText>
+      <i class="fa fa-save"></i>
+    </template>
+  </FancyConfirm>
 
-      <div v-if="showAddWidget">
-          TODO
-      </div>
+  <div>
+    <a @click="showAddWidget = !showAddWidget">
+      <i class="fa fa-plus"></i>
+    </a>
+
+    <div v-if="showAddWidget">
+      TODO
     </div>
-
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -43,71 +43,61 @@ import ChartWidget from '../../../src/layout/dashboard/Chart.vue';
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 import Sidebar from '../../../src/components/sidebar/SidebarComponent.vue';
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 const showAddWidget = ref(false);
-const enumType = ["Chart", "Table", "Text"];
-
-const widget = z.object({
-  x: z.number(),
-  y: z.number(),
-  w: z.number(),
-  h: z.number(),
-  i: z.string(),
-  type: z.enum(enumType),
-  call: z.string(),
-  labels: z.array(z.string()),
-  data: z.array(z.number()),
-})
-
 const userDashboard = ref([]);
-const callData = ref([]);
-const callInProgess = ref([]);
+const callData = ref({});
+const callInProgress = ref({});
+let totalData = ref({ labels: [], data: [] });
 
 const saveDashboard = async () => {
-  console.log(userDashboard.value);
-  userStore.patch({dashboard: userDashboard.value});
-}
+  userStore.patch({ dashboard: userDashboard.value });
+};
 
 const fetchDashboard = async () => {
-  const dashboard = await userStore.fetchDashboard()
-
-  if(dashboard) {
+  const dashboard = await userStore.fetchDashboard();
+  if (dashboard) {
     userDashboard.value = dashboard;
-  }
-  else{
+  } else {
     userDashboard.value = [
-      { x: 0, y: 0, w: 3, h: 3, i: '0', type: 'Chart', labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'], data: [65, 59, 80, 81, 56, 55, 40] , title:"Commandes"},
-      { x: 3, y: 0, w: 3, h: 3, i: '1', type: 'Chart', call:'orders', title:"Commandes"},
-      { x: 6, y: 0, w: 3, h: 3, i: '2'}
-    ]
+      { 
+        x: 0, y: 0, w: 3, h: 3, i: '0', type: 'Chart', 
+        labels: totalData.value.labels,
+        data: totalData.value.totalOrders,
+        title: "Commandes" 
+      },
+      { 
+        x: 3, y: 0, w: 3, h: 3, i: '1', type: 'Chart', 
+        labels: totalData.value.labels,
+        data: totalData.value.totalEarn, 
+        title: "Revenus" 
+      },
+    ];
   }
-}
+};
 
 const getData = async (call: string) => {
+  if (callInProgress.value[call]) return;
+  if (callData.value[call]) return callData.value[call];
 
-  if(callInProgess[call]) return;
+  callInProgress.value[call] = true;
 
-  if(callData[call]) return callData[call];
-
-  callInProgess[call] = true;
-
-  axios.get(`${import.meta.env.VITE_API_BASE_URL}/stats/${call}`)
-  .then((response) => {
-    callData[call] = response.data;
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/stats/${call}`);
+    callData.value[call] = response.data;
+    totalData.value = response.data;
     return response.data;
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error(error);
-  })
-  .finally(() => {
-    callInProgess[call] = false;
-  });
-
-}
+  } finally {
+    callInProgress.value[call] = false;
+  }
+};
 
 onMounted(() => {
+  getData('orders');
   fetchDashboard();
-})
+});
 </script>
 
 <style scoped>

@@ -4,7 +4,7 @@ const productMongo = require("../dtos/denormalization/productMongo");
 module.exports = function(connection) {
     class ProductVariantDetail extends Model {
         static associate(models) {
-            ProductVariantDetail.belongsTo(models.ProductVariant, { foreignKey: 'productVariantId', as: 'productVariant' });
+            ProductVariantDetail.belongsTo(models.ProductVariant, { foreignKey: 'productVariantId', as: 'productVariant', onDelete: 'CASCADE' });
             ProductVariantDetail.belongsTo(models.VariantOption, { foreignKey: 'variantOptionId', as: 'variantOption' });
             ProductVariantDetail.belongsTo(models.VariantValue, { foreignKey: 'variantValueId', as: 'variantValue' });
         }

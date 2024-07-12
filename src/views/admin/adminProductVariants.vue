@@ -88,7 +88,10 @@
             <td>
               <div class="actions">
                 <a @click="showEditProductVariantModal(variant)" class="a-primary" title="Modifier">
-                  <i class="fa fa-edit"></i> Modifier
+                  <i class="fa fa-edit"></i>
+                </a>
+                <a @click="resetProductVariant(variant)" class="a-primary" title="Réinitialiser">
+                  <i class="fa fa-ban"></i>
                 </a>
               </div>
             </td>
@@ -194,11 +197,25 @@ const updateProductVariant = async () => {
 
     closeModal();
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('Erreur de validation Zod:', error.errors);
-    } else {
-      console.error('Erreur lors de la mise à jour du produit:', error);
-    }
+    console.error('Erreur lors de la mise à jour de la déclinaison:', error);
+  }
+};
+
+const resetProductVariant = async (productVariant) => {
+  try {
+    await axios.patch(`http://localhost:3000/product_variants/${productVariant.id}/reset`);
+
+    const index = productVariants.value.findIndex((pv) => pv.id === productVariant.id);
+    if (index !== -1) productVariants.value[index] = {
+      ...productVariant,
+      name: null,
+      reference: null,
+      price: null,
+    };
+
+    closeModal();
+  } catch (error) {
+    console.error('Erreur lors de la réinitialisation de la déclinaison:', error);
   }
 };
 

@@ -41,6 +41,24 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     }
 });
 
+router.patch("/:id/reset", checkRole({ roles: "admin" }), async (req, res, next) => {
+    try {
+        const productVariant = await ProductVariant.findByPk(parseInt(req.params.id));
+        if (productVariant) {
+            await productVariant.update({
+                name: null,
+                reference: null,
+                price: null,
+            });
+            res.json(productVariant);
+        } else {
+            res.sendStatus(404);
+        }
+    } catch (e) {
+        next(e);
+    }
+});
+
 router.get("/:id", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);

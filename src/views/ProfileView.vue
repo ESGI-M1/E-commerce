@@ -46,7 +46,9 @@
         <p>Aucune adresse de livraison enregistrée.</p>
       </div>
 
-      <button class="btn-add" @click="openAddAddressModal"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
+      <button class="btn btn-add" @click="openAddAddressModal"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
+      <br>
+      <br>
       <fancy-confirm
                 :class="'btn btn-danger'"
                 :confirmationMessage="'Etes-vous sûr de vouloir supprimer votre compte ?'"

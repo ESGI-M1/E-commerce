@@ -13,14 +13,6 @@ router.get("/", async (req, res) => {
     res.json(productVariants);
 });
 
-router.get("/admin", checkRole({ roles: "admin" }), async (req, res) => {
-    const productVariants = await ProductVariant.findAll({
-        where: req.query,
-    });
-
-    res.json(productVariants);
-});
-
 router.get("/search", async (req, res) => {
     try{
         const { q } = req.query;

@@ -3,6 +3,9 @@ const productMongo = require("../dtos/denormalization/productMongo");
 
 module.exports = function(connection) {
     class VariantOption extends Model {
+        static associate(models) {
+            VariantOption.hasMany(models.VariantValue, { foreignKey: 'variantOptionId', as: 'variantValues' });
+        }
     }
 
     VariantOption.init(

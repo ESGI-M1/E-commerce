@@ -47,6 +47,17 @@
       </div>
 
       <button class="btn-add" @click="openAddAddressModal"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
+      <fancy-confirm
+                :class="'btn btn-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer votre compte ?'"
+                :elementType="'button'"
+                @confirmed="deleteUser(user.id)"
+            >
+            <template #buttonText>
+              Supprimer mon compte
+              <i class="fa fa-trash"></i>
+            </template>
+          </fancy-confirm>
     </div>
 
     <div v-if="isOpen" class="modal-overlay">
@@ -181,6 +192,10 @@ const deleteAddress = async (id) => {
   } catch (error) {
     console.error(error)
   }
+}
+
+const deleteUser = async (userId: number) => {
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
 }
 
 const handleSubmit = async () => {

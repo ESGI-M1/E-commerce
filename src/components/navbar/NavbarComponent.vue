@@ -117,18 +117,6 @@ const logout = () => {
 </script>
 
 <style scoped>
-.search-results-container {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: white;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
 .navbar {
   display: flex;
   justify-content: space-between;

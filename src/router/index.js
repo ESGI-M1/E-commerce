@@ -26,7 +26,6 @@ import Error from '../views/ErrorView.vue'
 import Livraison from '../views/OrderLivraisonView.vue'
 
 //Admin
-import Dashboard from '../views/admin/adminDashboard.vue'
 import Users from '../views/admin/adminUsers.vue'
 import Promos from '../views/admin/adminPromos.vue'
 import Categories from '../views/admin/adminCategories.vue'
@@ -34,6 +33,7 @@ import Ressources from '../views/admin/adminRessources.vue'
 import Locker from '../views/admin/adminLocker.vue'
 import Orders from '../views/admin/adminOrders.vue'
 import Returns from '../views/admin/adminReturns.vue'
+import Shop from '../views/admin/adminShop.vue'
 
 const routes = [
   {
@@ -190,7 +190,13 @@ const routes = [
     name: 'Retours',
     component: Returns,
     meta: { requiresAdmin: true }
-  }
+  },
+  {
+    path: '/shop',
+    name: 'Shop',
+    component: Shop,
+    meta: { requiresAdmin: true }
+  },
 ]
 
 const router = createRouter({

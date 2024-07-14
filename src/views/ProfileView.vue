@@ -64,7 +64,7 @@
 
     <div v-if="isOpen" class="modal-overlay">
       <div class="modal">
-        <span class="close" @click="closeModal">&times;</span>
+        <span class="close" @click="isOpen = !isOpen">&times;</span>
         <h2 v-if="mode === 'editAddress'">Modifier l'adresse de livraison</h2>
         <h2 v-else-if="mode === 'addAddress'">Ajouter une adresse de livraison</h2>
         <h2 v-else>Modifier {{ modeLabel }}</h2>
@@ -109,7 +109,6 @@ import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
 import Cookies from 'js-cookie';
-import { useUserStore } from '@/store/user';
 
 const user = ref(null)
 const router = useRouter()
@@ -182,10 +181,6 @@ const openEditAddressModal = (address) => {
   form.value.city = address.city;
   form.value.country = address.country;
 };
-
-const closeModal = () => {
-  isOpen.value = false
-}
 
 const deleteAddress = async (id) => {
   try {

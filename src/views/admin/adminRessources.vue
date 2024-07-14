@@ -10,9 +10,6 @@ import adminDashboard from './adminDashboard.vue';
 </script>
 
 <style scoped>
-.admin-dashboard {
-  padding: 20px;
-}
 
 .dashboard {
   margin-top: 40px;

@@ -1,23 +1,14 @@
-<script lang="ts">
-//import Sidebar from './components/sidebar/Sidebar.vue'
-//import { sidebarWidth } from './components/sidebar/state'
+<script setup lang="ts">
 import Navbar from './components/navbar/NavbarComponent.vue'
-
-export default {
-  //components: { Sidebar, Navbar},
-  components: { Navbar }
-  /*setup() {
-    return { sidebarWidth }
-  }*/
-}
+import Footer from './components/navbar/FooterComponent.vue'
 </script>
+
 <template>
   <Navbar />
-  <!--<Sidebar />-->
-  <!--<div :style="{ 'margin-left': sidebarWidth }">-->
   <div>
     <router-view />
   </div>
+  <Footer v-if="!$route.meta.requiresAdmin" />
 </template>
 
 <style>

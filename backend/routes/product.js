@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const { Op } = require("sequelize");
-const { Product, Category, Image } = require("../models");
+const { Product, Category, Image, User, AlerteUser, Alerte } = require("../models");
+const mailer = require('../services/mailer');
 const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
@@ -46,6 +47,36 @@ router.get("/search", async (req, res) => {
 
 });
 
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
+    try {
+        const { ...productData } = req.body;
+        const product = await Product.create(productData);
+        const idAlert = await Alerte.findOne({
+            where: {
+                name: 'new_product'
+            }
+        });
+        if (idAlert) {
+            const userToPrevent = await AlerteUser.findAll({
+                where: {
+                    alerte_id: idAlert.id
+                }
+            });
+            if (userToPrevent) {
+                for (let i=0; i < userToPrevent.length; i++) {
+                    const user = await User.findByPk(userToPrevent[i].user_id);
+                    mailer.sendNewProductNotification(user, product);
+                }
+            }
+
+        }
+
+        res.status(201).json(product);
+    } catch (e) {
+        next(e);
+    }
+});
+
 router.get("/:id", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);
@@ -63,29 +94,40 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
-router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
-    try {
-        const { ...productData } = req.body;
-        const product = await Product.create(productData);
-
-        res.status(201).json(product);
-    } catch (e) {
-        next(e);
-    }
-});
-
 router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Categories, ...productData } = req.body;
         const product = await Product.findByPk(parseInt(req.params.id));
-
         if (product) {
 
             if (Categories && Categories.length) {
                 const categories = await Category.findAll({ where: { id: Categories } });
                 await product.setCategories(categories);
             }
-            await product.update(productData);
+            if (parseInt(product.price) !== productData.price) {
+                await product.update(productData);
+                const idAlert = await Alerte.findOne({
+                    where: {
+                        name: 'change_product_price'
+                    }
+                });
+                if (idAlert) {
+                    const userToPrevent = await AlerteUser.findAll({
+                        where: {
+                            alerte_id: idAlert.id
+                        }
+                    });
+                    if (userToPrevent) {
+                        for (let i=0; i < userToPrevent.length; i++) {
+                            const user = await User.findByPk(userToPrevent[i].user_id);
+                            mailer.sendPriceChangeNotification(user, product);
+                        }
+                    }
+
+                }
+            } else {
+                await product.update(productData);
+            }
 
             res.json(product);
         } else {

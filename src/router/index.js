@@ -33,6 +33,8 @@ import Ressources from '../views/admin/adminRessources.vue'
 import Locker from '../views/admin/adminLocker.vue'
 import Orders from '../views/admin/adminOrders.vue'
 import Returns from '../views/admin/adminReturns.vue'
+import Alertes from '../views/AlertesView.vue'
+import NewsLetter from '../views/NewsLetterView.vue'
 import Shop from '../views/admin/adminShop.vue'
 
 const routes = [
@@ -190,6 +192,16 @@ const routes = [
     name: 'Retours',
     component: Returns,
     meta: { requiresAdmin: true }
+  },
+  {
+    path: '/alertes',
+    name: 'Alertes',
+    component: Alertes
+  },
+  {
+    path: '/newsletters',
+    name: 'NewsLetters',
+    component: NewsLetter
   },
   {
     path: '/shop',

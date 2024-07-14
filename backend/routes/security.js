@@ -3,12 +3,13 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 const mailer = require('../services/mailer');
+const { setTimeout: setTimeoutPromise } = require('node:timers/promises');
 
 const router = new Router();
 
 let loginAttempt = {};
+let timerActivate = false;
 router.post("/login", async (req, res) => {
-
   const user = await User.findOne({
     attributes: ['id', 'firstname', 'email', 'password', 'role', 'active'],
     where: {
@@ -17,15 +18,22 @@ router.post("/login", async (req, res) => {
   });
 
   if (!user) return res.sendStatus(401);
-
+  if (timerActivate) {
+    return res.sendStatus(429);
+  }
   if (!(await bcrypt.compare(req.body.password, user.password))) {
-
     if (loginAttempt[user.id]) {
 
       loginAttempt[user.id] += 1
       if (loginAttempt[user.id] === 3) {
         try {
+          timerActivate = true;
+          loginAttempt[user.id] = 0;
           mailer.sendConsecutiveConnexionError(user);
+          setTimeoutPromise(900000)
+            .then(() => {
+              timerActivate = false;
+            });
         } catch (error) {
           console.log(error);
         }

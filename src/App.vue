@@ -32,4 +32,9 @@ import Footer from './components/navbar/FooterComponent.vue'
 #nav a.router-link-exact-active {
   color: #42b983;
 }
+
+.background {
+  height: 90vh;
+}
+
 </style>

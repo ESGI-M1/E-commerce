@@ -1,3 +1,16 @@
+<script lang="ts">
+import SidebarLink from './SidebarLink.vue'
+import { collapsed, toggleSidebar, sidebarWidth } from './state'
+
+export default {
+  props: {},
+  components: { SidebarLink },
+  setup() {
+    return { collapsed, toggleSidebar, sidebarWidth }
+  }
+}
+</script>
+
 <template>
   <div class="sidebar" :class="{ collapsed: collapsed }" :style="{ width: sidebarWidth }">
     <h1>
@@ -19,25 +32,15 @@
     </span>
 </template>
 
-<script lang="ts">
-
-import SidebarLink from './SidebarLink.vue';
-export default { components: { SidebarLink } }
-
-</script>
-
 <style>
-
 :root {
   --sidebar-bg-color: #2f855a;
   --sidebar-item-hover: #38a169;
   --sidebar-item-active: #276749;
 }
-
 </style>
 
 <style scoped>
-
 .sidebar {
   color: white;
   background-color: var(--sidebar-bg-color);
@@ -73,4 +76,8 @@ export default { components: { SidebarLink } }
   z-index: 9999;
 }
 
+.rotate-180 {
+  transform: rotate(180deg);
+  transition: 0.2s linear;
+}
 </style>

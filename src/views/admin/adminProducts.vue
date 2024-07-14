@@ -52,7 +52,7 @@
             <a @click="showEditProductModal(product)" class="a-primary" title="Modifier">
               <i class="fa fa-edit"></i>
             </a>
-            <a :href="'/products/' + product.id + '/variants'" class="a-primary" title="Modifier les déclinaisons">
+            <a :href="'/admin/products/' + product.id + '/variants'" class="a-primary" title="Modifier les déclinaisons">
               <i class="fa fa-edit"></i>
             </a>
             <fancy-confirm

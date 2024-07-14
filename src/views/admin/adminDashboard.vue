@@ -28,7 +28,7 @@
     :elementType="'button'"
     @confirmed="removeWidget(item.i)"
   >
-    <template #buttonText>
+    <template #buttonText class="test">
       X
     </template>
   </FancyConfirm>
@@ -39,7 +39,7 @@
   <FancyConfirm
     :class="'btn btn-danger'"
     :confirmationMessage="'Etes-vous sûr de vouloir sauvegarder le tableau de bord ?'"
-    :elementType="'a'"
+    :elementType="'button'"
     @confirmed="saveDashboard"
   >
     <template #buttonText>
@@ -287,5 +287,11 @@ onMounted(() => {
 
 .widget-option input {
   margin-right: 10px;
+}
+
+div.widget-container div {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 </style>

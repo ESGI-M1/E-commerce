@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import Navbar from './components/navbar/NavbarComponent.vue'
-import Footer from './components/navbar/FooterComponent.vue'
+//import Footer from './components/navbar/FooterComponent.vue'
 </script>
 
 <template>
-  <Navbar />
   <div>
     <Sidebar v-if="isAdminRoute" />
     <Navbar v-else />

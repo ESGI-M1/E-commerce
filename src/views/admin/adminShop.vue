@@ -88,6 +88,7 @@ import Modal from '../../components/ModalView.vue';
 const tinymceKey = import.meta.env.VITE_TINYMCE_API_KEY;
 const isOpen = ref(false);
 const modalName = ref('');
+const isInit = ref(false);
 
 const openEditModal = (modal: string) => {
   isOpen.value = true;
@@ -161,6 +162,7 @@ const fetchShop = async () => {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/shop`);
     if (response.data) {
       shop.value = shopSchema.parse(response.data);
+      isInit.value = true;
     }
   } catch (error) {
     if (error instanceof ZodError) {
@@ -185,11 +187,23 @@ const handleSubmit = async (type: string) => {
       data = cgvSchema.parse(shop.value);
     }
 
-    const response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/shop/${shop.value.id}`, data);
-    if (response.data) {
-      shop.value = shopSchema.parse(response.data);
-      isOpen.value = false;
+    if(!isInit.value) {
+      axios.post(`${import.meta.env.VITE_API_BASE_URL}/shop`, data)
+        .then(response => {
+          if (response.data) {
+            shop.value = shopSchema.parse(response.data);
+            isOpen.value = false;
+          }
+        });
     }
+    else{
+      const response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/shop/${shop.value.id}`, data);
+      if (response.data) {
+        shop.value = shopSchema.parse(response.data);
+        isOpen.value = false;
+      }
+    }
+    
   } catch (error) {
     if (error instanceof ZodError) {
       console.error(error.errors);

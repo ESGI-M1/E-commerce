@@ -6,10 +6,10 @@
         Télécharger ma facture
       </button>
       <p v-if="order">Date de la commande: {{ formatDate(order.createdAt) }}</p>
-      <p class="payment-details" v-if="order && order.payment">
-        Paiement effectué via <span>{{ order.payment.method }}</span>, 
-        <span>{{ order.payment.currency }}</span>, 
-        <small><span>**** **** **** {{ order.payment.cardLast4 }}</span></small>
+      <p class="payment-details" v-if="order && order.Payment">
+        Paiement effectué via <span>{{ order.Payment.method }}</span>, 
+        <span>{{ order.Payment.currency }}</span>, 
+        <small><span>**** **** **** {{ order.Payment.cardLast4 }}</span></small>
       </p>
     </header>
     <div v-if="order" class="order-details">
@@ -97,6 +97,7 @@ const fetchOrder = async () => {
         }
       }
     }
+    console.log(order.value)
     }
 }
 

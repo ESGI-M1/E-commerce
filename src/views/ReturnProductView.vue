@@ -48,6 +48,7 @@
           @confirmed="deleteReturn"
         >
         </fancy-confirm>
+        <p v-else-if="statut === 'returned' && card"> Remboursement effectué sur votre carte <small>**** **** **** {{card}}</small></p>
       </div>
     </form>
   </div>
@@ -71,6 +72,7 @@ const deliveryMethod = ref('mondial-relay')
 const statut = ref('')
 const product = ref<any>(null)
 const existingReturn = ref(false)
+const card = ref('')
 
 const quantityOptions = computed(() => {
   const options = []
@@ -88,7 +90,6 @@ const fetchProductDetails = async () => {
 
     const cartProducts = response.data.Cart.CartProducts;
 
-    // Trouver le produit spécifique dans le panier
     const cartProduct = cartProducts.find(cp => cp.productId === parseInt(productId.value));
     if (cartProduct) {
       quantity.value = cartProduct.quantity;
@@ -96,11 +97,9 @@ const fetchProductDetails = async () => {
       quantity.value = 0;
     }
 
-    // Obtenir les détails du produit
     const productResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${productId.value}`);
     product.value = productResponse.data;
 
-    // Obtenir les informations de retour existantes
     const returnResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${productId.value}`, {
       params: {
         orderId: orderId.value,
@@ -114,7 +113,12 @@ const fetchProductDetails = async () => {
       deliveryMethod.value = returnResponse.data.deliveryMethod
       statut.value = returnResponse.data.status
     }
-}
+
+    if (response.data.Payment) {
+      card.value = response.data.Payment.cardLast4
+    }
+
+  }
 
 onMounted(() => fetchProductDetails())
 

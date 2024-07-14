@@ -63,7 +63,6 @@ router.post('/invoice/:idOrder', checkAuth, async (req, res) => {
         userId: req.user.id,
       },
     });
-    console.log('payment :' . payment);
 
     if (!payment) {
       return res.status(404).json({ error: 'Payment method not found' });

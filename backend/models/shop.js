@@ -6,17 +6,17 @@ module.exports = function (connection) {
 
         static addHooks(models) {
             
-            Product.addHook("beforeCreate", async (shop) => {
+            Shop.addHook("beforeCreate", async (shop) => {
                 const existingShop = await Shop.findOne();
                 if (existingShop) {
                     throw new Error('A shop already exists. Only one shop is allowed.');
                 }
-            }
+            });
         }
 
     }
 
-    Shop.init({
+    Shop.init(
         {
             name: {
                 type: DataTypes.STRING,
@@ -26,7 +26,7 @@ module.exports = function (connection) {
 
             description: {
                 type: DataTypes.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
 
             favicon: {
@@ -75,6 +75,11 @@ module.exports = function (connection) {
             },
 
             legalNotice: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+
+            cgv: {
                 type: DataTypes.TEXT,
                 allowNull: false,
             },

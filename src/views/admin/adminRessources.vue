@@ -21,4 +21,5 @@ import adminDashboard from './adminDashboard.vue';
   border-radius: 8px;
   padding: 10px;
 }
+
 </style>

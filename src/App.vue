@@ -1,22 +1,47 @@
 <script setup lang="ts">
 import Navbar from './components/navbar/NavbarComponent.vue'
-import Footer from './components/navbar/FooterComponent.vue'
+//import Footer from './components/navbar/FooterComponent.vue'
 </script>
 
 <template>
-  <Navbar />
   <div>
-    <router-view />
+    <Sidebar v-if="isAdminRoute" />
+    <Navbar v-else />
+    <div :id="isAdminRoute ? 'admin-content' : 'main-content'">
+      <router-view />
+    </div>
   </div>
   <Footer v-if="!$route.meta.requiresAdmin" />
 </template>
 
+<script lang="ts">
+
+import { defineComponent, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import Navbar from './components/navbar/NavbarComponent.vue';
+import Sidebar from './components/sidebar/SidebarComponent.vue';
+
+export default defineComponent({
+  components: {
+    Navbar,
+    Sidebar,
+  },
+
+  setup() {
+    const route = useRoute();
+    const isAdminRoute = computed(() => route.path.startsWith('/admin'));
+    return { isAdminRoute };
+  }
+});
+
+</script>
+
 <style>
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="products">
-    <h1>Produits ({{ products.length }})</h1>
-    <div class="text-right">
+    <div class="div-header">
+      <h2>Produits ({{ products.length }})</h2>
       <button @click="showAddProductModal" class="btn btn-success">
         <i class="fa fa-plus"></i> Ajouter Produit
       </button>
@@ -48,11 +48,13 @@
             <i :class="product.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
           </td>
           <td>
-            <div class="flex">
-            <a @click="showEditProductModal(product)" class="a-primary">
+            <div class="actions">
+            <a @click="showEditProductModal(product)" class="a-primary" title="Modifier">
               <i class="fa fa-edit"></i>
             </a>
-            &nbsp;
+            <a :href="'/admin/products/' + product.id + '/variants'" class="a-primary" title="Modifier les déclinaisons">
+              <i class="fa fa-edit"></i>
+            </a>
             <fancy-confirm
                 :class="'a-danger'"
                 :confirmationMessage="'Etes-vous sûr de vouloir supprimer le produit ?'"
@@ -317,6 +319,13 @@ form {
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .buttons {

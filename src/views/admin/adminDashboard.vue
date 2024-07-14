@@ -35,8 +35,8 @@
       </div>
     </template>
   </GridLayout>
-  <br>
-  <FancyConfirm
+  <div class="text-center">
+     <FancyConfirm
     :class="'btn btn-danger'"
     :confirmationMessage="'Etes-vous sûr de vouloir sauvegarder le tableau de bord ?'"
     :elementType="'button'"
@@ -47,7 +47,7 @@
       <i class="fa fa-save"></i>
     </template>
   </FancyConfirm>
-
+</div>
   <div class="add-widget-container">
     <div v-if="showAddWidget" class="modal-overlay">
       <div class="modal">
@@ -231,6 +231,10 @@ onMounted(() => {
 
 :deep(.vgl-item--static) {
   background-color: #cce;
+}
+
+h1 {
+  text-align: center;
 }
 
 .text {

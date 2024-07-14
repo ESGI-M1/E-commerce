@@ -24,6 +24,7 @@ import ConfirmAddress from '../views/ConfirmAddress.vue'
 import Success from '../views/SuccessView.vue'
 import Error from '../views/ErrorView.vue'
 import Livraison from '../views/OrderLivraisonView.vue'
+import Page from '../views/PageView.vue'
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -197,6 +198,11 @@ const routes = [
     component: Shop,
     meta: { requiresAdmin: true }
   },
+  {
+    path: '/page/:slug',
+    name: 'Page',
+    component: Page
+  }
 ]
 
 const router = createRouter({

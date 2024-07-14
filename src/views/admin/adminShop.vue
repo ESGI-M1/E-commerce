@@ -2,39 +2,90 @@
   <div class="container">
     <h1>Ma boutique</h1>
     <div class="shop-details">
-      <p>
-        <strong>Nom:</strong> {{ shop.name }}
-        <a @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></a>
-      </p>
-      <p>
-        <strong>Description:</strong> {{ shop.description }}
-        <a @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></a>
-      </p>
-      <p>
-        <strong>Téléphone:</strong> {{ shop.phone }}
-        <a @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></a>
-      </p>
-      <p>
-        <strong>Email:</strong> {{ shop.email }}
-        <a @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></a>
-      </p>
+      <div>
+        <p>
+          <strong>Nom:</strong> {{ shop.name }}
+          <button @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+        <p>
+          <strong>Description:</strong> {{ shop.description }}
+          <button @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+        <p>
+          <strong>Téléphone:</strong> {{ shop.phone }}
+          <button @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+        <p>
+          <strong>Email:</strong> {{ shop.email }}
+          <button @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+        <p>
+          <strong>Siret</strong> {{ shop.siret }}
+          <button @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+        <p>
+          <strong>Actif:</strong> {{ shop.active ? 'Oui' : 'Non' }}
+          <button @click="openEditModal('general')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+      </div>
+      <div>
+        <p>
+          <strong>Street:</strong> {{ shop.street }}
+          <button @click="openEditModal('address')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+        <p>
+          <strong>Postal Code:</strong> {{ shop.postalCode }}
+          <button @click="openEditModal('address')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+        <p>
+          <strong>City:</strong> {{ shop.city }}
+          <button @click="openEditModal('address')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+        <p>
+          <strong>Country:</strong> {{ shop.country }}
+          <button @click="openEditModal('address')"><i class="fa fa-edit edit-icon"></i></button>
+        </p>
+      </div>
+      <div>
+        <div>
+          <img :src="shop.favicon" alt="favicon" width="50" height="50">
+          <button @click="openEditModal('logo')"><i class="fa fa-edit edit-icon"></i></button>
+        </div>
+        <div>
+          <img :src="shop.logo" alt="logo" width="50" height="50">
+          <button @click="openEditModal('logo')"><i class="fa fa-edit edit-icon"></i></button>
+        </div>
+      </div>
     </div>
 
     <div>
-      <h2>Mentions légales</h2>
-      <button @click="openEditModal('legalNotice')">Modifier</button>
-      <div v-html="shop.legalNotice"></div>
+      <div>
+        <h2>Mentions légales</h2>
+        <button @click="openEditModal('legalNotice')">Modifier</button>
+        <div v-html="shop.legalNotice"></div>
+      </div>
 
-      <h2>Conditions générales d'utilisation</h2>
-      <button @click="openEditModal('cgu')">Modifier</button>
-      <div v-html="shop.cgu"></div>
+      <div>
+        <h2>Conditions générales d'utilisation</h2>
+        <button @click="openEditModal('cgu')">Modifier</button>
+        <div v-html="shop.cgu"></div>
+      </div>
 
-      <h2>Conditions générales de vente</h2>
-      <button @click="openEditModal('cgv')">Modifier</button>
-      <div v-html="shop.cgv"></div>
+      <div>
+        <h2>Conditions générales de vente</h2>
+        <button @click="openEditModal('cgv')">Modifier</button>
+        <div v-html="shop.cgv"></div>
+      </div>
+
+      <div>
+        <h2>RGPD</h2>
+        <button @click="openEditModal('rgpd')">Modifier</button>
+        <div v-html="shop.rgpd"></div>
+      </div>
+
     </div>
 
-    <Modal v-if="isOpen" @close="isOpen = false" :title="titleModal[modalName]" :onSave="handleSave">
+    <Modal v-if="isOpen" @close="isOpen = false" :title="titleModal[modalName]" :onSave="() => handleSubmit(modalName)">
       <template v-if="modalName === 'general'">
         <form @submit.prevent="handleSubmit('general')">
           <div class="form-group">
@@ -52,6 +103,46 @@
           <div class="form-group">
             <label for="email">Email</label>
             <input type="email" id="email" v-model="shop.email" required autocomplete="email" placeholder="Email de la boutique">
+          </div>
+          <div class="form-group">
+            <label for="siret">Siret</label>
+            <input type="text" id="siret" v-model="shop.siret" required placeholder="Siret de la boutique">
+          </div>
+          <div class="form-group">
+            <label for="active">Actif</label>
+            <input type="checkbox" id="active" v-model="shop.active">
+          </div>
+        </form>
+      </template>
+      <template v-else-if="modalName === 'address'">
+        <form @submit.prevent="handleSubmit('address')">
+          <div class="form-group">
+            <label for="street">Rue</label>
+            <input type="text" id="street" v-model="shop.street" required placeholder="Rue de la boutique">
+          </div>
+          <div class="form-group">
+            <label for="postalCode">Code Postal</label>
+            <input type="text" id="postalCode" v-model="shop.postalCode" required placeholder="Code postal de la boutique">
+          </div>
+          <div class="form-group">
+            <label for="city">Ville</label>
+            <input type="text" id="city" v-model="shop.city" required placeholder="Ville de la boutique">
+          </div>
+          <div class="form-group">
+            <label for="country">Pays</label>
+            <input type="text" id="country" v-model="shop.country" required placeholder="Pays de la boutique">
+          </div>
+        </form>
+      </template>
+      <template v-else-if="modalName === 'logo'">
+        <form @submit.prevent="handleSubmit('logo')">
+          <div class="form-group">
+            <label for="favicon">Favicon</label>
+            <input type="text" id="favicon" v-model="shop.favicon" required placeholder="Favicon de la boutique">
+          </div>
+          <div class="form-group">
+            <label for="logo">Logo</label>
+            <input type="text" id="logo" v-model="shop.logo" required placeholder="Logo de la boutique">
           </div>
         </form>
       </template>
@@ -97,9 +188,12 @@ const openEditModal = (modal: string) => {
 
 const titleModal = {
   general: 'Modifier les informations générales de la boutique',
+  address: 'Modifier l\'adresse de la boutique',
+  logo: 'Modifier le logo de la boutique',
   legalNotice: 'Modifier les mentions légales de la boutique',
   cgu: 'Modifier les conditions générales d\'utilisation de la boutique',
   cgv: 'Modifier les conditions générales de vente de la boutique',
+  rgpd: 'Modifier la politique de confidentialité de la boutique',
 };
 
 const shopSchema = z.object({
@@ -117,25 +211,37 @@ const shopSchema = z.object({
   legalNotice: z.string().optional(),
   cgu: z.string().optional(),
   cgv: z.string().optional(),
+  siret: z.string().optional(),
+  rgpd: z.string().optional(),
+  active: z.boolean(),
 });
 
-const modalSchema = z.object({
+const modalGeneralSchema = z.object({
   name: z.string(),
   description: z.string(),
-  phone: z.string(),
-  email: z.string(),
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
+  siret: z.string().nullable(),
+  active: z.boolean(),
 });
 
-const legalNoticeSchema = z.object({
-  legalNotice: z.string(),
+const modalAddressSchema = z.object({
+  street: z.string(),
+  postalCode: z.string(),
+  city: z.string(),
+  country: z.string(),
 });
 
-const cguSchema = z.object({
-  cgu: z.string(),
+const modalLogoSchema = z.object({
+  favicon: z.string(),
+  logo: z.string(),
 });
 
-const cgvSchema = z.object({
-  cgv: z.string(),
+const tinymceSchema = z.object({
+  legalNotice: z.string().optional(),
+  cgu: z.string().optional(),
+  cgv: z.string().optional(),
+  rgpd: z.string().optional(),
 });
 
 type Shop = z.infer<typeof shopSchema>;
@@ -155,6 +261,9 @@ const shop = ref<Shop>({
   legalNotice: '',
   cgu: '',
   cgv: '',
+  rgpd: '',
+  siret: '',
+  active: true,
 });
 
 const fetchShop = async () => {
@@ -178,13 +287,16 @@ const handleSubmit = async (type: string) => {
     
     let data;
     if(modalName.value === 'general') {
-      data = modalSchema.parse(shop.value);
-    } else if(modalName.value === 'legalNotice') {
-      data = legalNoticeSchema.parse(shop.value);
-    } else if(modalName.value === 'cgu') {
-      data = cguSchema.parse(shop.value);
-    } else if(modalName.value === 'cgv') {
-      data = cgvSchema.parse(shop.value);
+      data = modalGeneralSchema.parse(shop.value);
+    }
+    else if(modalName.value === 'address') {
+      data = modalAddressSchema.parse(shop.value);
+    }
+    else if(modalName.value === 'logo') {
+      data = modalLogoSchema.parse(shop.value);
+    }
+    else if(modalName.value === 'legalNotice' || modalName.value === 'cgu' || modalName.value === 'cgv' || modalName.value === 'rgpd') {
+      data = tinymceSchema.parse(shop.value);
     }
 
     if(!isInit.value) {
@@ -203,21 +315,13 @@ const handleSubmit = async (type: string) => {
         isOpen.value = false;
       }
     }
-    
+
   } catch (error) {
     if (error instanceof ZodError) {
       console.error(error.errors);
     } else {
       console.error(error);
     }
-  }
-};
-
-const handleSave = () => {
-  if (modalName.value === 'general') {
-    handleSubmit('general');
-  } else {
-    handleSubmit(modalName.value);
   }
 };
 
@@ -233,6 +337,11 @@ onMounted(() => {
   border: 1px solid #ddd;
   border-radius: 10px;
   background-color: #f9f9f9;
+}
+
+.shop-details {
+  display: flex;
+  justify-content: space-evenly
 }
 
 .shop-details p {

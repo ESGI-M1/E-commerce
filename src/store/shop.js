@@ -1,7 +1,7 @@
-// shop.ts
 import { defineStore } from 'pinia';
 import axios from '../tools/axios';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
+import path from 'path';
 
 const shopSchema = z.object({
   name: z.string(),
@@ -46,72 +46,96 @@ export const useShopStore = defineStore('shop', {
         isFetched: false,
     }),
     getters: {
-        getShop: (state) => ({
-        name: state.name,
-        description: state.description,
-        favicon: state.favicon,
-        logo: state.logo,
-        street: state.street,
-        postalCode: state.postalCode,
-        city: state.city,
-        country: state.country,
-        phone: state.phone,
-        email: state.email,
-        legalNotice: state.legalNotice,
-        cgv: state.cgv,
-        cgu: state.cgu,
-        rgpd: state.rgpd,
-        siret: state.siret,
-        tva: state.tva,
-        active: state.active,
-        }),
-        getShopName: (state) => state.name,
-        getShopDescription: (state) => state.description,
-        getShopFavicon: (state) => state.favicon,
-        getShopLogo: (state) => state.logo,
-        getShopStreet: (state) => state.street,
-        getShopPostalCode: (state) => state.postalCode,
-        getShopCity: (state) => state.city,
-        getShopCountry: (state) => state.country,
-        getShopPhone: (state) => state.phone,
-        getShopEmail: (state) => state.email,
-        getShopLegalNotice: (state) => state.legalNotice,
-        getShopCgv: (state) => state.cgv,
-        getShopCgu: (state) => state.cgu,
-        getShopRgpd: (state) => state.rgpd,
-        getShopSiret: (state) => state.siret,
-        getShopTva: (state) => state.tva,
-        getShopActive: (state) => state.active,
+        getShop: (state) => {
+            return state;
+        },
+        getName: (state) => {
+            return state.name;
+        },
+        getDescription: (state) => {
+            return state.description;
+        },
+        getFavicon: (state) => {
+            return state.favicon;
+        },
+        getLogo: (state) => {
+            return state.logo;
+        },
+        getStreet: (state) => {
+            return state.street;
+        },
+        getPostalCode: (state) => {
+            return state.postalCode;
+        },
+        getCity: (state) => {
+            return state.city;
+        },
+        getCountry: (state) => {
+            return state.country;
+        },
+        getPhone: (state) => {
+            return state.phone;
+        },
+        getEmail: (state) => {
+            return state.email;
+        },
+        getLegalNotice: (state) => {
+            return state.legalNotice;
+        },
+        getCgv: (state) => {
+            return state.cgv;
+        },
+        getCgu: (state) => {
+            return state.cgu;
+        },
+        getRgpd: (state) => {
+            return state.rgpd;
+        },
+        getSiret: (state) => {
+            return state.siret;
+        },
+        getTva: (state) => {
+            return state.tva;
+        },
+        getActive: (state) => {
+            return state.active;
+        },
     },
     actions: {
-        async fetchShop() {
-        if (this.isFetched) return;
+        async fetchShop(force = false) {
+            if (this.isFetched) return;
 
-        try {
-            const response = await axios.get('/shop');
-            const validatedData = shopSchema.parse(response.data);
+            try {
+                axios.get(`${import.meta.env.VITE_API_BASE_URL}/shop`).then((response) => {
+                    const validatedData = shopSchema.parse(response.data);
+                    this.name = validatedData.name;
+                    this.description = validatedData.description;
+                    this.favicon = validatedData.favicon;
+                    this.logo = validatedData.logo;
+                    this.street = validatedData.street;
+                    this.postalCode = validatedData.postalCode;
+                    this.city = validatedData.city;
+                    this.country = validatedData.country;
+                    this.phone = validatedData.phone;
+                    this.email = validatedData.email;
+                    this.legalNotice = validatedData.legalNotice;
+                    this.cgv = validatedData.cgv;
+                    this.cgu = validatedData.cgu;
+                    this.rgpd = validatedData.rgpd;
+                    this.siret = validatedData.siret;
+                    this.tva = validatedData.tva;
+                    this.active = validatedData.active;
+                    this.isFetched = true;
+                });
+            } catch (e) {
+                if (e instanceof ZodError) {
+                    console.error(e.errors);
+                }
 
-            this.name = validatedData.name;
-            this.description = validatedData.description || '';
-            this.favicon = validatedData.favicon;
-            this.logo = validatedData.logo;
-            this.street = validatedData.street;
-            this.postalCode = validatedData.postalCode;
-            this.city = validatedData.city;
-            this.country = validatedData.country;
-            this.phone = validatedData.phone || '';
-            this.email = validatedData.email;
-            this.legalNotice = validatedData.legalNotice;
-            this.cgv = validatedData.cgv;
-            this.cgu = validatedData.cgu;
-            this.rgpd = validatedData.rgpd;
-            this.siret = validatedData.siret;
-            this.tva = validatedData.tva;
-            this.active = validatedData.active;
-            this.isFetched = true;
-        } catch (e) {
-            console.error(e);
+                console.error(e);
+            }
         }
-        }
-    }
+    },
 });
+
+

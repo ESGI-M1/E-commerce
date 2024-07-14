@@ -35,6 +35,7 @@ import Orders from '../views/admin/adminOrders.vue'
 import Returns from '../views/admin/adminReturns.vue'
 import Alertes from '../views/AlertesView.vue'
 import NewsLetter from '../views/NewsLetterView.vue'
+import Shop from '../views/admin/adminShop.vue'
 
 const routes = [
   {
@@ -201,7 +202,13 @@ const routes = [
     path: '/newsletters',
     name: 'NewsLetters',
     component: NewsLetter
-  }
+  },
+  {
+    path: '/shop',
+    name: 'Shop',
+    component: Shop,
+    meta: { requiresAdmin: true }
+  },
 ]
 
 const router = createRouter({

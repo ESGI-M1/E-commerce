@@ -13,7 +13,10 @@
       <p>
         <strong>Email:</strong> {{ user.email }}
         <a @click="openeditEmailModal(user.email)"><i class="fa fa-edit edit-icon" ></i></a>
-
+      </p>
+      <p>
+        <strong>Numéro de téléphone:</strong> {{ user.phone }}
+        <a @click="openeditPhoneModal(user.phone)"><i class="fa fa-edit edit-icon" ></i></a>
       </p>
 
       <div v-if="user.deliveryAddress && user.deliveryAddress.length > 0">
@@ -43,12 +46,25 @@
         <p>Aucune adresse de livraison enregistrée.</p>
       </div>
 
-      <button class="btn-add" @click="openAddAddressModal"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
+      <button class="btn btn-add" @click="openAddAddressModal"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
+      <br>
+      <br>
+      <fancy-confirm
+                :class="'btn btn-danger'"
+                :confirmationMessage="'Etes-vous sûr de vouloir supprimer votre compte ?'"
+                :elementType="'button'"
+                @confirmed="deleteUser(user.id)"
+            >
+            <template #buttonText>
+              Supprimer mon compte
+              <i class="fa fa-trash"></i>
+            </template>
+          </fancy-confirm>
     </div>
 
     <div v-if="isOpen" class="modal-overlay">
       <div class="modal">
-        <span class="close" @click="closeModal">&times;</span>
+        <span class="close" @click="isOpen = !isOpen">&times;</span>
         <h2 v-if="mode === 'editAddress'">Modifier l'adresse de livraison</h2>
         <h2 v-else-if="mode === 'addAddress'">Ajouter une adresse de livraison</h2>
         <h2 v-else>Modifier {{ modeLabel }}</h2>
@@ -73,7 +89,7 @@
           </div>
           <div v-else>
             <div class="form-group">
-              <label :for="mode">{{mode === 'email' ? 'Email' : mode === 'firstname' ? 'Prénom' : 'Nom'}}</label>
+              <label :for="mode">{{mode === 'email' ? 'Email' : mode === 'firstname' ? 'Prénom' : mode === 'lastname' ? 'Nom' : 'Numéro de téléphone'}}</label>
               <input v-model="form[mode]" :type="mode === 'email' ? 'email' : 'text'" :id="mode" required />
             </div>
           </div>
@@ -120,23 +136,30 @@ const fetchUserProfile = async () => {
 
 const openeditFirstnameModal = (firstname: string) => {
   isOpen.value = true;
-  modeLabel = 'le prénom'
+  modeLabel.value = 'le prénom'
   mode.value = 'firstname';
   form.value.firstname = firstname;
 };
 
 const openeditLastnameModal = (lastname: string) => {
   isOpen.value = true;
-  modeLabel = 'le nom'
+  modeLabel.value = 'le nom'
   mode.value = 'lastname';
   form.value.lastname = lastname;
 };
 
 const openeditEmailModal = (email: string) => {
   isOpen.value = true;
-  modeLabel = 'l\'e-mail'
+  modeLabel.value = 'l\'e-mail'
   mode.value = 'email';
   form.value.email = email;
+};
+
+const openeditPhoneModal = (phone: string) => {
+  isOpen.value = true;
+  modeLabel.value = 'le numéro de téléphone'
+  mode.value = 'phone';
+  form.value.phone = phone;
 };
 
 const openAddAddressModal = () => {
@@ -159,10 +182,6 @@ const openEditAddressModal = (address) => {
   form.value.country = address.country;
 };
 
-const closeModal = () => {
-  isOpen.value = false
-}
-
 const deleteAddress = async (id) => {
   try {
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/addressusers/${id}`);
@@ -170,6 +189,10 @@ const deleteAddress = async (id) => {
   } catch (error) {
     console.error(error)
   }
+}
+
+const deleteUser = async (userId: number) => {
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
 }
 
 const handleSubmit = async () => {

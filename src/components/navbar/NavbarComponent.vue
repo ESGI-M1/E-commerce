@@ -94,7 +94,7 @@ const searchProducts = async () => {
   }
 
   try {
-    const response = await axios.get(`http://localhost:3000/products/search?q=${search.value}`)
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/search?q=${search.value}`)
     productsStore.setProducts(response.data)
     productsStore.setFilter({ name: search.value })
   } catch (error) {
@@ -118,18 +118,6 @@ const logout = () => {
 </script>
 
 <style scoped>
-.search-results-container {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: white;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
 .navbar {
   display: flex;
   justify-content: space-between;

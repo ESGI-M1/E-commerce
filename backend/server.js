@@ -21,6 +21,8 @@ const NewsLetterRouter = require("./routes/newLetter");
 const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
+const StatsRouter = require("./routes/stats");
+const ShopRouter = require("./routes/shop");
 
 //const migrate = require("./migrate");
 
@@ -50,11 +52,13 @@ app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
-app.use('/adressorders', AddressOrderRouter);
-app.use('/adressusers', AddressUserRouter);
 app.use('/alertes', AlertesRouter);
 app.use('/newsletters', NewsLetterRouter);
 app.use('/paypal', PaypalRouter);
+app.use('/addressorders', AddressOrderRouter);
+app.use('/addressusers', AddressUserRouter);
+app.use('/stats', StatsRouter);
+app.use('/shop', ShopRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

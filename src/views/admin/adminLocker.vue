@@ -175,7 +175,7 @@ const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchProducts = async () => {
-  const response = await axios.get('http://localhost:3000/products/admin')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`)
   products.value = response.data
 }
 
@@ -184,7 +184,7 @@ const addProduct = async () => {
     ...currentProduct.value,
     price: parseFloat(currentProduct.value.price)
   })
-  const response = await axios.post('http://localhost:3000/products', parsedProduct, { withCredentials: true })
+  const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/products`, parsedProduct, { withCredentials: true })
   products.value.push(response.data)
   closeModal()
 }
@@ -194,8 +194,7 @@ const updateProduct = async () => {
     ...currentProduct.value,
     price: parseFloat(currentProduct.value.price)
   })
-  console.log(parsedProduct)
-  await axios.patch(`http://localhost:3000/products/${currentProduct.value.id}`, parsedProduct, { withCredentials: true })
+  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/products/${currentProduct.value.id}`, parsedProduct, { withCredentials: true })
   const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
   if (index !== -1) {
     products.value[index] = currentProduct.value
@@ -204,13 +203,13 @@ const updateProduct = async () => {
 }
 
 const deleteProduct = async (product) => {
-  await axios.delete(`http://localhost:3000/products/${product.id}`, { withCredentials: true })
+  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`, { withCredentials: true })
   products.value = products.value.filter((p) => p.id !== product.id)
 }
 
 const categories = ref([])
 const fetchCategories = async () => {
-  const response = await axios.get('http://localhost:3000/categories')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
   categories.value = response.data
 }
 
@@ -241,7 +240,7 @@ const updateProductImage = async (productId, newImage) => {
   formData.append('image', newImage)
 
   const response = await axios.post(
-    `http://localhost:3000/products/${productId}/image`,
+    `${import.meta.env.VITE_API_BASE_URL}/products/${productId}/image`,
     formData,
     {
       headers: {

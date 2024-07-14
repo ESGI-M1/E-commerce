@@ -114,27 +114,22 @@ const isFutureDate = (dateStr: string) => {
   return date.getTime() > today.getTime();
 }
 
-const downloadInvoice = async (orderId: number) => {
+const downloadInvoice = async (orderId) => {
   try {
-    const invoice = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/stripe/invoice/${orderId}`)
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe/invoice/${orderId}`);
+    const invoicePdfUrl = response.data.invoicePdfUrl;
 
-    const blob = new Blob([invoice.data], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `Commande_n°${orderId}.pdf`)
-    document.body.appendChild(link)
-
-    link.click()
-
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
+    const link = document.createElement('a');
+    link.href = invoicePdfUrl;
+    link.setAttribute('download', `Commande_n°${orderId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   } catch (error) {
-    console.error('Error downloading invoice:', error)
-    alert('Échec du téléchargement de la facture')
+    console.error('Error downloading invoice:', error);
+    alert('Échec du téléchargement de la facture');
   }
-}
+};
 
 const returnItem = (orderId: number, productId: number) => {
   router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } })

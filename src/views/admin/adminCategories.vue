@@ -1,6 +1,6 @@
 <template>
   <div class="categories">
-    <h1>Gestion des Catégories ({{ categories.length }})</h1>
+    <h1>Catégories ({{ categories.length }})</h1>
     <div class="text-right">
       <button @click="showAddCategoryModal" class="btn btn-success">
         <i class="fa fa-plus"></i> Ajouter Catégorie

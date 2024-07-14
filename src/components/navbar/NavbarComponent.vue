@@ -64,7 +64,7 @@
         <div class="dropdown">
           <RouterLink to="/profile" class="dropdown-item">Mon profil</RouterLink>
           <RouterLink to="/favorites" class="dropdown-item">Mes favoris</RouterLink>
-          <RouterLink to="/ressources" v-if="isAdmin" class="dropdown-item">Gestion des ressources</RouterLink>
+          <RouterLink to="/admin/ressources" v-if="isAdmin" class="dropdown-item">Gestion des ressources</RouterLink>
           <RouterLink to="order" class="dropdown-item">Historique des commandes</RouterLink>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>

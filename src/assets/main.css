@@ -14,6 +14,14 @@
   font-weight: normal;
 }
 
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 20px;
+}
+
 th {
   font-weight: bold;
 }

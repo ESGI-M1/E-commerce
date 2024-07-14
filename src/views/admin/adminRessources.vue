@@ -1,28 +1,26 @@
 <template>
   <div class="admin-dashboard">
-    <!-- Liste des ressources -->
     <div class="resource-grid">
-      <div class="resource-item" @click="navigateTo('/users')">
+      <div class="resource-item" @click="navigateTo('/admin/users')">
         <h1>Utilisateurs</h1>
       </div>
-      <div class="resource-item" @click="navigateTo('/products')">
+      <div class="resource-item" @click="navigateTo('/admin/products')">
         <h1>Produits</h1>
       </div>
-      <div class="resource-item" @click="navigateTo('/orders')">
+      <div class="resource-item" @click="navigateTo('/admin/orders')">
         <h1>Commandes</h1>
       </div>
-      <div class="resource-item" @click="navigateTo('/returns')">
+      <div class="resource-item" @click="navigateTo('/admin/returns')">
         <h1>Retours</h1>
       </div>
-      <div class="resource-item" @click="navigateTo('/categories')">
+      <div class="resource-item" @click="navigateTo('/admin/categories')">
         <h1>Catégories</h1>
       </div>
-      <div class="resource-item" @click="navigateTo('/promos')">
+      <div class="resource-item" @click="navigateTo('/admin/promos')">
         <h1>Promos</h1>
       </div>
     </div>
 
-    <!-- Utilisation de VueGridLayout pour le dashboard personnalisable -->
     <vue-grid-layout
       class="dashboard"
       :layout.sync="layout"
@@ -36,7 +34,7 @@
         :key="item.i"
         :data-grid="item"
         :is="item.component"
-        :props="item.props" <!-- Passez les props au composant -->
+        :props="item.props"
         class="widget"
       ></vue-grid-layout-item>
     </vue-grid-layout>
@@ -46,15 +44,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import VueGridLayout, { GridLayoutItem } from 'vue-grid-layout';
-import ChartWidget from '../../../src/layout/dashboard/Chart.vue'; // Importez le composant de graphique
+import VueGridLayout from 'vue-grid-layout';
+import ChartWidget from '../../../src/layout/dashboard/Chart.vue';
 
-// Liste des widgets disponibles (y compris le widget de graphique)
 const widgets = [
   { i: 'widget1', x: 0, y: 0, w: 4, h: 4, component: 'WidgetA' },
   { i: 'widget2', x: 4, y: 0, w: 4, h: 4, component: 'WidgetB' },
   { i: 'widget3', x: 8, y: 0, w: 4, h: 4, component: 'WidgetC' },
-  { i: 'widget4', x: 0, y: 4, w: 12, h: 6, component: ChartWidget, props: { title: 'Graphique des Ventes' } }, // Utilisation du composant de graphique
+  { i: 'widget4', x: 0, y: 4, w: 12, h: 6, component: ChartWidget, props: { title: 'Graphique des Ventes' } },
 ];
 
 const router = useRouter();
@@ -63,12 +60,12 @@ const navigateTo = (route: string) => {
   router.push(route);
 };
 
-// Layout initial pour Vue Grid Layout
 const layout = ref(widgets.map((widget) => ({ ...widget })));
 
 </script>
 
 <style scoped>
+
 .admin-dashboard {
   padding: 20px;
 }
@@ -102,4 +99,5 @@ const layout = ref(widgets.map((widget) => ({ ...widget })));
   border-radius: 8px;
   padding: 10px;
 }
+
 </style>

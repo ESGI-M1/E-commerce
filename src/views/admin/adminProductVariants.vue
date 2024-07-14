@@ -1,5 +1,6 @@
 <template>
-  <div class="content">
+  <div v-if="isLoading" class="loading">Chargement...</div>
+  <div v-else class="content">
     <div class="product-infos">
       <div>
         <div class="div-header">
@@ -27,7 +28,7 @@
           </button>
         </div>
 
-        <ul v-for="option in variantOptions" :key="option.id">
+        <ul v-for="option in allVariantOptions" :key="option.id">
           <input type="checkbox" :id="option.id" :value="option.id" class="option-checkbox" />
           <label :for="option.id">{{ option.name }}</label>
         </ul>
@@ -50,13 +51,17 @@
             <tr v-for="option in variantOptions" :key="option.id">
               <td>{{ option.name }}</td>
               <td>
-                <ul>
+                <ul v-if="option.variantValues">
                   <li v-for="value in option.variantValues" :key="value.id">
                     {{ value.value }}
                   </li>
                 </ul>
               </td>
-              <td>{{ option.productVariantDetails.length }}</td>
+              <td>
+                <template v-if="option.productVariantDetails">
+                  {{ option.productVariantDetails.length }} produits
+                </template>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -81,9 +86,10 @@
         <tbody>
           <tr v-for="variant in productVariants" :key="variant.id">
             <td>
-              <ul>
+              <ul v-if="variant.productVariantDetails">
                 <li v-for="detail in variant.productVariantDetails" :key="detail.id">
-                  {{ detail.variantOption.name }} : {{ detail.variantValue.value }}
+                  {{ detail.variantOption && detail.variantValue ? detail.variantOption.name : 'Aucune donnée' }} : 
+                  {{ detail.variantValue ? detail.variantValue.value : 'Aucune donnée' }}
                 </li>
               </ul>
             </td>
@@ -160,58 +166,63 @@ import axios from '../../tools/axios';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
+const isLoading = ref(true);
 const showModal = ref(false);
-const productId = ref(route.params.id);
-
-const product = ref({
-  name: '',
-  reference: '',
-  description: '',
-  price: 0,
-  active: true,
-  Categories: [],
-});
 
 const productOptions = ref([]);
 const productVariants = ref([]);
 const variantOptions = ref([]);
-const currentProductVariant = ref({
-  name: '',
-  reference: '',
-  price: 0,
-  stockQuantity: 0,
-});
+const allVariantOptions = ref([]);
+
+const productId = ref(route.params.id);
+const product = ref({ name: '', reference: '', description: '', price: 0, active: true, Categories: [] });
+const currentProductVariant = ref({ name: '', reference: '', price: 0, stockQuantity: 0 });
 
 const fetchProduct = async (id) => {
-  const response = await axios.get(`http://localhost:3000/products/${id}`);
-  product.value = response.data;
+  try {
+    const response = await axios.get(`http://localhost:3000/products/${id}`);
+    product.value = response.data || {};
+  } catch (error) {
+    console.error("Erreur lors du chargement du produit", error);
+  }
 };
 
 const fetchProductOptions = async (productId) => {
-  const response = await axios.get(`http://localhost:3000/products/${productId}/options`);
-  productOptions.value = response.data;
-};
-
-const setProductOptions = async () => {
-  const options = Array.from(document.querySelectorAll('.option-checkbox:checked')).map((checkbox) => parseInt(checkbox.value));
-  await axios.post(`http://localhost:3000/products/${productId.value}/options`, { options }, { withCredentials: true });
-  //fetchProductOptions(productId.value);
+  try {
+    const response = await axios.get(`http://localhost:3000/products/${productId}/options`);
+    productOptions.value = response.data || [];
+  } catch (error) {
+    console.error("Erreur lors du chargement des options de produit", error);
+  }
 };
 
 const fetchProductVariants = async (productId) => {
-  const response = await axios.get(`http://localhost:3000/product_variants/${productId}`);
-  productVariants.value = response.data;
+  try {
+    const response = await axios.get(`http://localhost:3000/product_variants/${productId}`);
+    productVariants.value = response.data || [];
+  } catch (error) {
+    console.error("Erreur lors du chargement des déclinaisons de produit", error);
+  }
 };
 
 const fetchAllVariantOptions = async () => {
-  const response = await axios.get(`http://localhost:3000/variant_options`);
-  variantOptions.value = response.data;
+  try {
+    const response = await axios.get(`http://localhost:3000/variant_options`);
+    allVariantOptions.value = response.data || [];
+  } catch (error) {
+    console.error("Erreur lors du chargement des options de variante", error);
+  }
 };
 
 const fetchVariantOptions = async (productId) => {
-  const response = await axios.get(`http://localhost:3000/variant_options/${productId}`);
-  variantOptions.value = response.data;
+  try {
+    const response = await axios.get(`http://localhost:3000/variant_options/${productId}`);
+    variantOptions.value = response.data || [];
+  } catch (error) {
+    console.error("Erreur lors du chargement des options de variante pour le produit", error);
+  }
 };
+
 
 const productVariantSchema = z.object({
   id: z.number().optional(),
@@ -222,6 +233,7 @@ const productVariantSchema = z.object({
 });
 
 const updateProductVariant = async () => {
+  console.log('updateProductVariant');
   try {
     const parsedProductVariant = productVariantSchema.parse({ ...currentProductVariant.value, price: parseFloat(currentProductVariant.value.price) });
     await axios.patch(`http://localhost:3000/product_variants/${currentProductVariant.value.id}`, parsedProductVariant, { withCredentials: true });
@@ -262,13 +274,21 @@ const closeModal = () => {
   showModal.value = false;
 };
 
-onMounted(() => {
-  fetchProduct(productId.value);
-  fetchProductOptions(productId.value);
-  fetchProductVariants(productId.value);
-  fetchVariantOptions(productId.value);
-  fetchAllVariantOptions();
-})
+onMounted(async () => {
+  try {
+    await Promise.all([
+      fetchProduct(productId.value),
+      fetchProductOptions(productId.value),
+      fetchProductVariants(productId.value),
+      fetchVariantOptions(productId.value),
+      fetchAllVariantOptions()
+    ]);
+  } catch (error) {
+    console.error("Erreur lors du chargement des données", error);
+  } finally {
+    isLoading.value = false;
+  }
+});
 
 </script>
 

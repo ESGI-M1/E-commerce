@@ -1,26 +1,37 @@
-<script lang="ts">
-//import Sidebar from './components/sidebar/Sidebar.vue'
-//import { sidebarWidth } from './components/sidebar/state'
-import Navbar from './components/navbar/NavbarComponent.vue'
-
-export default {
-  //components: { Sidebar, Navbar},
-  components: { Navbar }
-  /*setup() {
-    return { sidebarWidth }
-  }*/
-}
-</script>
 <template>
-  <Navbar />
-  <!--<Sidebar />-->
-  <!--<div :style="{ 'margin-left': sidebarWidth }">-->
   <div>
-    <router-view />
+    <Sidebar v-if="isAdminRoute" />
+    <Navbar v-else />
+    <div :id="isAdminRoute ? 'admin-content' : 'main-content'">
+      <router-view />
+    </div>
   </div>
 </template>
 
+<script lang="ts">
+
+import { defineComponent, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import Navbar from './components/navbar/NavbarComponent.vue';
+import Sidebar from './components/sidebar/SidebarComponent.vue';
+
+export default defineComponent({
+  components: {
+    Navbar,
+    Sidebar,
+  },
+
+  setup() {
+    const route = useRoute();
+    const isAdminRoute = computed(() => route.path.startsWith('/admin'));
+    return { isAdminRoute };
+  }
+});
+
+</script>
+
 <style>
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -40,4 +51,37 @@ export default {
 #nav a.router-link-exact-active {
   color: #42b983;
 }
+
+#main-content {
+  padding: 1em;
+}
+
+#admin-content {
+  margin-left: 200px;
+  padding: 1em;
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  #admin-content {
+    margin-left: 0;
+  }
+
+  .sidebar {
+    width: 100%;
+    position: relative;
+  }
+}
+
+@media (min-width: 769px) {
+  #admin-content {
+    margin-left: 200px;
+  }
+
+  .sidebar {
+    width: 200px;
+    position: fixed;
+  }
+}
+
 </style>

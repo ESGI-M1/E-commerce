@@ -1,51 +1,37 @@
-<script lang="ts">
-import SidebarLink from './SidebarLink.vue'
-import { collapsed, toggleSidebar, sidebarWidth } from './state'
-
-export default {
-  props: {},
-  components: { SidebarLink },
-  setup() {
-    return { collapsed, toggleSidebar, sidebarWidth }
-  }
-}
-</script>
-
 <template>
-  <div class="sidebar" :style="{ width: sidebarWidth }">
-    <h1>
-      <span v-if="collapsed">
-        <div>V</div>
-        <div>S</div>
-      </span>
-      <span v-else>Vue Sidebar</span>
-    </h1>
-
-    <SidebarLink to="/" icon="fas fa-home">Accueil</SidebarLink>
-    <SidebarLink to="/product" icon="fa fa-tag">Produits</SidebarLink>
-    <SidebarLink to="/friends" icon="fas fa-users">Utilisateurs</SidebarLink>
-    <SidebarLink to="/dashboard" icon="fas fa-columns">Dashboard</SidebarLink>
-    <SidebarLink to="/analytics" icon="fas fa-chart-bar">Analytics</SidebarLink>
-    <SidebarLink to="/image" icon="fas fa-image">Images</SidebarLink>
-    <SidebarLink to="/login" icon="fas fa-sign-in-alt">Login</SidebarLink>
-    <SidebarLink to="/signup" icon="fas fa-user-plus">Signup</SidebarLink>
-    <SidebarLink to="/products" icon="fas fa-shopping-cart">Products</SidebarLink>
-
-    <span class="collapse-icon" :class="{ 'rotate-180': collapsed }" @click="toggleSidebar">
-      <i class="fas fa-angle-double-left" />
-    </span>
+  <div class="sidebar">
+    <SidebarLink to="/admin/" icon="fas fa-home">Accueil</SidebarLink>
+    <hr>
+    <SidebarLink to="/admin/users" icon="fas fa-users">Utilisateurs</SidebarLink>
+    <hr>
+    <SidebarLink to="/admin/products" icon="fas fa-shopping-cart">Produits</SidebarLink>
+    <SidebarLink to="/admin/categories" icon="fas fa-tags">Catégories</SidebarLink>
+    <hr>
+    <SidebarLink to="/admin/orders" icon="fas fa-truck">Commandes</SidebarLink>
+    <SidebarLink to="/admin/returns" icon="fas fa-undo">Retours</SidebarLink>
+    <SidebarLink to="/admin/promos" icon="fas fa-percent">Codes promo</SidebarLink>
   </div>
 </template>
 
+<script lang="ts">
+
+import SidebarLink from './SidebarLink.vue';
+export default { components: { SidebarLink } }
+
+</script>
+
 <style>
+
 :root {
   --sidebar-bg-color: #2f855a;
   --sidebar-item-hover: #38a169;
   --sidebar-item-active: #276749;
 }
+
 </style>
 
 <style scoped>
+
 .sidebar {
   color: white;
   background-color: var(--sidebar-bg-color);
@@ -56,7 +42,8 @@ export default {
   top: 0;
   left: 0;
   bottom: 0;
-  padding: 0.5em;
+  width: 200px;
+  padding: 1em 0.5em;
 
   transition: 0.3s ease;
 
@@ -68,18 +55,10 @@ export default {
   height: 2.5em;
 }
 
-.collapse-icon {
-  position: absolute;
-  bottom: 0;
-  padding: 0.75em;
-
-  color: rgba(255, 255, 255, 0.7);
-
-  transition: 0.2s linear;
+.sidebar hr {
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 1em 0.5em;
 }
 
-.rotate-180 {
-  transform: rotate(180deg);
-  transition: 0.2s linear;
-}
 </style>

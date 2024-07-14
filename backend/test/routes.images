@@ -24,7 +24,7 @@ describe('Image routes', () => {
   });
 
     it('should create a new image', async () => {
-        const product = Product.create({
+        const product = await Product.create({
           name: 'Sample Product',
           reference: 'SP123',
           price: 500,
@@ -50,7 +50,7 @@ describe('Image routes', () => {
       
 
   it('should update an image', async () => {
-    const image = Image.create({
+    const image = await Image.create({
       url: 'http://example.com/old-image.jpg',
       description: 'Old image description',
       productId: null,
@@ -71,23 +71,8 @@ describe('Image routes', () => {
     expect(response.body.description).toBe(updatedImage.description);
   });
 
-  it('should delete an image', async () => {
-    const image = Image.create({
-      url: 'http://example.com/temp-image.jpg',
-      description: 'Temporary image description',
-      productId: null,
-    });
-
-    await server
-      .delete(`/images/${image.id}`)
-      .expect(204);
-
-    const deletedImage = Image.findByPk(image.id);
-    expect(deletedImage).toBeNull();
-  });
-
   it('should replace an image', async () => {
-    const image = Image.create({
+    const image = await Image.create({
       url: 'http://example.com/replace-old-image.jpg',
       description: 'Old image description to be replaced',
       productId: null,

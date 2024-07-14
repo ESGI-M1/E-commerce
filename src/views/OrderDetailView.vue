@@ -6,10 +6,10 @@
         Télécharger ma facture
       </button>
       <p v-if="order">Date de la commande: {{ formatDate(order.createdAt) }}</p>
-      <p class="payment-details" v-if="order && order.payment">
-        Paiement effectué via <span>{{ order.payment.method }}</span>, 
-        <span>{{ order.payment.currency }}</span>, 
-        <small><span>**** **** **** {{ order.payment.cardLast4 }}</span></small>
+      <p class="payment-details" v-if="order && order.Payment">
+        Paiement effectué via <span>{{ order.Payment.method }}</span>, 
+        <span>{{ order.Payment.currency }}</span>, 
+        <small><span>**** **** **** {{ order.Payment.cardLast4 }}</span></small>
       </p>
     </header>
     <div v-if="order" class="order-details">
@@ -28,7 +28,7 @@
         <p :class="['order-status', order.status]">{{ order.status }}</p>
       </div>
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
-      <div v-for="cartProduct in order.cart.CartProducts" :key="cartProduct.id" class="cart-item">
+      <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
         <div v-if="cartProduct.product" class="product-image-container">
           <img :src="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].url : 
                   '../../produit_avatar.jpg'" 
@@ -40,19 +40,19 @@
           <h3>{{ cartProduct.product.name }}</h3>
           <p>
             Catégorie:
-            <span v-for="category in cartProduct.product.Categories" :key="category.id">
+            <span v-if="cartProduct" v-for="category in cartProduct.product.Categories" :key="category.id">
               {{ category.name }}
             </span>
           </p>
           <p>Quantité: {{ cartProduct.quantity }}</p>
         </div>
         <div class="order-actions">
-          <div v-if="order.cart.promoCode">
+          <div v-if="order.Cart.promoCode">
             <div class="first-price">
               <p class="old-price">{{ cartProduct.product.price }} €</p>
-              <span class="discount">(-{{ order.cart.promoCode.discountPercentage }}%)</span>
+              <span class="discount">(-{{ order.Cart.promoCode.discountPercentage }}%)</span>
             </div>
-            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.cart.promoCode.discountPercentage) }} €</p>
+            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.Cart.promoCode.discountPercentage) }} €</p>
           </div>
           <p v-else class="new-price">{{ cartProduct.product.price }} €</p>
           <button @click="addToCart(cartProduct.product.id, 1)" class="btn-details">Commander à nouveau</button>
@@ -84,7 +84,8 @@ const fetchOrder = async () => {
       })
       order.value = response.data
 
-      for (const cart of order.value.cart.CartProducts) {
+      if (order.value.Cart) {
+      for (const cart of order.value.Cart.CartProducts) {
         const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.product.id}`, {
           params: {
             orderId: orderId.value,
@@ -95,6 +96,8 @@ const fetchOrder = async () => {
           cart.product.returned = returnProduct.data
         }
       }
+    }
+    console.log(order.value)
     }
 }
 
@@ -112,27 +115,22 @@ const isFutureDate = (dateStr: string) => {
   return date.getTime() > today.getTime();
 }
 
-const downloadInvoice = async (orderId: number) => {
+const downloadInvoice = async (orderId) => {
   try {
-    const invoice = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/stripe/invoice/${orderId}`)
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe/invoice/${orderId}`);
+    const invoicePdfUrl = response.data.invoicePdfUrl;
 
-    const blob = new Blob([invoice.data], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `Commande_n°${orderId}.pdf`)
-    document.body.appendChild(link)
-
-    link.click()
-
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
+    const link = document.createElement('a');
+    link.href = invoicePdfUrl;
+    link.setAttribute('download', `Commande_n°${orderId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   } catch (error) {
-    console.error('Error downloading invoice:', error)
-    alert('Échec du téléchargement de la facture')
+    console.error('Error downloading invoice:', error);
+    alert('Échec du téléchargement de la facture');
   }
-}
+};
 
 const returnItem = (orderId: number, productId: number) => {
   router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } })

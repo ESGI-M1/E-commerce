@@ -73,7 +73,7 @@ interface Order {
 const orders = ref<Order[]>([])
 
 const fetchOrders = async () => {
-  const response = await axios.get('http://localhost:3000/orders')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders`)
   orders.value = response.data
 }
 
@@ -82,7 +82,7 @@ const formatDate = (dateStr: string) => {
 }
 
 const validate = async (id: number) => {
-  await axios.patch(`http://localhost:3000/orders/${id}`)
+  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${id}`)
   fetchOrders()
 }
 

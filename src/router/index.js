@@ -25,14 +25,18 @@ import Success from '../views/SuccessView.vue';
 import Error from '../views/ErrorView.vue';
 import Livraison from '../views/OrderLivraisonView.vue';
 
-import Users from '../views/admin/adminUsers.vue';
-import Promos from '../views/admin/adminPromos.vue';
-import Categories from '../views/admin/adminCategories.vue';
-import Ressources from '../views/admin/adminRessources.vue';
+//Admin
+import Users from '../views/admin/adminUsers.vue'
+import Promos from '../views/admin/adminPromos.vue'
+import Categories from '../views/admin/adminCategories.vue'
+import Ressources from '../views/admin/adminRessources.vue'
 import Products from '../views/admin/adminProducts.vue';
 import ProductVariants from '../views/admin/adminProductVariants.vue';
-import Orders from '../views/admin/adminOrders.vue';
-import Returns from '../views/admin/adminReturns.vue';
+import Orders from '../views/admin/adminOrders.vue'
+import Returns from '../views/admin/adminReturns.vue'
+import Alertes from '../views/AlertesView.vue'
+import NewsLetter from '../views/NewsLetterView.vue'
+import Shop from '../views/admin/adminShop.vue'
 
 const routes = [
   {
@@ -198,9 +202,25 @@ const routes = [
     path: '/admin/returns',
     name: 'Retours',
     component: Returns,
-    meta: { requiresAdmin: true },
-  }
-];
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/alertes',
+    name: 'Alertes',
+    component: Alertes
+  },
+  {
+    path: '/newsletters',
+    name: 'NewsLetters',
+    component: NewsLetter
+  },
+  {
+    path: '/shop',
+    name: 'Shop',
+    component: Shop,
+    meta: { requiresAdmin: true }
+  },
+]
 
 const router = createRouter({
   history: createWebHistory('/'),

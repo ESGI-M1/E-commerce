@@ -10,7 +10,7 @@ const route = useRoute()
 const router = useRouter()
 const isFavorite = ref(false)
 const productId = ref(route.params.id as string)
-const user = JSON.parse(Cookies.get('USER').substring(2)).id
+let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 
 interface Product {
   id: string;
@@ -70,7 +70,6 @@ const removeFromFavorites = async (productId: string) => {
 
 const addToCart = async (quantity: number) => {
   if (!user) {
-    let user = null;
     if (localStorage.getItem('temporaryId')) {
       user = localStorage.getItem('temporaryId')
     } else {

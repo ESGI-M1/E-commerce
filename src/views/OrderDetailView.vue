@@ -6,6 +6,11 @@
         Télécharger ma facture
       </button>
       <p v-if="order">Date de la commande: {{ formatDate(order.createdAt) }}</p>
+      <p class="payment-details" v-if="order && order.Payment">
+        Paiement effectué via <span>{{ order.Payment.method }}</span>, 
+        <span>{{ order.Payment.currency }}</span>, 
+        <small><span>**** **** **** {{ order.Payment.cardLast4 }}</span></small>
+      </p>
     </header>
     <div v-if="order" class="order-details">
       <h2>Détails de la commande</h2>
@@ -35,7 +40,7 @@
           <h3>{{ cartProduct.product.name }}</h3>
           <p>
             Catégorie:
-            <span v-for="category in cartProduct.product.Categories" :key="category.id">
+            <span v-if="cartProduct" v-for="category in cartProduct.product.Categories" :key="category.id">
               {{ category.name }}
             </span>
           </p>
@@ -79,6 +84,7 @@ const fetchOrder = async () => {
       })
       order.value = response.data
 
+      if (order.value.Cart) {
       for (const cart of order.value.Cart.CartProducts) {
         const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.product.id}`, {
           params: {
@@ -90,6 +96,8 @@ const fetchOrder = async () => {
           cart.product.returned = returnProduct.data
         }
       }
+    }
+    console.log(order.value)
     }
 }
 
@@ -109,30 +117,20 @@ const isFutureDate = (dateStr: string) => {
 
 const downloadInvoice = async (orderId) => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/invoice/${orderId}`, {
-      responseType: 'blob',
-      headers: {
-        Authorization: `Bearer ${authToken}`
-      }
-    })
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe/invoice/${orderId}`);
+    const invoicePdfUrl = response.data.invoicePdfUrl;
 
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `Commande_n°${orderId}.pdf`)
-    document.body.appendChild(link)
-
-    link.click()
-
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
+    const link = document.createElement('a');
+    link.href = invoicePdfUrl;
+    link.setAttribute('download', `Commande_n°${orderId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   } catch (error) {
-    console.error('Error downloading invoice:', error)
-    alert('Échec du téléchargement de la facture')
+    console.error('Error downloading invoice:', error);
+    alert('Échec du téléchargement de la facture');
   }
-}
+};
 
 const returnItem = (orderId: number, productId: number) => {
   router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } })
@@ -319,4 +317,24 @@ onMounted(() => {
     align-items: flex-start;
   }
 }
+
+.payment-details {
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+.payment-details span {
+  margin-right: 10px;
+  /* Pour espacer les éléments */
+}
+
+.payment-details span:last-child {
+  margin-right: 0;
+  /* Pour enlever la marge à droite du dernier élément */
+}
+
 </style>

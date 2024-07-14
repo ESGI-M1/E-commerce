@@ -1,4 +1,10 @@
+<script setup lang="ts">
+import Navbar from './components/navbar/NavbarComponent.vue'
+import Footer from './components/navbar/FooterComponent.vue'
+</script>
+
 <template>
+  <Navbar />
   <div>
     <Sidebar v-if="isAdminRoute" />
     <Navbar v-else />
@@ -6,6 +12,7 @@
       <router-view />
     </div>
   </div>
+  <Footer v-if="!$route.meta.requiresAdmin" />
 </template>
 
 <script lang="ts">
@@ -52,36 +59,8 @@ export default defineComponent({
   color: #42b983;
 }
 
-#main-content {
-  padding: 1em;
-}
-
-#admin-content {
-  margin-left: 200px;
-  padding: 1em;
-  transition: margin-left 0.3s ease;
-}
-
-@media (max-width: 768px) {
-  #admin-content {
-    margin-left: 0;
-  }
-
-  .sidebar {
-    width: 100%;
-    position: relative;
-  }
-}
-
-@media (min-width: 769px) {
-  #admin-content {
-    margin-left: 200px;
-  }
-
-  .sidebar {
-    width: 200px;
-    position: fixed;
-  }
+.background {
+  height: 90vh;
 }
 
 </style>

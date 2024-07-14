@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
@@ -55,7 +55,6 @@ router.get('/own', checkAuth, async (req, res, next) => {
           ]
       });
 
-      // Transformez les résultats pour avoir une structure avec commandes et paniers
       const orderMap = {};
 
       for (const cart of carts) {
@@ -141,7 +140,18 @@ router.get('/:id', checkAuth, async (req, res, next) => {
     });
 
     if (!order || !cart) return res.status(404).json({ error: 'Commande ou panier non trouvé' });
-    
+
+    const payment = await PaymentMethod.findOne({
+      where: {
+        orderId: req.params.id,
+        userId: req.user.id,
+      },
+    });
+
+    if (payment) {
+      order.dataValues.Payment = payment;
+    }
+
     order.dataValues.Cart = cart;
 
     res.json(order);
@@ -222,7 +232,6 @@ router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
           }
 
           if (orderMap[orderId]) {
-              console.log('cart:', cart)
               orderMap[orderId].carts.push({
                   id: cart.id,
                   quantity: cart.quantity,
@@ -232,47 +241,22 @@ router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
           }
       }
 
+      const payment = await PaymentMethod.findOne({
+        where: {
+          orderId: orderId,
+          userId: req.user.id,
+        },
+      });
+
+      if (payment) {
+        orderMap[orderId].payment = payment;
+      }
+
       const ordersWithCarts = Object.values(orderMap);
 
       res.json(ordersWithCarts);
   } catch (e) {
       next(e);
-  }
-});
-
-// Télécharger la facture PDF
-router.get('/invoice/:orderId', async (req, res, next) => {
-  const orderId = parseInt(req.params.orderId);
-  
-  try {
-    const order = await Order.findByPk(orderId);
-  
-    if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
-  
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage();
-  
-    page.setFontSize(20);
-    page.drawText(`Invoice for Order ${order.id}`, {
-      x: 50,
-      y: 700,
-      size: 20,
-    });
-  
-    page.setFontSize(12);
-    page.drawText(`Date: ${format(order.createdAt, 'dd/MM/yyyy')}`, {
-      x: 50,
-      y: 650,
-      size: 12,
-    });
-  
-    const pdfBytes = await pdfDoc.save();
-  
-    res.setHeader('Content-Type', 'application/pdf');
-    res.send(pdfBytes);
-  
-  } catch (e){
-    next(e);
   }
 });
 

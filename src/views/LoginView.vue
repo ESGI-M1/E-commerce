@@ -3,7 +3,9 @@ import { ref, computed } from 'vue'
 import { z } from 'zod'
 import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
-import Cookies from 'js-cookie'
+import { useUserStore } from '@/store/user'
+
+const userStore = useUserStore()
 
 const email = ref('')
 const password = ref('')
@@ -11,6 +13,11 @@ const router = useRouter()
 
 const emailSchema = z.string().email("L'email est invalide")
 const passwordSchema = z.string().min(12, '12 caractères minimum')
+
+const errorPopupContent = ref('');
+const errorPopupShow = ref(false);
+
+const closeErrorPopup = () => { errorPopupShow.value = false; }
 
 const emailError = computed(() => {
   const parsedEmail = emailSchema.safeParse(email.value)
@@ -32,10 +39,6 @@ const passwordError = computed(() => {
   return parsedPassword.error.issues[0].message
 })
 
-const isAuthenticated = computed(() => {
-  return Cookies.get('USER') !== undefined
-})
-
 const login = () => {
   if (
     !emailSchema.safeParse(email.value).success ||
@@ -49,14 +52,13 @@ const login = () => {
       email: email.value,
       password: password.value
     })
-    .then(async (response) => {
+    .then(async () => {
       const temporaryId = localStorage.getItem('temporaryId')
       try {
         if (temporaryId) {
           const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
           const cartId = cartResponse.data[0].id;
             await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {
-              userId: response.data.id
             })
           
           await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
@@ -69,8 +71,13 @@ const login = () => {
       }
     })
     .catch((error) => {
-      console.log(error)
-      alert('Échec de la connexion')
+      if (error.response.status === 429) {
+        errorPopupContent.value = "Vous avez essayé de vous connecter de trop nombreuses fois, veuillez réessayer 15 min après votre dernière tentative";
+        errorPopupShow.value = true;
+      } else {
+        errorPopupContent.value = "Addresse ou mot de passe incorrect";
+        errorPopupShow.value = true;
+      }
     })
 }
 
@@ -79,7 +86,7 @@ const login = () => {
 <template>
   <div class="login auth-form">
     <h1>Connexion</h1>
-    <form @submit.prevent="login" v-if="!isAuthenticated">
+    <form @submit.prevent="login" v-if="!userStore.isAuthenticated">
       <div>
         <label for="email">Email</label>
         <input type="email" placeholder="Email" v-model="email" required />
@@ -106,6 +113,18 @@ const login = () => {
       <h2>Vous êtes déjà connecté</h2>
     </div>
     <RouterLink to="/forgot-password">Mot de passe oublié ?</RouterLink>
+
+    <div class="error-popup-background" v-if="errorPopupShow">
+      <div class="error-popup">
+        <div class="error-popup-header">
+          <div>Erreur de connexion</div>
+          <div @click="closeErrorPopup"><i class="fas fa-close" style="font-size: 20px; color: gray; cursor: pointer"></i></div>
+        </div>
+        <div class="error-popup-body">
+          {{ errorPopupContent }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -142,4 +161,43 @@ const login = () => {
   border-radius: 4px;
   cursor: pointer;
 }
+
+.error-popup-background {
+  position: fixed;
+  background-color: rgba(155,155,155,0.6);
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+}
+
+.error-popup {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 400px;
+  margin-top: 180px;
+}
+
+.error-popup-header {
+  padding: 10px;
+  border-bottom: 1px lightgray dashed;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  height: 40px;
+}
+
+.fa-xmark:hover {
+  color: black !important;
+  cursor: pointer;
+}
+
+.error-popup-body {
+  padding: 10px;
+}
+
 </style>

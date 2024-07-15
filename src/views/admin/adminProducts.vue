@@ -38,7 +38,7 @@
           </td>
           <td>{{ product.name }}</td>
           <td>{{ product.reference }}</td>
-          <td>{{ product.description }}</td>
+          <td>{{ truncateString(product.description, 200) }}</td>
           <td>{{ product.price }} €</td>
           <td>
             <ul>
@@ -269,6 +269,10 @@ const triggerFileInput = () => {
     updateProductImage(currentProduct.value.id, newImage)
   })
   fileInput.click()
+}
+
+const truncateString = (string: string, sub: number) => {
+  return string.length > sub ? `${string.substring(0, sub)}...` : string
 }
 
 /*

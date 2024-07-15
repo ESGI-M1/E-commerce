@@ -2,7 +2,11 @@
   <div>
     <Sidebar v-if="$route.meta.requiresAdmin" />
     <Navbar v-else />
-    <div :id="$route.meta.requiresAdmin ? 'admin-content' : 'main-content'">
+    <div
+      :style="$route.meta.requiresAdmin
+      ? { marginLeft: sidebarWidth, transition: 'margin-left 0.3s ease' }
+      : { transition: 'margin-left 0.3s ease' }"
+    >
       <router-view />
     </div>
   </div>
@@ -14,8 +18,14 @@
 import { defineComponent } from 'vue';
 import Navbar from './components/navbar/NavbarComponent.vue';
 import Sidebar from './components/sidebar/SidebarComponent.vue';
+import { sidebarWidth } from './components/sidebar/state';
 
-export default defineComponent({ components: { Navbar, Sidebar } });
+export default defineComponent({
+  components: { Navbar, Sidebar },
+  setup() {
+    return { sidebarWidth };
+  }
+});
 
 </script>
 

@@ -13,19 +13,17 @@ export default {
 
 <template>
   <div class="sidebar" :class="{ collapsed: collapsed }" :style="{ width: sidebarWidth }">
-    <h1>
-      <span v-if="collapsed">
-        <div>V</div>
-        <div>S</div>
-      </span>
-      <span v-else>Menu</span>
-    </h1>
-  <SidebarLink to="/admin/users" icon="fas fa-users">Utilisateurs</SidebarLink>
-  <SidebarLink to="/admin/products" icon="fas fa-box-open">Produits</SidebarLink>
-  <SidebarLink to="/admin/orders" icon="fas fa-shopping-bag">Commandes</SidebarLink>
-  <SidebarLink to="/admin/returns" icon="fas fa-undo">Retours</SidebarLink>
-  <SidebarLink to="/admin/categories" icon="fas fa-th-list">Catégories</SidebarLink>
-  <SidebarLink to="/admin/promos" icon="fas fa-tags">Promos</SidebarLink>
+    <SidebarLink to="/" icon="fas fa-home">Accueil</SidebarLink>
+    <hr>
+    <SidebarLink to="/admin/ressources" icon="fas fa-tachometer-alt">Tableau de bord</SidebarLink>
+    <SidebarLink to="/admin/users" icon="fas fa-users">Utilisateurs</SidebarLink>
+    <hr>
+    <SidebarLink to="/admin/products" icon="fas fa-box-open">Produits</SidebarLink>
+    <SidebarLink to="/admin/categories" icon="fas fa-th-list">Catégories</SidebarLink>
+    <hr>
+    <SidebarLink to="/admin/orders" icon="fas fa-shopping-bag">Commandes</SidebarLink>
+    <SidebarLink to="/admin/returns" icon="fas fa-undo">Retours</SidebarLink>
+    <SidebarLink to="/admin/promos" icon="fas fa-tags">Promos</SidebarLink>
   </div>
   <span class="collapse-icon" :class="{ 'rotate-180': collapsed }" @click="toggleSidebar">
       <i class="fas fa-angle-double-left" />
@@ -64,6 +62,12 @@ export default {
 
 .sidebar h1 {
   height: 2.5em;
+}
+
+.sidebar hr {
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 1em 0.5em;
 }
 
 .collapse-icon {

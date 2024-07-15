@@ -156,6 +156,43 @@ async function sendValidateInscription(user) {
     informativeLine);
 }
 
+async function sendValidateInscriptionByAdmin(user, password) {
+  const token = jwt.sign(
+    {
+      id: user.id,
+      role: user.role,
+      purpose: "confirm_address"
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "30 days",
+      algorithm: "HS256",
+    }
+  );
+  const link = process.env.BASE_URL + "/users/confirm-address/" + token;
+  const textLink = "Confirmez votre adresse";
+  const content = [
+    "Bonjour " + user.firstname + ",",
+    "Votre compte a été ajouté par un administrateur.",
+    "Voici vos informations de connexion :",
+    "Email : " + user.email,
+    "Mot de passe : " + password
+  ];
+
+  const informativeLine = "Le lien concernant la validation de votre compte expirera 30 jours après l'envoi de ce mail."
+
+  await sendEmail(
+    "Validation de votre compte utilisateur",
+    content,
+    "Template.vue",
+    user.email,
+    "Votre compte utilisateur a été ajouté",
+    link,
+    textLink,
+    informativeLine
+  );
+}
+
 async function sendConnexionWithoutConfirmAccount(user) {
   const token = jwt.sign(
     {
@@ -270,5 +307,6 @@ module.exports = {
   sendNewProductNotification,
   sendRestockNotification,
   sendNewsLetterArticle,
-  sendPriceChangeNotification
+  sendPriceChangeNotification,
+  sendValidateInscriptionByAdmin
 }

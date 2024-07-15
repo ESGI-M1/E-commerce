@@ -4,8 +4,9 @@ const router = new Router();
 const checkRole = require("../middlewares/checkRole");
 const checkAuth = require("../middlewares/checkAuth");
 const { Op } = require('sequelize');
+const mailer = require('../services/mailer');
 
-router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
+router.get("/", checkAuth, checkRole({ roles: "admin" }), async (req, res) => {
 
     const users = await User.findAll({
       where: {
@@ -56,12 +57,27 @@ router.get("/:id", checkAuth, async (req, res, next) => {
 
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", checkAuth, checkRole({ roles: "admin" }), async (req, res, next) => {
+  try {
+    const user = await User.create(req.body);
+    mailer.sendValidateInscriptionByAdmin(user, req.body.password);
+    res.status(201).json(user);
+  } catch (e) {
+    if (e.name === 'SequelizeUniqueConstraintError') {
+      res.status(400).json({ error: 'Cet email est déjà utilisé.' });
+    } else {
+      next(e);
+    }
+  }
+});
+
+router.post("/signup", async (req, res, next) => {
   try {
 
     if(req.body.role && req.body.role === 'admin') return res.status(401).send('Unauthorized');
 
     const user = await User.create(req.body);
+    mailer.sendNewsLetterInscription(user);
     res.status(201).json(user);
   } catch (e) {
     if (e.name === 'SequelizeUniqueConstraintError') {

@@ -277,6 +277,7 @@ const triggerFileInput = () => {
 }
 
 const truncateString = (string: string, sub: number) => {
+  if (!string) return ''
   return string.length > sub ? `${string.substring(0, sub)}...` : string
 }
 

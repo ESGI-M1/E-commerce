@@ -60,6 +60,12 @@ import { collapsed, toggleSidebar, sidebarWidth } from './state'
   height: 2.5em;
 }
 
+.sidebar hr {
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 1em 0.5em;
+}
+
 .collapse-icon {
   position: absolute;
   bottom: 0;

@@ -1,11 +1,12 @@
 <template>
   <div class="products">
     <div class="div-header">
-      <h2>Produits ({{ products.length }})</h2>
+      <h1>Produits ({{ products.length }})</h1>
       <button @click="showAddProductModal" class="btn btn-success">
-        <i class="fa fa-plus"></i> Ajouter Produit
+        <i class="fa fa-plus"></i> Ajouter un produit
       </button>
     </div>
+
     <table>
       <thead>
         <tr>
@@ -37,7 +38,7 @@
           </td>
           <td>{{ product.name }}</td>
           <td>{{ product.reference }}</td>
-          <td>{{ product.description }}</td>
+          <td>{{ truncateString(product.description, 200) }}</td>
           <td>{{ product.price }} €</td>
           <td>
             <ul>
@@ -273,6 +274,10 @@ const triggerFileInput = () => {
     updateProductImage(currentProduct.value.id, newImage)
   })
   fileInput.click()
+}
+
+const truncateString = (string: string, sub: number) => {
+  return string.length > sub ? `${string.substring(0, sub)}...` : string
 }
 
 /*

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 module.exports = function (connection) {
   const CategorySchema = new mongoose.Schema(
     {
+      _id: Number,
       name: {
         type: String,
         required: true,
@@ -18,13 +19,10 @@ module.exports = function (connection) {
         type: String,
       },
       parentCategory: {
-        type: Schema.Types.ObjectId,
+        type: Number,
         ref: 'Category',
       },
-      products: [{
-        type: Number,
-        ref: 'Product',
-      }],
+      products: Array
     },
     {
       timestamps: true,

@@ -19,7 +19,6 @@ router.get('/', checkAuth, async (req, res) => {
 
 router.post('/', checkAuth, async (req, res, next) => {
   try {
-    console.log(req.body);
     const productId = req.body.productId;
 
     if (!productId) {

@@ -1,6 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
-const categoryMongo = require("../dtos/denormalization/categoryMongo");
-const { tr } = require("date-fns/locale");
+const denormalizeCategory = require("../dtos/denormalization/category");
 
 module.exports = function (connection) {
 
@@ -11,14 +10,19 @@ module.exports = function (connection) {
         }
 
         static addHooks(models) {
+            
             Category.addHook("afterCreate", (category) =>
-              categoryMongo(category.id, models.Category, models.Product)
+                denormalizeCategory(category, models)
             );
-            Category.addHook("afterUpdate", (category) =>
-              categoryMongo(category.id, models.Category, models.Product)
-            );
+
+            Category.addHook("afterUpdate", (category, { fields }) => {
+                if(fields.includes("name") || fields.includes("slug") || fields.includes("description") || fields.includes("active")) {
+                    denormalizeCategory(category, models)
+                }
+            });
+
             Category.addHook("afterDestroy", (category) =>
-              categoryMongo(category.id, models.Category, models.Product, true)
+                denormalizeCategory(category, models)
             );
         }
     }
@@ -52,8 +56,16 @@ module.exports = function (connection) {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
+            createdAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              },
+            updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: true
+            }
         },
-        { sequelize: connection }
+        { sequelize: connection, timestamps: true }
     );
     return Category;
 };

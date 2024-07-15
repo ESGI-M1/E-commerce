@@ -1,11 +1,12 @@
 <template>
   <div class="users">
-    <h1>Utilisateurs ({{ users.length }})</h1>
-    <div class="text-right">
-      <button class="btn btn-success" @click="showAddUserModal">
-        <i class="fa fa-plus"></i> Ajouter Utilisateur
+    <div class="div-header">
+      <h1>Utilisateurs ({{ users.length }})</h1>
+      <button @click="showAddUserModal" class="btn btn-success">
+        <i class="fa fa-plus"></i> Ajouter un utilisateur
       </button>
     </div>
+
     <table>
       <thead>
         <tr>
@@ -88,10 +89,11 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
+const showNotification = inject('showNotification');
 const userSchema = z.object({
   id: z.number().optional(),
   firstname: z.string().min(1, 'Le prénom est requis'),
@@ -114,11 +116,9 @@ const currentUser = ref<User>({
 
 const showModal = ref(false)
 const isEditing = ref(false)
-const numberOfUsers = ref(0)
 
 const fetchUsers = async () => {
-  const response = await axios.get('http://localhost:3000/users')
-
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`)
   users.value = response.data
 }
 
@@ -154,15 +154,16 @@ function generateRandomPassword(length: number): string {
 const addUser = async () => {
     const parsedUser = userSchema.parse(currentUser.value)
     parsedUser.password = generateRandomPassword(15)
-    const response = await axios.post('http://localhost:3000/users', parsedUser)
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, parsedUser)
     users.value.push(response.data)
     closeModal()
+    showNotification('Utilisateur ajouté avec succès', 'success')
 }
 
 const updateUser = async () => {
     const parsedUser = userSchema.parse(currentUser.value)
     const response = await axios.patch(
-      `http://localhost:3000/users/${currentUser.value.id}`,
+      `${import.meta.env.VITE_API_BASE_URL}/users/${currentUser.value.id}`,
       parsedUser
     )
     const updatedUser = response.data
@@ -171,14 +172,15 @@ const updateUser = async () => {
       users.value.splice(index, 1, updatedUser)
     }
     closeModal()
+    showNotification('Utilisateur modifié avec succès', 'success')
 }
 
 const deleteUser = async (userId: number) => {
-    await axios.delete(`http://localhost:3000/users/${userId}`)
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
     users.value = users.value.filter(user => user.id !== userId)
+    showNotification('Utilisateur supprimé avec succès', 'success')
 }
 
-// Fonction pour afficher le modal d'ajout d'utilisateur
 const showAddUserModal = () => {
   isEditing.value = false
   currentUser.value = {
@@ -190,22 +192,19 @@ const showAddUserModal = () => {
   showModal.value = true
 }
 
-// Fonction pour afficher le modal de modification d'utilisateur
 const showEditUserModal = (user: User) => {
   isEditing.value = true
   currentUser.value = { ...user }
   showModal.value = true
 }
 
-// Fonction pour fermer le modal
 const closeModal = () => {
   showModal.value = false
 }
 
-// Fonction pour réinitialiser le mot de passe d'un utilisateur
 const resetPassword = async (userId: number) => {
-  await axios.post(`http://localhost:3000/users/${userId}/reset-password`)
-  alert('Le mot de passe a été réinitialisé.')
+  await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}/reset-password`)
+  showNotification('Le mot de passe a été réinitialisé.', 'success')
 }
 
 onMounted(() => {
@@ -214,6 +213,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+.users {
+  padding: 20px;
+}
+
 .close {
   position: absolute;
   top: 10px;

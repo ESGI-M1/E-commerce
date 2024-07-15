@@ -54,11 +54,20 @@ module.exports = function (connection) {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      }
     },
     {
       sequelize: connection,
       modelName: 'ReturnProduct',
       tableName: 'ReturnProducts',
+      timestamps: true,
     }
   );
 

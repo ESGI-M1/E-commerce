@@ -31,3 +31,6 @@ coverage
 
 /serv/certbot
 *.log
+
+*.env
+/serv/fail2ban/fail2ban

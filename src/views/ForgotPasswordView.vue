@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { z } from 'zod'
 import axios from 'axios'
 
+const showNotification = inject('showNotification');
 const email = ref('')
 const emailSchema = z.string().email("L'email est invalide")
 const submited = ref(false)
@@ -28,8 +29,7 @@ const forgotPassword = () => {
       submited.value = true
     })
     .catch((error) => {
-      console.log(error)
-      alert('Échec de la réinitialisation du mot de passe')
+      showNotification('Échec de la réinitialisation du mot de passe', 'error')
     })
 }
 </script>

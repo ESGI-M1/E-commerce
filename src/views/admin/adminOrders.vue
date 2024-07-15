@@ -1,6 +1,6 @@
 <template>
   <div class="orders">
-    <h1>Liste des Commandes ({{ orders.length }})</h1>
+    <h1>Commandes ({{ orders.length }})</h1>
 
     <div class="order-table">
       <table>
@@ -44,9 +44,11 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { format, parseISO } from 'date-fns'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+
+const showNotification = inject('showNotification');
 
 interface User {
   id: number
@@ -73,7 +75,7 @@ interface Order {
 const orders = ref<Order[]>([])
 
 const fetchOrders = async () => {
-  const response = await axios.get('http://localhost:3000/orders')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders`)
   orders.value = response.data
 }
 
@@ -82,8 +84,9 @@ const formatDate = (dateStr: string) => {
 }
 
 const validate = async (id: number) => {
-  await axios.patch(`http://localhost:3000/orders/${id}`)
+  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${id}`)
   fetchOrders()
+  showNotification('Commande validée avec succès', 'success');
 }
 
 onMounted(() => {

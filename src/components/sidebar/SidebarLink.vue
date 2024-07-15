@@ -1,33 +1,36 @@
-<script lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { collapsed } from './state'
-
-export default {
-  props: {
-    to: { type: String, required: true },
-    icon: { type: String, required: true }
-  },
-  setup(props) {
-    const route = useRoute()
-    const isActive = computed(() => route.path === props.to)
-    return { isActive, collapsed }
-  }
-}
-</script>
-
 <template>
   <router-link :to="to" class="link" :class="{ active: isActive }">
     <i class="icon" :class="icon" />
     <transition name="fade">
-      <span v-if="!collapsed">
+      <span>
         <slot />
       </span>
     </transition>
   </router-link>
 </template>
 
+<script lang="ts">
+
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+export default {
+  props: {
+    to: { type: String, required: true },
+    icon: { type: String, required: true }
+  },
+
+  setup(props) {
+    const route = useRoute();
+    const isActive = computed(() => route.path === props.to);
+    return { isActive };
+  }
+}
+
+</script>
+
 <style scoped>
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.1s;
@@ -48,7 +51,7 @@ export default {
   user-select: none;
 
   margin: 0.1em 0;
-  padding: 0.4em;
+  padding: 1em 0.4em;
   border-radius: 0.25em;
   height: 1.5em;
 
@@ -69,4 +72,5 @@ export default {
   width: 25px;
   margin-right: 10px;
 }
+
 </style>

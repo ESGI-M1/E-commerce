@@ -97,7 +97,6 @@ router.delete("/", checkAuth, async (req, res) => {
   deleted ? res.sendStatus(200) : res.sendStatus(404);
 });
   
-
 router.patch("/:id", async (req, res) => {
   const returned = await ReturnProduct.findByPk(req.params.id); // TODO security
 

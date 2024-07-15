@@ -95,11 +95,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import Cookies from 'js-cookie'
 
+const showNotification = inject('showNotification');
 const router = useRouter()
 const carts = ref(null)
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
@@ -112,28 +113,33 @@ const removePromo = async () => {
     await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
       { userId: authToken, cartIds },
-      {
-        headers: { Authorization: `Bearer ${authToken}` }
-      }
     )
     promo.value = null
     fetchCartItems()
     promoError.value = ''
+    showNotification('Code promo supprimé avec succès', 'success')
 }
 
 const applyPromoCode = async () => {
+  try {
   const response = await axios.post(
     `${import.meta.env.VITE_API_BASE_URL}/promos/${promoCode.value}/apply`,
     null,
-    { params: { userId: authToken }, headers: { Authorization: `Bearer ${authToken}` } }
+    { params: { userId: authToken } }
   )
 
   if (response.data.success) {
     promo.value = response.data
     fetchCartItems()
     promoError.value = ''
-  } else {
-    promoError.value = response.data.error || 'Ce code promo a expiré.'
+    showNotification('Code promo appliqué avec succès', 'success')
+  }
+} catch (error) {
+    if (error.response.status === 400) {
+        promoError.value = 'Ce code promo a expiré.'
+      } else {
+        promoError.value = 'Ce code promo n\'est pas valide.'
+      }
   }
 }
 
@@ -156,13 +162,22 @@ const fetchCartItems = async () => {
         carts.value = null;
         promo.value = null;
       }
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = ('0' + (date.getMonth() + 1)).slice(-2);
+        let day = ('0' + date.getDate()).slice(-2);
+        let formattedDate = `${year}-${month}-${day}`;
+
+      if (promo.value && promo.value.endDate < formattedDate) {
+        removePromo()
+        showNotification('Le code promo a expiré !', 'error')
+      }
     } catch (error) {
       carts.value = null;
       promo.value = null; 
     }
   }
 };
-
 
 const updateCartQuantity = async (id, quantity) => {
   if (quantity === 'remove') {

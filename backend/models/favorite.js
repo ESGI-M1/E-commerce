@@ -17,10 +17,19 @@ module.exports = function(connection) {
             },
             createdAt: {
                 type: DataTypes.DATE,
-                defaultValue: DataTypes.NOW
-            }
+                allowNull: true
+              },
+              updatedAt: {
+                type: DataTypes.DATE,
+                allowNull: true
+              }
         },
-        { sequelize: connection }
+        {
+            sequelize: connection,
+            modelName: 'Favorite',
+            tableName: 'Favorites',
+            timestamps: true
+        }
     );
 
     return Favorite;

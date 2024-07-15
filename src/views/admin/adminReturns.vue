@@ -51,9 +51,10 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
+const showNotification = inject('showNotification');
 // Interfaces
 interface User {
   id: number
@@ -81,11 +82,10 @@ interface ReturnProduct {
 const returnProducts = ref<ReturnProduct[]>([])
 
 const fetchReturnProducts = async () => {
-  const response = await axios.get('http://localhost:3000/return')
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return`)
   returnProducts.value = response.data
 }
 
-// Fonction pour formater la date de retour
 const formatReturnDate = (returnDate: string): string => {
   const options: Intl.DateTimeFormatOptions = {
     day: '2-digit',
@@ -100,8 +100,9 @@ const formatReturnDate = (returnDate: string): string => {
 }
 
 const validate = async (id: number) => {
-  await axios.patch(`http://localhost:3000/return/${id}`)
+  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/return/${id}`)
   fetchReturnProducts()
+  showNotification('Retour validé avec succès', 'success');
 }
 
 onMounted(() => {

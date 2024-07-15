@@ -193,7 +193,7 @@ onMounted(() => {
   display: none;
   position: absolute;
   top: 100%;
-  right: 0;
+  right: -20px;
   background-color: white;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 1;

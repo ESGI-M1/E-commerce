@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 const mailer = require('../services/mailer');
 const { setTimeout: setTimeoutPromise } = require('node:timers/promises');
+const { Op } = require('sequelize');
 
 const router = new Router();
 
@@ -14,6 +15,8 @@ router.post("/login", async (req, res) => {
     attributes: ['id', 'firstname', 'email', 'password', 'role', 'active'],
     where: {
       email: req.body.email,
+      active: true,
+      role: { [Op.ne]: 'anonymous' }
     },
   });
 

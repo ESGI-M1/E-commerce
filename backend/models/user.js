@@ -61,7 +61,7 @@ module.exports = function (connection) {
       },
       email: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true,
         validate: {
           notEmpty: true,
@@ -89,10 +89,10 @@ module.exports = function (connection) {
       active: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: false
+        defaultValue: true
       },
       role: {
-        type: DataTypes.ENUM("user", "admin", "temp", "store"),
+        type: DataTypes.ENUM("user", "admin", "temp", "store", "anonymous"),
         allowNull: false,
         defaultValue: "user",
       },

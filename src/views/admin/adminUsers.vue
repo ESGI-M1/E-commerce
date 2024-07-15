@@ -15,6 +15,7 @@
           <th>Prénom</th>
           <th>Email</th>
           <th>Rôle</th>
+          <th>Actif</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -25,6 +26,9 @@
           <td>{{ user.firstname }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.role }}</td>
+          <td>
+            <i :class="user.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
+          </td>
           <td class="flex flex-center">
             <a @click="showEditUserModal(user)" class="a-primary">
               <i class="fa fa-edit"></i>
@@ -75,6 +79,11 @@
             <input v-model="currentUser.role" type="text" id="role" required />
           </div>
 
+          <div class="form-group">
+            <label for="active">Actif</label>
+            <input v-model="currentUser.active" type="checkbox" id="active" />
+          </div>
+
           <div class="buttons">
             <button type="submit" class="btn btn-primary">
               {{ isEditing ? 'Modifier' : 'Ajouter' }}
@@ -100,6 +109,7 @@ const userSchema = z.object({
   lastname: z.string().min(1, 'Le nom est requis'),
   email: z.string().email('Adresse email invalide'),
   role: z.string(),
+  active: z.boolean().optional(),
   password: z.string().optional()
 })
 
@@ -111,7 +121,8 @@ const currentUser = ref<User>({
   lastname: '',
   email: '',
   role: '',
-  password: generateRandomPassword(12)
+  active: true,
+  password: generateRandomPassword(15)
 })
 
 const showModal = ref(false)
@@ -255,5 +266,13 @@ onMounted(() => {
 
 .buttons button {
   margin-right: 10px;
+}
+
+.text-success {
+  color: green;
+}
+
+.text-danger {
+  color: red;
 }
 </style>

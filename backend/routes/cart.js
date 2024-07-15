@@ -84,7 +84,7 @@ router.post("/", async (req, res, next) => {
     let user = await User.findByPk(parseInt(userId));
 
     if (!user) {
-      const tempPassword = generateRandomPassword(15);
+      const tempPassword = generateRandomPassword(20);
       user = await User.create({
         id: parseInt(userId),
         firstname: 'Temp',

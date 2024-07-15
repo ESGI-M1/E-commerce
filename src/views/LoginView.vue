@@ -54,18 +54,21 @@ const login = () => {
     })
     .then(async () => {
       const temporaryId = localStorage.getItem('temporaryId')
+      let cart = null
       try {
         if (temporaryId) {
           const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
           const cartId = cartResponse.data[0].id;
-            await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {
+          cart =  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {
             })
           
           await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
           localStorage.removeItem('temporaryId')
         }
         router.push('/')
-        showNotification('Panier mis à jour !', 'success')
+        if (cart) {
+          showNotification('Panier mis à jour !', 'success')
+        }
       } catch (error) {
         console.error('Error updating carts:', error)
         showNotification('Échec de la mise à jour des paniers.', 'error')

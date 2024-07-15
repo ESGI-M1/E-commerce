@@ -196,14 +196,13 @@ const deleteAddress = async (id) => {
 }
 
 const deleteUser = async (userId: number) => {
-    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users`)
 }
 
 const handleSubmit = async () => {
   if (!authToken) {
     return router.push('/')
   }
-
     let response;
     if (mode.value === 'addAddress') {
       response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addressusers`, form.value);

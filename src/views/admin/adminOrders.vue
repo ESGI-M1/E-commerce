@@ -1,6 +1,6 @@
 <template>
   <div class="orders">
-    <h1>Liste des Commandes ({{ orders.length }})</h1>
+    <h1>Commandes ({{ orders.length }})</h1>
 
     <div class="order-table">
       <table>

@@ -66,7 +66,7 @@ async function sendNewsLetterInscription(user) {
 async function sendNewsLetterArticle(user, title, content) {
   await sendEmail(
     title,
-    content,
+    [content],
     "Template.vue",
     user.email,
     title);
@@ -75,12 +75,16 @@ async function sendNewsLetterArticle(user, title, content) {
 async function sendNewProductNotification(user, product) {
   const content = ['Bonjour ' + user.firstname + ','];
   const categories = product.Categories;
-  if (categories.length > 1) {
+  if (categories != null && categories.length > 1) {
     let textCategories = "";
     for (let i=0; i<categories.length; i++) { textCategories += categories[i].name + ", "; }
     content.push('Découvrez dès maintenant notre nouvel arrivage "' + product.name + '" dans les catégories ' + textCategories + 'le prix du produit est de ' + product.price + '€');
   } else {
-    content.push('Découvrez dès maintenant notre nouvel arrivage "' + product.name + '" dans la catégorie ' + categories[0].name + ' pour le prix de ' + product.price + '€');
+    if (categories != null) {
+      content.push('Découvrez dès maintenant notre nouvel arrivage "' + product.name + '" dans la catégorie ' + categories[0].name + ' pour le prix de ' + product.price + '€');
+    } else {
+      content.push('Découvrez dès maintenant notre nouvel arrivage "' + product.name + '" pour le prix de ' + product.price + '€');
+    }
   }
 
   await sendEmail(

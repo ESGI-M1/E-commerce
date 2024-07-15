@@ -39,6 +39,8 @@ module.exports = function (connection) {
         },
         {
             sequelize: connection,
+            modelName: 'Cart',
+            tableName: 'carts',
             timestamps: true,
         }
     );

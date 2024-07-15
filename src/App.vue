@@ -3,7 +3,8 @@ import { ref, inject } from 'vue';
 import Navbar from './components/navbar/NavbarComponent.vue'
 import Footer from './components/navbar/FooterComponent.vue'
 import Sidebar from './components/sidebar/SidebarComponent.vue'
-import NotificationComponent from './components/notification/NotificationComponent.vue';
+import { sidebarWidth } from './components/sidebar/state'
+import NotificationComponent from './components/notification/NotificationComponent.vue'
 
 const notificationMessage = inject('notificationMessage', ref(''));
 const notificationType = inject('notificationType', ref(''));
@@ -13,7 +14,11 @@ const notificationType = inject('notificationType', ref(''));
   <div>
     <Sidebar v-if="$route.meta.requiresAdmin" />
     <Navbar />
-    <div :id="$route.meta.requiresAdmin ? 'admin-content' : 'main-content'">
+    <div
+      :style="$route.meta.requiresAdmin
+      ? { marginLeft: sidebarWidth, transition: 'margin-left 0.3s ease' }
+      : { transition: 'margin-left 0.3s ease' }"
+    >
       <router-view />
     </div>
   </div>

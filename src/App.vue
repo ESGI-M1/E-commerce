@@ -4,7 +4,6 @@ import Navbar from './components/navbar/NavbarComponent.vue'
 import Footer from './components/navbar/FooterComponent.vue'
 import Sidebar from './components/sidebar/SidebarComponent.vue'
 import NotificationComponent from './components/notification/NotificationComponent.vue';
-const showNotification = inject('showNotification');
 
 const notificationMessage = inject('notificationMessage', ref(''));
 const notificationType = inject('notificationType', ref(''));

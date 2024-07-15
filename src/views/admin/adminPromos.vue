@@ -1,11 +1,12 @@
 <template>
   <div class="promos">
-    <h1>Codes Promos ({{ promos.length }})</h1>
-    <div class="text-right">
-      <button class="btn btn-success" @click="showAddForm">
-        <i class="fa fa-plus"></i> Ajouter Code Promo
+    <div class="div-header">
+      <h1>Code promos ({{ promos.length }})</h1>
+      <button @click="showAddForm" class="btn btn-success">
+        <i class="fa fa-plus"></i> Ajouter un code promo
       </button>
     </div>
+
     <table>
       <thead>
         <tr>

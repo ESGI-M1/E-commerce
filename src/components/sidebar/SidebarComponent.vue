@@ -26,6 +26,7 @@ export default {
   <SidebarLink to="/admin/returns" icon="fas fa-undo">Retours</SidebarLink>
   <SidebarLink to="/admin/categories" icon="fas fa-th-list">Catégories</SidebarLink>
   <SidebarLink to="/admin/promos" icon="fas fa-tags">Promos</SidebarLink>
+  <SidebarLink to="/admin/shop" icon="fas fa-store">Boutique</SidebarLink>
   </div>
   <span class="collapse-icon" :class="{ 'rotate-180': collapsed }" @click="toggleSidebar">
       <i class="fas fa-angle-double-left" />

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { z } from 'zod'
 import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 
+const showNotification = inject('showNotification');
 const userStore = useUserStore()
-
 const email = ref('')
 const password = ref('')
 const router = useRouter()
@@ -65,9 +65,10 @@ const login = () => {
           localStorage.removeItem('temporaryId')
         }
         router.push('/')
+        showNotification('Panier mis à jour !', 'success')
       } catch (error) {
         console.error('Error updating carts:', error)
-        alert('Failed to update carts. Please try again later.')
+        showNotification('Échec de la mise à jour des paniers.', 'error')
       }
     })
     .catch((error) => {

@@ -139,10 +139,11 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
+const showNotification = inject('showNotification');
 const productSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Le nom est requis'),
@@ -190,6 +191,7 @@ const addProduct = async () => {
   const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/products`, parsedProduct, { withCredentials: true })
   products.value.push(response.data)
   closeModal()
+  showNotification('Produit ajouté avec succès', 'success');
 }
 
 const updateProduct = async () => {
@@ -203,11 +205,13 @@ const updateProduct = async () => {
     products.value[index] = currentProduct.value
   }
   closeModal()
+  showNotification('Produit modifié avec succès', 'success');
 }
 
 const deleteProduct = async (product) => {
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`, { withCredentials: true })
   products.value = products.value.filter((p) => p.id !== product.id)
+  showNotification('Produit supprimé avec succès', 'success');
 }
 
 const categories = ref([])
@@ -257,6 +261,7 @@ const updateProductImage = async (productId, newImage) => {
   if (updatedProductIndex !== -1) {
     products.value[updatedProductIndex].Images = response.data.Images
   }
+  showNotification('Image modifiée avec succès', 'success');
 }
 
 const triggerFileInput = () => {

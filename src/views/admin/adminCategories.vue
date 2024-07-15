@@ -50,7 +50,6 @@
       </table>
     </div>
 
-    <!-- Modal pour ajouter/modifier une catégorie -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal">
         <span class="close" @click="closeModal">&times;</span>
@@ -105,9 +104,10 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+const showNotification = inject('showNotification');
 
 interface Category {
   id?: number
@@ -159,6 +159,7 @@ const addCategory = async () => {
     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
     categories.value.push(response.data)
     closeModal()
+    showNotification('Catégorie ajoutée avec succès', 'success');
 }
 
 const updateCategory = async () => {
@@ -172,11 +173,13 @@ const updateCategory = async () => {
     categories.value[index] = currentCategory.value
   }
   closeModal()
+  showNotification('Catégorie modifiée avec succès', 'success');
 }
 
 const deleteCategory = async (category: Category) => {
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
   categories.value = categories.value.filter((cat) => cat.id !== category.id)
+  showNotification('Catégorie suprimée avec succès', 'success');
 }
 
 const showAddCategoryModal = () => {

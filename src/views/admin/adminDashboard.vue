@@ -74,13 +74,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import axios from '../../tools/axios';
 import { useUserStore } from '@/store/user';
 import { GridLayout } from 'grid-layout-plus';
 import ChartWidget from '../../../src/layout/dashboard/Chart.vue';
 import FancyConfirm from '../../components/ConfirmComponent.vue';
 import Sidebar from '../../../src/components/sidebar/SidebarComponent.vue';
+const showNotification = inject('showNotification');
 
 const userStore = useUserStore();
 const showAddWidget = ref(false);
@@ -92,6 +93,7 @@ let totalData = ref({ labels: [], totalOrders: [], totalEarn: [], totalUsers: []
 
 const saveDashboard = async () => {
   userStore.patch({ dashboard: userDashboard.value });
+  showNotification('Tableau sauvegardé avec succès', 'success');
 };
 
 const fetchDashboard = async () => {
@@ -201,11 +203,12 @@ const addWidget = async () => {
   }
 
   showAddWidget.value = false;
+  showNotification('Widget ajouté avec succès', 'success');
 };
-
 
 const removeWidget = (index) => {
   userDashboard.value = userDashboard.value.filter(item => item.i !== index);
+  showNotification('Widget supprimé avec succès', 'success');
 };
 
 onMounted(() => {

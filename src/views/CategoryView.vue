@@ -13,7 +13,6 @@ const categoriesStore = useCategoriesStore()
 const route = useRoute()
 
 const category = ref()
-// Function to fetch category
 const fetchCategory = async () => {
   const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories/${route.params.slug}`)
   categoriesStore.addCategory(response.data)

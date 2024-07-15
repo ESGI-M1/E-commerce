@@ -46,8 +46,10 @@
     <div class="navbar-section actions">
       <!-- Shopping Cart Icon -->
       <a class="icon" href="/cart">
-        <i class="fas fa-shopping-cart"></i>
-      </a>
+  <i class="fas fa-shopping-cart"></i>
+  <span class="badge">{{ cartsNumber }}</span>
+</a>
+
       &nbsp;
       <!-- Search Bar -->
       <input
@@ -65,7 +67,7 @@
           <RouterLink to="/profile" class="dropdown-item">Mon profil</RouterLink>
           <RouterLink to="/favorites" class="dropdown-item">Mes favoris</RouterLink>
           <RouterLink to="/admin/ressources" v-if="isAdmin" class="dropdown-item">Gestion des ressources</RouterLink>
-          <RouterLink to="order" class="dropdown-item">Historique des commandes</RouterLink>
+          <RouterLink to="/order" class="dropdown-item">Historique des commandes</RouterLink>
           <a :href="'/alertes'" class="dropdown-item">Mes alertes</a>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
@@ -76,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
 import Cookies from 'js-cookie'
@@ -86,6 +88,7 @@ import axios from 'axios'
 const router = useRouter()
 const search = ref('')
 const productsStore = useProductsStore()
+const cartsNumber = ref(null)
 
 const searchProducts = async () => {
   // route search
@@ -102,6 +105,27 @@ const searchProducts = async () => {
   }
 }
 
+const fetchCartItems = async () => {
+  const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
+  cartsNumber.value = null;
+
+  if (authToken) {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
+
+    if (response.data && response.data.length > 0) {
+      response.data[0].CartProducts.forEach(CartProduct => {
+        cartsNumber.value += CartProduct.quantity;
+      });
+    } else {
+      cartsNumber.value = null;
+    }
+    } catch (error) {
+      cartsNumber.value = null;
+    }
+  }
+};
+
 const isAuthenticated = computed(() => {
   return Cookies.get('USER') !== undefined
 })  
@@ -115,6 +139,10 @@ const logout = () => {
   Cookies.remove('USER')
   router.push('/')
 }
+
+onMounted(() => {
+  fetchCartItems()
+})
 </script>
 
 <style scoped>
@@ -230,4 +258,24 @@ const logout = () => {
   font-size: 24px;
   cursor: pointer;
 }
+
+.icon {
+  position: relative;
+  display: inline-block;
+}
+
+.badge {
+  position: absolute;
+  top: -13px;
+  right: -10px;
+  padding: 5px 10px;
+  border-radius: 50%;
+  color: black;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 </style>

@@ -1,17 +1,16 @@
 <script setup lang="ts">
+import BreadCrumb from './BreadCrumb.vue'
+import { ref, onMounted, inject } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import axios from '../tools/axios'
+import Cookies from 'js-cookie'
 
-import BreadCrumb from './BreadCrumb.vue';
-
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
-import Cookies from 'js-cookie';
-
-const route = useRoute();
-const router = useRouter();
-const isFavorite = ref(false);
-const productId = ref(route.params.id as string);
-let user = JSON.parse(Cookies.get('USER').substring(2)).id;
+const route = useRoute()
+const router = useRouter()
+const isFavorite = ref(false)
+const productId = ref(route.params.id as string)
+let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+const showNotification = inject('showNotification');
 
 interface Product {
   id: string;
@@ -52,8 +51,8 @@ const addToFavorites = async (productId: string) => {
     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/favorites`, { productId });
 
     if (response.status === 201) {
-      isFavorite.value = true;
-      alert('Produit ajouté aux favoris avec succès');
+      isFavorite.value = true
+      showNotification('Produit ajouté aux favoris avec succès', 'success');
     }
 };
 
@@ -62,10 +61,10 @@ const removeFromFavorites = async (productId: string) => {
     throw new Error('User is not authenticated');
   }
 
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`);
-  isFavorite.value = false;
-  alert('Produit supprimé des favoris avec succès');
-};
+  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
+  isFavorite.value = false
+  showNotification('Produit supprimé des favoris avec succès', 'success');
+}
 
 const addToCart = async (quantity: number) => {
   if (!user) {
@@ -81,12 +80,11 @@ const addToCart = async (quantity: number) => {
     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
       userId: user,
       productId: product.value.id,
-      quantity: quantity,
-    });
-    alert('Produit ajouté au panier avec succès');
-    router.push('/cart');
+      quantity: quantity
+    })
+    showNotification('Produit ajouté au panier avec succès', 'success');
   } catch (error) {
-    alert("Échec de l'ajout du produit au panier");
+    showNotification('Échec de l\'ajout du produit au panier', 'error');
   }
 };
 

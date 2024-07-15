@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
@@ -50,6 +50,7 @@ interface Favorite {
   product: Product;
 }
 
+const showNotification = inject('showNotification');
 const router = useRouter()
 const favoriteProducts = ref<Favorite[]>([])
 const user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
@@ -58,7 +59,6 @@ const fetchFavorites = async () => {
   if (!user) {
     throw new Error('User is not authenticated')
   }
-
   const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`)
   favoriteProducts.value = response.data
 }
@@ -73,9 +73,8 @@ const removeFromFavorites = async (productId: number) => {
   }
 
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
-
-  //favoriteProducts.value = favoriteProducts.value.filter((favorite) => favorite.product.id !== productId)
   fetchFavorites()
+  showNotification('Produit supprimé des favoris avec succès', 'success');
 }
 
 onMounted(async () => {

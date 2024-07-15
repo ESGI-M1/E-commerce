@@ -170,12 +170,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import { z, ZodError } from 'zod';
 import axios from '../../tools/axios';
 import Editor from '@tinymce/tinymce-vue';
 import Modal from '../../components/ModalView.vue';
 
+const showNotification = inject('showNotification');
 const tinymceKey = import.meta.env.VITE_TINYMCE_API_KEY;
 const isOpen = ref(false);
 const modalName = ref('');
@@ -305,6 +306,7 @@ const handleSubmit = async (type: string) => {
           if (response.data) {
             shop.value = shopSchema.parse(response.data);
             isOpen.value = false;
+            showNotification('Boutique modifiée avec succès', 'success');
           }
         });
     }
@@ -313,15 +315,19 @@ const handleSubmit = async (type: string) => {
       if (response.data) {
         shop.value = shopSchema.parse(response.data);
         isOpen.value = false;
+        showNotification('Boutique modifiée avec succès', 'success');
       }
     }
-
+    if (isOpen.value) {
+      showNotification('Erreur lors de la modification de la boutique', 'error');
+    }
   } catch (error) {
     if (error instanceof ZodError) {
       console.error(error.errors);
     } else {
       console.error(error);
     }
+    showNotification('Erreur lors de la modification de la boutique', 'error');
   }
 };
 

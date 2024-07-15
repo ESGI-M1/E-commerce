@@ -65,12 +65,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import { format, parseISO } from 'date-fns'
 import Cookies from 'js-cookie'
 
+const showNotification = inject('showNotification');
 const route = useRoute()
 const router = useRouter()
 const orderId = ref(route.params.id as string)
@@ -128,7 +129,7 @@ const downloadInvoice = async (orderId) => {
     document.body.removeChild(link);
   } catch (error) {
     console.error('Error downloading invoice:', error);
-    alert('Échec du téléchargement de la facture');
+    showNotification('Échec du téléchargement de la facture', 'error');
   }
 };
 
@@ -152,8 +153,7 @@ const addToCart = async (id: number, quantity: number) => {
       productId: id,
       quantity: quantity
     })
-    alert('Produit ajouté au panier avec succès')
-    router.push('/cart')
+    showNotification('Produit ajouté au panier avec succès', 'success')
 }
 
 onMounted(() => {

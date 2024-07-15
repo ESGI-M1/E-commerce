@@ -95,11 +95,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import Cookies from 'js-cookie'
 
+const showNotification = inject('showNotification');
 const router = useRouter()
 const carts = ref(null)
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
@@ -112,13 +113,11 @@ const removePromo = async () => {
     await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
       { userId: authToken, cartIds },
-      {
-        headers: { Authorization: `Bearer ${authToken}` }
-      }
     )
     promo.value = null
     fetchCartItems()
     promoError.value = ''
+    showNotification('Code promo supprimé avec succès', 'success')
 }
 
 const applyPromoCode = async () => {
@@ -133,6 +132,7 @@ const applyPromoCode = async () => {
     promo.value = response.data
     fetchCartItems()
     promoError.value = ''
+    showNotification('Code promo appliqué avec succès', 'success')
   }
 } catch (error) {
     if (error.response.status === 400) {
@@ -170,7 +170,7 @@ const fetchCartItems = async () => {
 
       if (promo.value && promo.value.endDate < formattedDate) {
         removePromo()
-        alert('Le code promo a expiré !')
+        showNotification('Le code promo a expiré !', 'error')
       }
     } catch (error) {
       carts.value = null;

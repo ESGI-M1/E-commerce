@@ -1,14 +1,7 @@
-<script lang="ts">
+<script setup lang="ts">
 import SidebarLink from './SidebarLink.vue'
+import { ref, computed } from 'vue'
 import { collapsed, toggleSidebar, sidebarWidth } from './state'
-
-export default {
-  props: {},
-  components: { SidebarLink },
-  setup() {
-    return { collapsed, toggleSidebar, sidebarWidth }
-  }
-}
 </script>
 
 <template>

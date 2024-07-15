@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { z } from 'zod'
 import axios from 'axios'
 import { useRoute } from 'vue-router'
 
 const $route = useRoute()
 const submited = ref(false)
+const showNotification = inject('showNotification');
 
 const passwordSchema = z
   .string()
@@ -60,7 +61,7 @@ const changePassword = () => {
     })
     .catch((error) => {
       console.log(error)
-      alert('Échec de la réinitialisation du mot de passe')
+      showNotification('Échec de la réinitialisation du mot de passe', 'error')
     })
 }
 </script>

@@ -78,10 +78,11 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import axios from '../../tools/axios';
 import { format, parseISO } from 'date-fns'
 
+const showNotification = inject('showNotification');
 interface Promo {
   id?: number
   code: string
@@ -109,6 +110,7 @@ const handleSubmit = async () => {
   if (editMode.value) {
     await axios.put(`${import.meta.env.VITE_API_BASE_URL}/promos/${promo.value.id}`, promo.value)
     editMode.value = false
+    showNotification('Code promo modifié avec succès', 'success');
   } else {
     await addPromo()
   }
@@ -118,7 +120,8 @@ const handleSubmit = async () => {
 
 const addPromo = async () => {
   const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/promos`, promo.value)
-  promos.value.push(response.data) // Ajouter le nouveau promo à la liste locale
+  promos.value.push(response.data) 
+  showNotification('Code promo ajouté avec succès', 'success');
 }
 
 const editPromo = async (promoId: number) => {

@@ -88,10 +88,11 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
+const showNotification = inject('showNotification');
 const userSchema = z.object({
   id: z.number().optional(),
   firstname: z.string().min(1, 'Le prénom est requis'),
@@ -114,11 +115,9 @@ const currentUser = ref<User>({
 
 const showModal = ref(false)
 const isEditing = ref(false)
-const numberOfUsers = ref(0)
 
 const fetchUsers = async () => {
   const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`)
-
   users.value = response.data
 }
 
@@ -157,6 +156,7 @@ const addUser = async () => {
     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, parsedUser)
     users.value.push(response.data)
     closeModal()
+    showNotification('Utilisateur ajouté avec succès', 'success')
 }
 
 const updateUser = async () => {
@@ -171,14 +171,15 @@ const updateUser = async () => {
       users.value.splice(index, 1, updatedUser)
     }
     closeModal()
+    showNotification('Utilisateur modifié avec succès', 'success')
 }
 
 const deleteUser = async (userId: number) => {
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
     users.value = users.value.filter(user => user.id !== userId)
+    showNotification('Utilisateur supprimé avec succès', 'success')
 }
 
-// Fonction pour afficher le modal d'ajout d'utilisateur
 const showAddUserModal = () => {
   isEditing.value = false
   currentUser.value = {
@@ -190,22 +191,19 @@ const showAddUserModal = () => {
   showModal.value = true
 }
 
-// Fonction pour afficher le modal de modification d'utilisateur
 const showEditUserModal = (user: User) => {
   isEditing.value = true
   currentUser.value = { ...user }
   showModal.value = true
 }
 
-// Fonction pour fermer le modal
 const closeModal = () => {
   showModal.value = false
 }
 
-// Fonction pour réinitialiser le mot de passe d'un utilisateur
 const resetPassword = async (userId: number) => {
   await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}/reset-password`)
-  alert('Le mot de passe a été réinitialisé.')
+  showNotification('Le mot de passe a été réinitialisé.', 'success')
 }
 
 onMounted(() => {

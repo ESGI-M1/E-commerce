@@ -8,7 +8,7 @@ import Sidebar from './components/sidebar/SidebarComponent.vue'
 <template>
   <div>
     <Sidebar v-if="$route.meta.requiresAdmin" />
-    <Navbar v-else />
+    <Navbar />
     <div :id="$route.meta.requiresAdmin ? 'admin-content' : 'main-content'">
       <router-view />
     </div>

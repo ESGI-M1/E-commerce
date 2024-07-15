@@ -5,6 +5,7 @@ const checkAuth = require("./middlewares/checkAuth");
 
 const UserRouter = require("./routes/user");
 const ProductRouter = require("./routes/product");
+const ProductOptionRouter = require("./routes/productOption");
 const ProductVariantRouter = require("./routes/productVariant");
 const VariantOptionRouter = require("./routes/variantOption");
 const CategoryRouter = require("./routes/category");
@@ -44,6 +45,7 @@ app.use(cors(options))
 app.use("/users", UserRouter, checkAuth);
 app.use("/products", ProductRouter);
 app.use("/product_variants", ProductVariantRouter);
+app.use("/product_options", ProductOptionRouter);
 app.use("/variant_options", VariantOptionRouter);
 app.use('/categories', CategoryRouter);
 app.use('/images', ImageRouter);

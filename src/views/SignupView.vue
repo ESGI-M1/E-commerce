@@ -95,7 +95,6 @@ const signup = async () => {
     showNotification("Échec de l'inscription", 'error')
   }
 }
-
 </script>
 
 <template>

@@ -72,7 +72,7 @@
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
       </div>
-      <RouterLink v-else to="/login" class="login-button">S'identifier</RouterLink>
+      <RouterLink v-else to="/identifier" class="login-button">S'identifier</RouterLink>
     </div>
   </nav>
 </template>

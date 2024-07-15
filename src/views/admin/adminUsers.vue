@@ -1,11 +1,12 @@
 <template>
   <div class="users">
-    <h1>Utilisateurs ({{ users.length }})</h1>
-    <div class="text-right">
-      <button class="btn btn-success" @click="showAddUserModal">
-        <i class="fa fa-plus"></i> Ajouter Utilisateur
+    <div class="div-header">
+      <h1>Utilisateurs ({{ users.length }})</h1>
+      <button @click="showAddUserModal" class="btn btn-success">
+        <i class="fa fa-plus"></i> Ajouter un utilisateur
       </button>
     </div>
+
     <table>
       <thead>
         <tr>
@@ -214,6 +215,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+.users {
+  padding: 20px;
+}
+
 .close {
   position: absolute;
   top: 10px;

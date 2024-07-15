@@ -1,11 +1,12 @@
 <template>
   <div class="products">
     <div class="div-header">
-      <h2>Produits ({{ products.length }})</h2>
+      <h1>Produits ({{ products.length }})</h1>
       <button @click="showAddProductModal" class="btn btn-success">
-        <i class="fa fa-plus"></i> Ajouter Produit
+        <i class="fa fa-plus"></i> Ajouter un produit
       </button>
     </div>
+
     <table>
       <thead>
         <tr>

@@ -4,8 +4,7 @@
   <h1>Tableau de bord</h1>
   <div class="text-right">
     <button @click="showAddWidget = !showAddWidget" class="btn btn-success">
-      Ajouter un widget
-      <i class="fa fa-plus"></i>
+      <i class="fa fa-plus"></i> Ajouter un widget
     </button>
   </div>
   <GridLayout v-model:layout="userDashboard" :row-height="40">
@@ -43,8 +42,7 @@
     @confirmed="saveDashboard"
   >
     <template #buttonText>
-      Sauvegarder &nbsp;
-      <i class="fa fa-save"></i>
+      <i class="fa fa-save"></i> Sauvegarder
     </template>
   </FancyConfirm>
 </div>

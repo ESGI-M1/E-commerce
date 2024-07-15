@@ -196,7 +196,7 @@ const deleteAddress = async (id) => {
 }
 
 const deleteUser = async (userId: number) => {
-    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users`)
+  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
 }
 
 const handleSubmit = async () => {

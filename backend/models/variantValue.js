@@ -1,5 +1,4 @@
 const { Model, DataTypes } = require("sequelize");
-const productMongo = require("../dtos/denormalization/productMongo");
 
 module.exports = function(connection) {
     class VariantValue extends Model {

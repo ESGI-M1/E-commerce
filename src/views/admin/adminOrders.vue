@@ -44,9 +44,11 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { format, parseISO } from 'date-fns'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+
+const showNotification = inject('showNotification');
 
 interface User {
   id: number
@@ -84,6 +86,7 @@ const formatDate = (dateStr: string) => {
 const validate = async (id: number) => {
   await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${id}`)
   fetchOrders()
+  showNotification('Commande validée avec succès', 'success');
 }
 
 onMounted(() => {

@@ -104,12 +104,13 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
 import Cookies from 'js-cookie';
 
+const showNotification = inject('showNotification');
 const user = ref(null)
 const router = useRouter()
 const isOpen = ref(false)
@@ -186,7 +187,9 @@ const deleteAddress = async (id) => {
   try {
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/addressusers/${id}`);
     user.value.deliveryAddress = user.value.deliveryAddress.filter((address) => address.id !== id)
+    showNotification('Adresse de livraison supprimée avec succès', 'success');
   } catch (error) {
+    showNotification('Erreur lors de la suppression de l\'adresse de livraison', 'error');
     console.error(error)
   }
 }
@@ -202,25 +205,29 @@ const handleSubmit = async () => {
 
     let response;
     if (mode.value === 'addAddress') {
-
       response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addressusers`, form.value);
       user.value.deliveryAddress.push(response.data);
-
+      showNotification('Adresse de livraison ajoutée avec succès', 'success');
     } else if (mode.value === 'editAddress' && editingAddress) {
-
       response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/addressusers/` + form.value.id, form.value);
       Object.assign(editingAddress, response.data);
-
+      showNotification('Adresse de livraison modifiée avec succès', 'success');
     } else {
-
+      try {
       const field = mode.value;
       response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/users/${authToken}`, { [field]: form.value[field] });
       user.value[field] = response.data[field];
-      
+      showNotification('Informations enregistrées avec succès', 'success');
+      } catch (error) {
+        showNotification('Erreur lors de la modification des informations', 'error');
+      }
     }
-
     closeModal();
 };
+
+const closeModal = () => {
+  isOpen.value = false;
+}
 
 onMounted(async () => {
   await fetchUserProfile()

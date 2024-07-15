@@ -9,21 +9,22 @@ import ForgotPassword from '../views/ForgotPasswordView.vue';
 import Identifier from '../views/IdentifyView.vue';
 import ResetPassword from '../views/ResetPasswordView.vue';
 
-import Category from '../views/CategoryView.vue';
-import Search from '../views/SearchView.vue';
-import Cart from '../views/CartView.vue';
-import ProductDetail from '../views/ProductDetailView.vue';
-import Payment from '../views/PaymentView.vue';
-import Favoris from '../views/FavoriteView.vue';
-import Profile from '../views/ProfileView.vue';
-import ProductList from '../views/ProductListView.vue';
-import Order from '../views/OrderView.vue';
-import OrderDetail from '../views/OrderDetailView.vue';
-import ReturnProduct from '../views/ReturnProductView.vue';
-import ConfirmAddress from '../views/ConfirmAddress.vue';
-import Success from '../views/SuccessView.vue';
-import Error from '../views/ErrorView.vue';
-import Livraison from '../views/OrderLivraisonView.vue';
+import Category from '../views/CategoryView.vue'
+import Search from '../views/SearchView.vue'
+import Cart from '../views/CartView.vue'
+import ProductDetail from '../views/ProductDetailView.vue'
+import Payment from '../views/PaymentView.vue'
+import Favoris from '../views/FavoriteView.vue'
+import Profile from '../views/ProfileView.vue'
+import ProductList from '../views/ProductListView.vue'
+import Order from '../views/OrderView.vue'
+import OrderDetail from '../views/OrderDetailView.vue'
+import ReturnProduct from '../views/ReturnProductView.vue'
+import ConfirmAddress from '../views/ConfirmAddress.vue'
+import Success from '../views/SuccessView.vue'
+import Error from '../views/ErrorView.vue'
+import Livraison from '../views/OrderLivraisonView.vue'
+import Page from '../views/PageView.vue'
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -215,11 +216,16 @@ const routes = [
     component: NewsLetter
   },
   {
-    path: '/shop',
+    path: '/admin/shop',
     name: 'Shop',
     component: Shop,
     meta: { requiresAdmin: true }
   },
+  {
+    path: '/page/:slug',
+    name: 'Page',
+    component: Page
+  }
 ]
 
 const router = createRouter({

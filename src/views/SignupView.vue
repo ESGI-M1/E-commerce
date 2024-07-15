@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed} from 'vue'
+import { ref, computed, inject } from 'vue'
 import axios from 'axios'
 import { z } from 'zod'
 import { useRouter } from 'vue-router'
@@ -9,6 +9,7 @@ const lastname = ref('')
 const email = ref('')
 const password = ref('')
 const router = useRouter()
+const showNotification = inject('showNotification');
 
 const firstnameSchema = z.string().min(1, 'Le prénom est requis')
 const lastnameSchema = z.string().min(1, 'Le nom est requis')
@@ -91,10 +92,9 @@ const signup = async () => {
     router.push('/login')
   } catch (error) {
     console.log(error)
-    alert("Échec de l'inscription")
+    showNotification("Échec de l'inscription", 'error')
   }
 }
-
 </script>
 
 <template>

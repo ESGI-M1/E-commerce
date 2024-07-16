@@ -1,5 +1,6 @@
 <template>
-  <div class="products">
+  <div v-if="isLoading" class="loading">Chargement...</div>
+  <div v-else class="products">
     <div class="div-header">
       <h1>Produits ({{ products.length }})</h1>
       <button @click="showAddProductModal" class="btn btn-success">
@@ -177,6 +178,7 @@ const currentProduct = ref<Product>({
 
 const showModal = ref(false)
 const isEditing = ref(false)
+const isLoading = ref(true)
 
 const fetchProducts = async () => {
   const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`)
@@ -288,10 +290,18 @@ const handleImageChange = (event, product) => {
 }
 */
 
-onMounted(() => {
-  fetchProducts()
-  fetchCategories()
-})
+onMounted(async () => {
+  try {
+    await Promise.all([
+      fetchProducts(),
+      fetchCategories(),
+    ]);
+  } catch (error) {
+    console.error("Erreur lors du chargement des données", error);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
 <style scoped>

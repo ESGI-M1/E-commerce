@@ -152,7 +152,9 @@ import axios from '../../tools/axios';
 import { ref, onMounted, inject, computed } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+import { load } from '../../components/loading/loading'; 
 
+const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
 const productSchema = z.object({
   id: z.number().optional(),
@@ -219,9 +221,14 @@ const updateProduct = async () => {
 }
 
 const deleteProduct = async (product) => {
+ try{ 
+  startLoading();
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`, { withCredentials: true })
   products.value = products.value.filter((p) => p.id !== product.id)
   showNotification('Produit supprimé avec succès', 'success');
+ } finally {
+  stopLoading();
+}
 }
 
 const categories = ref([])

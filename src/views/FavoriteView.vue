@@ -33,7 +33,9 @@ import { ref, onMounted, inject } from 'vue'
 import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
+import { load } from '../components/loading/loading'; 
 
+const { loading, startLoading, stopLoading } = load();
 interface Image {
   url: string;
 }
@@ -71,10 +73,16 @@ const removeFromFavorites = async (productId: number) => {
   if (!user) {
     throw new Error('User is not authenticated')
   }
-
+  try {
+  startLoading()
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
   fetchFavorites()
   showNotification('Produit supprimé des favoris avec succès', 'success');
+  } catch (error) {
+    showNotification('Une erreur est survenue lors de la suppression du produit des favoris', 'error');
+  } finally {
+    stopLoading()
+  }
 }
 
 onMounted(async () => {

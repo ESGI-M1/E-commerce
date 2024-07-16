@@ -99,7 +99,9 @@ import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import Cookies from 'js-cookie'
+import { load } from '../components/loading/loading'; 
 
+const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
 const router = useRouter()
 const carts = ref(null)
@@ -109,6 +111,8 @@ const promoCode = ref('')
 const promoError = ref('')
 
 const removePromo = async (automatic: boolean) => {
+  try {
+    startLoading();
     const cartIds = carts.value[0].id;
     await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
@@ -122,6 +126,9 @@ const removePromo = async (automatic: boolean) => {
     }
     promo.value = null
     fetchCartItems()
+  } finally {
+    stopLoading();
+  }
 }
 
 const applyPromoCode = async () => {
@@ -183,6 +190,8 @@ const fetchCartItems = async () => {
 };
 
 const updateCartQuantity = async (id, quantity) => {
+  try{ 
+    startLoading();
   if (quantity === 'remove') {
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`);
   } else {
@@ -190,6 +199,9 @@ const updateCartQuantity = async (id, quantity) => {
 
   }
   fetchCartItems();
+} finally {
+    stopLoading();
+  }
 };
 
 const subtotal = computed(() => {

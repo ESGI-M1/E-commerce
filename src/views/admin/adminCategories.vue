@@ -111,7 +111,9 @@ import axios from '../../tools/axios';
 import { ref, onMounted, inject, computed } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+import { load } from '../../components/loading/loading'; 
 
+const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
 
 interface Category {
@@ -194,9 +196,14 @@ const updateCategory = async () => {
 }
 
 const deleteCategory = async (category: Category) => {
+  try {
+    startLoading();
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
   categories.value = categories.value.filter((cat) => cat.id !== category.id)
   showNotification('Catégorie supprimée avec succès', 'success');
+  } finally {
+    stopLoading();
+  }
 }
 
 const showAddCategoryModal = () => {

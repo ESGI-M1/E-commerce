@@ -110,7 +110,9 @@ import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
 import Cookies from 'js-cookie';
+import { load } from '../components/loading/loading'; 
 
+const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
 const user = ref(null)
 const router = useRouter()
@@ -186,18 +188,26 @@ const openEditAddressModal = (address) => {
 
 const deleteAddress = async (id) => {
   try {
+    startLoading();
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/addressusers/${id}`);
     user.value.deliveryAddress = user.value.deliveryAddress.filter((address) => address.id !== id)
     showNotification('Adresse de livraison supprimée avec succès', 'success');
   } catch (error) {
     showNotification('Erreur lors de la suppression de l\'adresse de livraison', 'error');
     console.error(error)
+  } finally {
+    stopLoading();
   }
 }
 
 const deleteUser = async (userId: number) => {
+  try {
+    startLoading();
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
   router.push('/')
+} finally {
+    stopLoading();
+  }
 }
 
 const handleSubmit = async () => {

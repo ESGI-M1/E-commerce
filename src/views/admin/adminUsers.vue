@@ -122,7 +122,9 @@
 import { ref, onMounted, computed, inject } from 'vue';
 import { z } from 'zod';
 import FancyConfirm from '../../components/ConfirmComponent.vue';
+import { load } from '../../components/loading/loading'; 
 
+const { loading, startLoading, stopLoading } = load();
 const phoneRegex = /^(\+33[1-9]\d{8}|0\d{9})$/;
 const showNotification = inject('showNotification');
 
@@ -252,9 +254,14 @@ const updateUser = async () => {
 };
 
 const deleteUser = async (userId: number) => {
+  try{
+    startLoading();
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`);
   users.value = users.value.filter(user => user.id !== userId);
   showNotification('Utilisateur supprimé avec succès', 'success');
+} finally {
+    stopLoading();
+  }
 };
 
 const showAddUserModal = () => {

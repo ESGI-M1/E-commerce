@@ -4,8 +4,8 @@
 
     <div class="filters">
       <div>
-        <label for="orderNumber">N° commande</label>
-        <input v-model="filters.orderId" type="text" id="orderNumber" />
+        <label for="orderNumber">Identifiant</label>
+        <input v-model="filters.id" type="text" id="orderNumber" />
       </div>
       <div>
         <label for="clientInfo">Client</label>
@@ -17,6 +17,7 @@
       <table>
         <thead>
           <tr>
+            <th>Id</th>
             <th>Date</th>
             <th>Commande</th>
             <th>Client</th>
@@ -29,6 +30,7 @@
         </thead>
         <tbody>
           <tr v-for="returnProduct in filteredReturnProducts" :key="returnProduct.id">
+            <td>{{ returnProduct.id }}</td>
             <td>{{ formatReturnDate(returnProduct.createdAt) }}</td>
             <td>n°{{ returnProduct.orderId }}</td>
             <td v-if="returnProduct.user">
@@ -95,16 +97,16 @@ interface ReturnProduct {
 
 const returnProducts = ref<ReturnProduct[]>([])
 const filters = ref({
-  orderId: '',
+  id: '',
   user: ''
 })
 
 const filteredReturnProducts = computed(() => {
   let filtered = [...returnProducts.value]
 
-  if (filters.value.orderId.trim() !== '') {
+  if (filters.value.id.trim() !== '') {
     filtered = filtered.filter(product =>
-      product.orderId?.toString().includes(filters.value.orderId.trim())
+      product.id?.toString().includes(filters.value.id.trim())
     )
   }
 

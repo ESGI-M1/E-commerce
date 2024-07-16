@@ -1,6 +1,7 @@
 <template>
   <div class="return-product">
-    <h1>Retour du Produit</h1>
+    <h1 v-if="returned">Retour du Produit # {{ returned.id }}</h1>
+    <h1 v-else>Retour du Produit</h1>
     <form @submit.prevent="submitReturn">
       <div class="return-details">
         <p>
@@ -73,6 +74,7 @@ const statut = ref('')
 const product = ref<any>(null)
 const existingReturn = ref(false)
 const card = ref('')
+const returned = ref(false)
 
 const quantityOptions = computed(() => {
   const options = []
@@ -105,6 +107,8 @@ const fetchProductDetails = async () => {
         orderId: orderId.value,
       }
     })
+
+    returned.value = returnResponse.data
 
     if (returnResponse.data && typeof(returnResponse.data) === 'object'){
       existingReturn.value = true

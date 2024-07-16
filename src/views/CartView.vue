@@ -54,7 +54,7 @@
           </div>
           <div v-if="promo">
             Code promo appliqué : {{ promo.code }}
-            <button @click="removePromo" class="remove-button">Supprimer</button>
+            <button @click="removePromo(false)" class="remove-button">Supprimer</button>
           </div>
           <p v-if="promoError" class="error-message">{{ promoError }}</p>
         </div>
@@ -108,16 +108,20 @@ const promo = ref(null)
 const promoCode = ref('')
 const promoError = ref('')
 
-const removePromo = async () => {
+const removePromo = async (automatic: boolean) => {
     const cartIds = carts.value[0].id;
     await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
       { userId: authToken, cartIds },
     )
+    promoError.value = ''
+    if (!automatic) {
+      showNotification('Code promo supprimé avec succès', 'success')
+    } else {
+      showNotification('Le code promo '+ promo.value.code +' a expiré !', 'error')
+    }
     promo.value = null
     fetchCartItems()
-    promoError.value = ''
-    showNotification('Code promo supprimé avec succès', 'success')
 }
 
 const applyPromoCode = async () => {
@@ -169,8 +173,7 @@ const fetchCartItems = async () => {
         let formattedDate = `${year}-${month}-${day}`;
 
       if (promo.value && promo.value.endDate < formattedDate) {
-        removePromo()
-        showNotification('Le code promo a expiré !', 'error')
+        removePromo(true)
       }
     } catch (error) {
       carts.value = null;

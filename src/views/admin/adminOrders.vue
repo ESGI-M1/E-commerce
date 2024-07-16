@@ -8,7 +8,7 @@
       <input v-model="filters.orderNumber" type="text" id="orderNumber" />
     </div>
     <div>
-      <label for="clientInfo">Identifiant</label>
+      <label for="clientInfo">Client</label>
       <input v-model="filters.clientInfo" type="text" id="clientInfo" />
     </div>
   </div>

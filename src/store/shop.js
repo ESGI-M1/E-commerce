@@ -26,6 +26,12 @@ const shopSchema = z.object({
         name: z.string(),
         slug: z.string(),
         active: z.boolean(),
+        subCategories: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            slug: z.string(),
+            active: z.boolean(),
+        })).optional(),
     })).optional(),
 });
 

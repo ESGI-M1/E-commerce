@@ -1,13 +1,28 @@
 const { Router } = require("express");
 const router = new Router();
-const { Shop } = require("../models");
+const { Shop, Category } = require("../models");
 const checkRole = require("../middlewares/checkRole");
+const { where } = require("sequelize");
 
 router.get("/", async (req, res, next) => {
     try {
         const shop = await Shop.findOne({
-            include: 'mainCategories',
-            required: false,
+            include: {
+                model: Category,
+                as: 'mainCategories',
+                required: false,
+                where: {
+                    active: true
+                },
+                include: {
+                    model: Category,
+                    as: 'subCategories',
+                    required: false,
+                    where: {
+                        active: true
+                    }
+                }
+            }
         });
         res.json(shop);
     } catch (e) {

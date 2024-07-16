@@ -7,7 +7,8 @@ module.exports = function (connection) {
     class Category extends Model {
 
         static associate(models) {
-            Category.belongsTo(models.Category, { as: 'parentCategory' });
+            Category.belongsTo(models.Category, { as: 'parentCategory', foreignKey: 'parentCategoryId' });
+            Category.hasMany(models.Category, { as: 'subCategories', foreignKey: 'parentCategoryId' });
         }
 
         static addHooks(models) {

@@ -8,7 +8,10 @@
     <div class="navbar-section links">
       <!-- Navigation Links -->
       <div class="nav-item" v-for="category in shopStore.mainCategories" :key="category.id">
-        <RouterLink v-if="category.active" :to="{ name: 'Category', params: { slug : category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
+        <RouterLink :to="{ name: 'Category', params: { slug : category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
+          <div v-if="category.subCategories.length > 0" class="dropdown">
+            <RouterLink v-for="subCategory in category.subCategories" :key="subCategory.id" :to="{ name: 'Category', params: { slug : subCategory.slug }}" class="dropdown-item">{{ subCategory.name }}</RouterLink>
+          </div>
         </div>
     </div>
 

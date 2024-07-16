@@ -7,7 +7,7 @@
           <h2>Informations du produit</h2>
         </div>
         <div>
-          <p>Nom : {{ product.name || '-' }}</p>
+          <p>Nom : <a v-if="product.name" :href="'/products/' + product.id">{{ product.name || '-' }}</a></p>
           <p>Référence : {{ product.reference || '-' }}</p>
           <p>Prix de base : {{ product.price || '-' }} €</p>
           <p>Description : {{ product.description || '-' }}</p>

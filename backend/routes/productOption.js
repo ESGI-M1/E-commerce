@@ -4,7 +4,6 @@ const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
-
 router.get("/", async (req, res, next) => {
     try {
         const query = req.query;
@@ -33,3 +32,5 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
         next(e);
     }
 });
+
+module.exports = router;

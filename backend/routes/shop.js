@@ -5,7 +5,10 @@ const checkRole = require("../middlewares/checkRole");
 
 router.get("/", async (req, res, next) => {
     try {
-        const shop = await Shop.findOne();
+        const shop = await Shop.findOne({
+            include: 'mainCategories',
+            required: false,
+        });
         res.json(shop);
     } catch (e) {
         next(e);
@@ -23,8 +26,18 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 
 router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
+        const { mainCategories, ...shopData } = req.body;
         const shop = await Shop.findByPk(parseInt(req.params.id));
-        const updatedShop = await shop.update(req.body);
+
+        if(mainCategories && mainCategories.length > 0) {
+            await shop.setMainCategories(mainCategories);
+        }
+
+        await shop.update(req.body);
+
+        const updatedShop = await Shop.findByPk(parseInt(req.params.id), {
+            include: 'mainCategories',
+        });
         updatedShop ? res.json(updatedShop) : res.sendStatus(404);
     } catch (e) {
         next(e);

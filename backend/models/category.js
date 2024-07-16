@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 const denormalizeCategory = require("../dtos/denormalization/category");
+const { model } = require("mongoose");
 
 module.exports = function (connection) {
 

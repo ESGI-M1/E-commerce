@@ -16,6 +16,7 @@
             <th>Description</th>
             <th>Catégorie Parent</th>
             <th>Produits</th>
+            <th>Actif</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -27,23 +28,25 @@
             <td>{{ findCategoryName(category.parentCategoryId) }}</td>
             <td><p v-if="category.Products">{{ category.Products.length }}</p></td>
             <td>
+              <i :class="category.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
+            </td>
+            <td>
               <div class="flex">
-              <a @click="showEditCategoryModal(category)" class="a-primary">
-                <i class="fa fa-edit"></i>
-              </a>
-              &nbsp;
-              <fancy-confirm
-                :class="'a-danger'"
-                :confirmationMessage="'Etes-vous sûr de vouloir supprimer la catégorie ?'"
-                :elementType="'a'"
-                @confirmed="deleteCategory(category)"
-            >
-            <template #buttonText>
-              <i class="fa fa-trash"></i>
-            </template>
-          </fancy-confirm>
-</div>
-
+                <a @click="showEditCategoryModal(category)" class="a-primary">
+                  <i class="fa fa-edit"></i>
+                </a>
+                &nbsp;
+                <fancy-confirm
+                  :class="'a-danger'"
+                  :confirmationMessage="'Etes-vous sûr de vouloir supprimer la catégorie ?'"
+                  :elementType="'a'"
+                  @confirmed="deleteCategory(category)"
+                >
+                  <template #buttonText>
+                    <i class="fa fa-trash"></i>
+                  </template>
+                </fancy-confirm>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -82,6 +85,11 @@
           </div>
 
           <div class="form-group">
+            <label for="active">Actif</label>
+            <input v-model="currentCategory.active" type="checkbox" id="active" />
+          </div>
+
+          <div class="form-group">
             <label for="products">Produits</label>
             <select v-model="currentCategory.Products" id="products" multiple>
               <option v-for="product in products" :key="product.id" :value="product.id">
@@ -105,7 +113,7 @@
 <script setup lang="ts">
 import axios from '../../tools/axios';
 import { ref, onMounted, inject } from 'vue'
-import { z } from 'zod'
+import { z, ZodError } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 const showNotification = inject('showNotification');
 
@@ -113,6 +121,7 @@ interface Category {
   id?: number
   name: string
   slug: string
+  active?: boolean
   description?: string
   parentCategoryId?: number | null
   Products: number[]
@@ -127,6 +136,7 @@ const categorySchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Le nom est requis'),
   slug: z.string().min(1, 'Le slug est requis'),
+  active: z.boolean().optional(),
   description: z.string().optional(),
   parentCategoryId: z.number().nullable(),
   Products: z.array(z.number())
@@ -137,6 +147,7 @@ const currentCategory = ref<Category>({
   name: '',
   slug: '',
   description: '',
+  active: false,
   parentCategoryId: null,
   Products: []
 })
@@ -155,31 +166,59 @@ const fetchProducts = async () => {
 }
 
 const addCategory = async () => {
-    const parsedCategory = categorySchema.parse(currentCategory.value)
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
-    categories.value.push(response.data)
-    closeModal()
-    showNotification('Catégorie ajoutée avec succès', 'success');
+
+  try{
+
+    categorySchema.parse(currentCategory.value)
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
+      .then(response => {
+        categories.value.push(response.data)
+        closeModal()
+        showNotification('Catégorie ajoutée avec succès', 'success');
+      })
+
+  } catch (error) {
+    if (error instanceof ZodError) {
+        console.error(error.errors)
+    }
+    console.error(error)
+  }
+
 }
 
 const updateCategory = async () => {
-  const parsedCategory = categorySchema.parse(currentCategory.value)
-  await axios.patch(
-    `${import.meta.env.VITE_API_BASE_URL}/categories/${currentCategory.value.id}`,
-    parsedCategory
-  )
-  const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
-  if (index !== -1) {
-    categories.value[index] = currentCategory.value
+
+  try{
+      
+    const parsedCategory = categorySchema.parse(currentCategory.value)
+    axios.patch(`${import.meta.env.VITE_API_BASE_URL}/categories/${currentCategory.value.id}`, parsedCategory)
+      .then(response => {
+        const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
+        if (index !== -1) {
+          categories.value[index] = currentCategory.value
+        }
+        closeModal()
+        showNotification('Catégorie modifiée avec succès', 'success');
+      })
+
+  } catch (error) {
+    if (error instanceof ZodError) {
+        console.error(error.errors)
+    }
+    console.error(error)
   }
-  closeModal()
-  showNotification('Catégorie modifiée avec succès', 'success');
 }
 
 const deleteCategory = async (category: Category) => {
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
-  categories.value = categories.value.filter((cat) => cat.id !== category.id)
-  showNotification('Catégorie suprimée avec succès', 'success');
+
+  try{
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
+    categories.value = categories.value.filter((cat) => cat.id !== category.id)
+    showNotification('Catégorie suprimée avec succès', 'success');
+
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 const showAddCategoryModal = () => {
@@ -188,6 +227,7 @@ const showAddCategoryModal = () => {
     name: '',
     slug: '',
     description: '',
+    active: false,
     parentCategoryId: null,
     Products: []
   }

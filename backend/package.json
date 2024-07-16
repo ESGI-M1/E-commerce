@@ -39,6 +39,7 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "sequelize": "^6.34.0",
+    "sequelize-cli": "^6.6.2",
     "supertest": "^7.0.0",
     "vue-email": "^0.8.11"
   }

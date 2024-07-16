@@ -1,4 +1,5 @@
 const connection = require("./models/db");
+const { execSync } = require('child_process');
 
 const options = {
   "--type": {
@@ -24,9 +25,22 @@ do {
   }
 } while (args.length);
 
-connection
+/*connection
   .sync({
     alter: true,
+    //force: true
   })
   .then(() => console.log("Database synced"))
-  //.then(() => connection.close());
+  //.then(() => connection.close());*/
+
+  try {
+    if (options["--dir"] === "up") {
+      execSync('npx sequelize-cli db:migrate', { stdio: 'inherit' });
+    } else if (options["--dir"] === "down") {
+      execSync('npx sequelize-cli db:migrate:undo', { stdio: 'inherit' });
+    } else {
+      console.error("Unknown direction. Use --dir up or --dir down.");
+    }
+  } catch (error) {
+    console.error("An error occurred while running the migration script:", error);
+  }

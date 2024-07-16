@@ -13,6 +13,11 @@ router.get("/", checkAuth, checkRole({ roles: "admin" }), async (req, res) => {
         ...req.query,
         role: { [Op.ne]: 'anonymous' }
       },
+      order: [
+        ['lastname', 'ASC'],
+        ['firstname', 'ASC'],
+        ['email', 'ASC']
+      ]
     });
 
     res.json(users);

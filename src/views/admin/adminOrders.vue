@@ -1,13 +1,23 @@
 <template>
   <div class="orders">
-    <h1>Commandes ({{ orders.length }})</h1>
+    <h1>Commandes ({{ filteredOrders.length }})</h1>
 
+    <div class="filters">
+      <div>
+      <label for="orderNumber">N° commande</label>
+      <input v-model="filters.orderNumber" type="text" id="orderNumber" />
+    </div>
+    <div>
+      <label for="clientInfo">Identifiant</label>
+      <input v-model="filters.clientInfo" type="text" id="clientInfo" />
+    </div>
+  </div>
     <div class="order-table">
       <table>
         <thead>
           <tr>
-            <th>Commande</th>
             <th>Date</th>
+            <th>Commande</th>
             <th>Client</th>
             <th>Statut</th>
             <th>Total</th>
@@ -16,9 +26,9 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="order in orders" :key="order.id">
-            <td>n°{{ order.id }}</td>
+          <tr v-for="order in filteredOrders" :key="order.id">
             <td>{{ formatDate(order.deliveryDate) }}</td>
+            <td>n°{{ order.id }}</td>
             <td>#{{ order.user.id }} {{ order.user.lastname }} {{ order.user.firstname }}</td>
             <td :title="order.status === 'completed' ? 'Terminé' : 'En cours'">
               <i :class="order.status === 'completed' ? 'fas fa-check-circle status-completed' : 'fas fa-hourglass-half status-pending'"></i>
@@ -44,7 +54,7 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, computed } from 'vue'
 import { format, parseISO } from 'date-fns'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
@@ -73,6 +83,31 @@ interface Order {
 }
 
 const orders = ref<Order[]>([])
+const filters = ref({
+  orderNumber: '',
+  clientInfo: ''
+})
+
+const filteredOrders = computed(() => {
+  let filtered = [...orders.value]
+
+  if (filters.value.orderNumber.trim() !== '') {
+    filtered = filtered.filter(order =>
+      order.id.toString().includes(filters.value.orderNumber.trim())
+    )
+  }
+
+  if (filters.value.clientInfo.trim() !== '') {
+    const clientInfoLower = filters.value.clientInfo.trim().toLowerCase()
+    filtered = filtered.filter(order =>
+    order.user.id.toString().toLowerCase().includes(clientInfoLower) ||
+    order.user.lastname.toLowerCase().includes(clientInfoLower) ||
+      order.user.firstname.toLowerCase().includes(clientInfoLower)
+    )
+  }
+
+  return filtered
+})
 
 const fetchOrders = async () => {
   const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders`)
@@ -109,5 +144,23 @@ onMounted(() => {
 
 .status-pending {
   color: orange;
+}
+
+.filters {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.filters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters input {
+  margin-right: 10px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

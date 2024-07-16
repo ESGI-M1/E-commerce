@@ -23,6 +23,11 @@ router.get("/admin", checkRole({ roles: "admin" }), async (req, res) => {
     const products = await Product.findAll({
         where: req.query,
         include: [Category, Image],
+        order: [
+            ['name', 'ASC'],
+            ['reference', 'ASC'],
+            ['price', 'ASC']
+        ]
     });
 
     res.json(products);

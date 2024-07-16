@@ -6,7 +6,16 @@
         <i class="fa fa-plus"></i> Ajouter un code promo
       </button>
     </div>
-
+    <div class="filters">
+        <div>
+          <label for="promoCode">Code Promo</label>
+          <input v-model="filters.code" type="text" id="promoCode" />
+        </div>
+        <div>
+          <label for="promoDiscount">Réduction (%)</label>
+          <input v-model.number="filters.discountPercentage" type="number" id="promoDiscount" />
+        </div>
+      </div>
     <table>
       <thead>
         <tr>
@@ -19,7 +28,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="promo in promos" :key="promo.id">
+        <tr v-for="promo in filteredPromos" :key="promo.id">
           <td>{{ promo.id }}</td>
           <td>{{ promo.code }}</td>
           <td>{{ formatDate(promo.startDate) }}</td>
@@ -79,7 +88,7 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, computed } from 'vue'
 import axios from '../../tools/axios';
 import { format, parseISO } from 'date-fns'
 
@@ -101,6 +110,10 @@ const promo = ref<Promo>({
 })
 const editMode = ref(false)
 const showAddEditForm = ref(false)
+const filters = ref({
+  code: '',
+  discountPercentage: null as number | null
+})
 
 const fetchPromos = async () => {
   const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos`)
@@ -151,6 +164,24 @@ const cancelEdit = () => {
   showAddEditForm.value = false
 }
 
+const filteredPromos = computed(() => {
+  let filtered = [...promos.value]
+
+  if (filters.value.code.trim() !== '') {
+    filtered = filtered.filter(promo =>
+      promo.code.toLowerCase().includes(filters.value.code.trim().toLowerCase())
+    )
+  }
+
+  if (filters.value.discountPercentage !== null) {
+    filtered = filtered.filter(promo =>
+      promo.discountPercentage === filters.value.discountPercentage
+    )
+  }
+
+  return filtered
+})
+
 onMounted(fetchPromos)
 </script>
 
@@ -196,5 +227,23 @@ form {
 
 .buttons button {
   margin-right: 10px;
+}
+
+.filters {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.filters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters input {
+  margin-right: 10px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

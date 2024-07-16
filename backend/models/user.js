@@ -36,8 +36,6 @@ module.exports = function (connection) {
           await denormalizeUser(user, models);
         }
       });
-      
-
     }
   }
 
@@ -72,10 +70,9 @@ module.exports = function (connection) {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
-          isNumeric: true,
-          regex: /^\+33[1-9]\d{8}$/g,
+          is: /^(\+33[1-9]\d{8}|0\d{9})$|/,
         },
-      },
+      }, 
       password: {
         type: DataTypes.STRING,
         allowNull: false,

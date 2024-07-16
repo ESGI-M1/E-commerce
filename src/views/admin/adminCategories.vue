@@ -6,7 +6,11 @@
         <i class="fa fa-plus"></i> Ajouter une catégorie
       </button>
     </div>
-
+    <div class="filters">
+        <label for="search">Identifiant</label>
+        <br>
+        <input v-model="filters.searchTerm" type="text" id="search" />
+    </div>
     <div class="category-table">
       <table>
         <thead>
@@ -20,7 +24,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="category in categories" :key="category.id">
+          <tr v-for="category in filteredCategories" :key="category.id">
             <td>{{ category.name }}</td>
             <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
@@ -104,9 +108,10 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, computed } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+
 const showNotification = inject('showNotification');
 
 interface Category {
@@ -116,11 +121,6 @@ interface Category {
   description?: string
   parentCategoryId?: number | null
   Products: number[]
-}
-
-interface Product {
-  id: number
-  name: string
 }
 
 const categorySchema = z.object({
@@ -143,6 +143,23 @@ const currentCategory = ref<Category>({
 const products = ref<Product[]>([])
 const showModal = ref(false)
 const isEditing = ref(false)
+const filters = ref({
+  searchTerm: ''
+})
+
+const filteredCategories = computed(() => {
+  let filtered = [...categories.value]
+
+  if (filters.value.searchTerm.trim() !== '') {
+    const searchTermLower = filters.value.searchTerm.toLowerCase()
+    filtered = filtered.filter(category =>
+      category.name.toLowerCase().includes(searchTermLower) ||
+      category.slug.toLowerCase().includes(searchTermLower)
+    )
+  }
+
+  return filtered
+})
 
 const fetchCategories = async () => {
   const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
@@ -155,11 +172,11 @@ const fetchProducts = async () => {
 }
 
 const addCategory = async () => {
-    const parsedCategory = categorySchema.parse(currentCategory.value)
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
-    categories.value.push(response.data)
-    closeModal()
-    showNotification('Catégorie ajoutée avec succès', 'success');
+  const parsedCategory = categorySchema.parse(currentCategory.value)
+  const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
+  categories.value.push(response.data)
+  closeModal()
+  showNotification('Catégorie ajoutée avec succès', 'success');
 }
 
 const updateCategory = async () => {
@@ -179,7 +196,7 @@ const updateCategory = async () => {
 const deleteCategory = async (category: Category) => {
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
   categories.value = categories.value.filter((cat) => cat.id !== category.id)
-  showNotification('Catégorie suprimée avec succès', 'success');
+  showNotification('Catégorie supprimée avec succès', 'success');
 }
 
 const showAddCategoryModal = () => {
@@ -214,6 +231,7 @@ onMounted(() => {
   fetchProducts()
 })
 </script>
+
 
 <style scoped>
 .categories {
@@ -259,5 +277,11 @@ form {
 
 .buttons button {
   margin-right: 10px;
+}
+
+.filters input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

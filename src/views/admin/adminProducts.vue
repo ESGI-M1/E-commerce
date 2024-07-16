@@ -7,6 +7,16 @@
       </button>
     </div>
 
+    <div class="filters">
+      <div>
+      <label>Identifiant</label>
+      <input v-model="filters.searchTerm" type="text" />
+    </div>
+    <div>
+      <label>Prix</label>
+      <input v-model.number="filters.price" type="number" step="0.01" />
+    </div>
+  </div>
     <table>
       <thead>
         <tr>
@@ -21,7 +31,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in products" :key="product.id">
+        <tr v-for="product in filteredProducts" :key="product.id">
           <td>
             <label class="image-upload">
               <input
@@ -139,7 +149,7 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, computed } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
@@ -281,12 +291,37 @@ const truncateString = (string: string, sub: number) => {
   return string.length > sub ? `${string.substring(0, sub)}...` : string
 }
 
-/*
-NOT USED
-const handleImageChange = (event, product) => {
-  // Ce gestionnaire peut être vide ici ou supprimé car on utilise `triggerFileInput` pour gérer le changement d'image.
-}
-*/
+const filters = ref({
+  searchTerm: '',
+  price: null
+})
+
+const filteredProducts = computed(() => {
+  let filtered = [...products.value]
+
+  if (filters.value.searchTerm) {
+    const searchTermLower = filters.value.searchTerm.toLowerCase()
+    filtered = filtered.filter(product =>
+      product.name.toLowerCase().includes(searchTermLower) ||
+      product.reference.toLowerCase().includes(searchTermLower)
+    )
+  }
+
+  if (filters.value.price !== null && filters.value.price !== '') {
+    const priceFilter = parseFloat(filters.value.price)
+    filtered = filtered.filter(product => {
+      // Vérifier si le prix commence par les chiffres entrés
+      const productPriceString = product.price.toString()
+      if (productPriceString.startsWith(filters.value.price)) {
+        return true
+      }
+      // Vérifier si le prix est exactement égal à la valeur saisie
+      return product.price === priceFilter
+    })
+  }
+
+  return filtered
+})
 
 onMounted(() => {
   fetchProducts()
@@ -305,6 +340,24 @@ onMounted(() => {
   right: 10px;
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+.filters {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.filters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters input {
+  margin-right: 10px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 form {
@@ -367,3 +420,4 @@ img {
   color: red;
 }
 </style>
+

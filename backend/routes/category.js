@@ -7,6 +7,10 @@ router.get("/", async (req, res) => {
     const categories = await Category.findAll({
         where: req.query,
         include: [Product],
+        order: [
+            ['name', 'ASC'],
+            ['slug', 'ASC'],
+        ]
     });
     res.json(categories);
 });

@@ -1,13 +1,24 @@
 <template>
   <div class="returns">
-    <h1>Retours ({{ returnProducts.length }})</h1>
+    <h1>Retours ({{ filteredReturnProducts.length }})</h1>
+
+    <div class="filters">
+      <div>
+        <label for="orderNumber">N° commande</label>
+        <input v-model="filters.orderId" type="text" id="orderNumber" />
+      </div>
+      <div>
+        <label for="clientInfo">Identifiant</label>
+        <input v-model="filters.user" type="text" id="clientInfo" />
+      </div>
+    </div>
 
     <div class="return-table">
       <table>
         <thead>
           <tr>
-            <th>Commande</th>
             <th>Date</th>
+            <th>Commande</th>
             <th>Client</th>
             <th>Produit</th>
             <th>Statut</th>
@@ -17,12 +28,15 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="returnProduct in returnProducts" :key="returnProduct.id">
-            <td>n°{{ returnProduct.orderId }}</td>
+          <tr v-for="returnProduct in filteredReturnProducts" :key="returnProduct.id">
             <td>{{ formatReturnDate(returnProduct.createdAt) }}</td>
-            <td>
+            <td>n°{{ returnProduct.orderId }}</td>
+            <td v-if="returnProduct.user">
               #{{ returnProduct.user.id }} {{ returnProduct.user.lastname }}
               {{ returnProduct.user.firstname }}
+            </td>
+            <td v-else>
+              Utilisateur non trouvé
             </td>
             <td class="product-info">
               <span class="product-name">#{{ returnProduct.product.id }} {{ returnProduct.product.name }}</span>
@@ -51,11 +65,11 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, computed } from 'vue'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const showNotification = inject('showNotification');
-// Interfaces
+
 interface User {
   id: number
   lastname: string
@@ -69,9 +83,9 @@ interface Product {
 
 interface ReturnProduct {
   id: number
-  orderId: number
+  orderId: number | null
   createdAt: string
-  user: User
+  user: User | null
   product: Product
   quantity: number
   status: string
@@ -80,10 +94,39 @@ interface ReturnProduct {
 }
 
 const returnProducts = ref<ReturnProduct[]>([])
+const filters = ref({
+  orderId: '',
+  user: ''
+})
+
+const filteredReturnProducts = computed(() => {
+  let filtered = [...returnProducts.value]
+
+  if (filters.value.orderId.trim() !== '') {
+    filtered = filtered.filter(product =>
+      product.orderId?.toString().includes(filters.value.orderId.trim())
+    )
+  }
+
+  if (filters.value.user.trim() !== '') {
+    const userFilterLower = filters.value.user.trim().toLowerCase()
+    filtered = filtered.filter(product =>
+      (product.user?.lastname.toLowerCase().includes(userFilterLower)) ||
+      (product.user?.firstname.toLowerCase().includes(userFilterLower)) ||
+      (product.user && product.user.id.toString().toLowerCase().includes(userFilterLower))
+    )
+  }
+
+  return filtered
+})
 
 const fetchReturnProducts = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return`)
-  returnProducts.value = response.data
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return`)
+    returnProducts.value = response.data
+  } catch (error) {
+    console.error('Erreur lors du chargement des retours de produits:', error.message)
+  }
 }
 
 const formatReturnDate = (returnDate: string): string => {
@@ -100,9 +143,13 @@ const formatReturnDate = (returnDate: string): string => {
 }
 
 const validate = async (id: number) => {
-  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/return/${id}`)
-  fetchReturnProducts()
-  showNotification('Retour validé avec succès', 'success');
+  try {
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/return/${id}`)
+    fetchReturnProducts()
+    showNotification('Retour validé avec succès', 'success');
+  } catch (error) {
+    console.error('Erreur lors de la validation du retour:', error.message)
+  }
 }
 
 onMounted(() => {
@@ -140,5 +187,23 @@ onMounted(() => {
 
 .status-processing {
   color: orange;
+}
+
+.filters {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.filters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters input {
+  margin-right: 10px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="return-product">
-    <h1 v-if="returned">Retour du Produit # {{ returned.id }}</h1>
+    <h1 v-if="returned && returned.id">Retour du Produit # {{ returned.id }}</h1>
     <h1 v-else>Retour du Produit</h1>
     <form @submit.prevent="submitReturn">
       <div class="return-details">

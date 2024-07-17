@@ -182,7 +182,7 @@ const currentProductVariant = ref({ name: '', reference: '', price: 0, stockQuan
 
 const fetchProduct = async (id) => {
   try {
-    const response = await axios.get(`http://localhost:3000/products/${id}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${id}`);
     product.value = response.data || {};
   } catch (error) {
     console.error("Erreur lors du chargement du produit", error);
@@ -191,7 +191,7 @@ const fetchProduct = async (id) => {
 
 const fetchProductVariants = async (productId) => {
   try {
-    const response = await axios.get(`http://localhost:3000/product_variants`, { productId: { productId } });
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/product_variants`, { productId: { productId } });
     productVariants.value = response.data || [];
   } catch (error) {
     console.error("Erreur lors du chargement des déclinaisons de produit", error);
@@ -200,7 +200,7 @@ const fetchProductVariants = async (productId) => {
 
 const fetchProductOptions = async (productId) => {
   try {
-    const response = await axios.get(`http://localhost:3000/product_options`, { productId: { productId } });
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/product_options`, { productId: { productId } });
     productOptions.value = response.data || [];
   } catch (error) {
     console.error("Erreur lors du chargement des options de produit", error);
@@ -210,7 +210,7 @@ const fetchProductOptions = async (productId) => {
 const setProductOptions = async () => {
   try {
 
-    axios.post(`http://localhost:3000/product_options`,
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/product_options`,
       { productId: productId, productOptions: selectedVariantOptions.value },
     ).then(response => {
       productOptions.value = response.data || [];
@@ -222,7 +222,7 @@ const setProductOptions = async () => {
 
 const fetchAllVariantOptions = async () => {
   try {
-    const response = await axios.get(`http://localhost:3000/variant_options`);
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/variant_options`);
     allVariantOptions.value = response.data || [];
   } catch (error) {
     console.error("Erreur lors du chargement des options de variante", error);
@@ -231,7 +231,7 @@ const fetchAllVariantOptions = async () => {
 
 const fetchVariantOptions = async (productId) => {
   try {
-    const response = await axios.get(`http://localhost:3000/variant_options/${productId}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/variant_options/${productId}`);
     variantOptions.value = response.data || [];
   } catch (error) {
     console.error("Erreur lors du chargement des options de variante pour le produit", error);
@@ -251,7 +251,7 @@ const updateProductVariant = async () => {
   console.log('updateProductVariant');
   try {
     const parsedProductVariant = productVariantSchema.parse({ ...currentProductVariant.value, price: parseFloat(currentProductVariant.value.price) });
-    await axios.patch(`http://localhost:3000/product_variants/${currentProductVariant.value.id}`, parsedProductVariant, { withCredentials: true });
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/product_variants/${currentProductVariant.value.id}`, parsedProductVariant, { withCredentials: true });
     
     const index = productVariants.value.findIndex((p) => p.id === currentProductVariant.value.id);
     if (index !== -1) productVariants.value[index] = currentProductVariant.value;
@@ -264,7 +264,7 @@ const updateProductVariant = async () => {
 
 const resetProductVariant = async (productVariant) => {
   try {
-    await axios.patch(`http://localhost:3000/product_variants/${productVariant.id}/reset`);
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/product_variants/${productVariant.id}/reset`);
 
     const index = productVariants.value.findIndex((pv) => pv.id === productVariant.id);
     if (index !== -1) productVariants.value[index] = {

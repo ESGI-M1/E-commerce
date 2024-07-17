@@ -9,6 +9,13 @@ module.exports = function(connection) {
 
             Product.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
 
+            Product.belongsToMany(models.AlertUser, {
+              through: models.AlertUserProduct,
+              foreignKey: 'productId',
+              otherKey: 'alertUserId',
+              as: 'AlertUsers'
+            });
+
             Product.hasMany(models.CartProduct, {
                 foreignKey: 'productId',
                 as: 'CartProducts',

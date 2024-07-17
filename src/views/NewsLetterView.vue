@@ -1,7 +1,13 @@
 <script setup lang="ts">
-  import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
   import axios from 'axios'
   import { z } from 'zod'
+import Cookies from 'js-cookie'
+
+  const isAdmin = computed(() => {
+    const user = JSON.parse(Cookies.get('USER').slice(2))
+    return user.role === 'admin'
+  })
 
   const showModal = ref(false);
   const isEditing = ref(false);
@@ -99,7 +105,7 @@
       </h1>
 
       <div class="text-right">
-        <button @click="showAddNewsletterModal" class="btn btn-success">
+        <button @click="showAddNewsletterModal" class="btn btn-success" v-if="isAdmin">
           <i class="fa fa-plus"></i> Créer un nouvel article
         </button>
       </div>
@@ -108,10 +114,10 @@
         <div class="newsletter-header">
           <h2>{{ newsletter.title }}</h2>
           <div class="action-container">
-            <button @click="showEditNewsLetterModal(newsletter)" class="btn btn-primary">
+            <button @click="showEditNewsLetterModal(newsletter)" class="btn btn-primary" v-if="isAdmin">
               <i class="fa fa-edit"></i>
             </button>
-            <button @click="deleteNewsLetter(newsletter)" class="btn btn-danger">
+            <button @click="deleteNewsLetter(newsletter)" class="btn btn-danger" v-if="isAdmin">
               <i class="fa fa-trash"></i>
             </button>
           </div>

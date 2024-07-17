@@ -1,18 +1,22 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = function (connection) {
-  class Alerte extends Model {}
+  class Alert extends Model {}
 
-  Alerte.init({
+  Alert.init({
     name: {
       type: DataTypes.ENUM("news_letter", "new_product", "restock_product", "change_product_price"),
       allowNull: false,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false
     }
   }, {
     sequelize: connection,
-    modelName: 'Alerte',
-    tableName: 'Alertes',
+    modelName: 'Alert',
+    tableName: 'Alerts',
   });
 
-  return Alerte;
+  return Alert;
 }

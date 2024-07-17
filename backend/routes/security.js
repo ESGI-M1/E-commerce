@@ -45,6 +45,11 @@ router.post("/login", async (req, res) => {
     return res.sendStatus(401);
   }
 
+  if (!user.active) {
+    mailer.sendConnexionWithoutConfirmAccount(user);
+    return res.sendStatus(401);
+  }
+
   const token = jwt.sign(
     {
       id: user.id,
@@ -57,10 +62,6 @@ router.post("/login", async (req, res) => {
       algorithm: "HS256",
     }
   );
-
-  if (!user.active) {
-    mailer.sendConnexionWithoutConfirmAccount(user);
-  }
 
   res.cookie("JWT", token, {
     httpOnly: true,

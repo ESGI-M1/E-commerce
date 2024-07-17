@@ -16,7 +16,7 @@ const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
-const AlertesRouter = require("./routes/alerteUser")
+const AlertsRouter = require("./routes/alertUser")
 const NewsLetterRouter = require("./routes/newLetter");
 const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
@@ -51,7 +51,7 @@ app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
-app.use('/alertes', AlertesRouter);
+app.use('/alerts', AlertsRouter);
 app.use('/newsletters', NewsLetterRouter);
 app.use('/paypal', PaypalRouter);
 app.use('/addressorders', AddressOrderRouter);

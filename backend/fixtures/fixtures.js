@@ -1,4 +1,4 @@
-const { User, Product, AddressUser, AddressOrder, Favorite, Category, Order, Cart } = require('../models');
+const { User, Product, AddressUser, AddressOrder, Favorite, Category, Order, Cart, Alert } = require('../models');
 
 const usersFixtures = async () => {
 
@@ -128,3 +128,24 @@ const productsFixtures = async () => {
     await product_2.addCategories([category_1, category_2]);
     await product_3.addCategory(category_2);
 };
+
+const alertsFixtures = async () => {
+    const alertsName = ["news_letter", "new_product", "restock_product", "change_product_price"]
+    const alertsDescriptions = ["Vous inscrit à la newsletter et vous envoi les dernière news", "Vous informe de la sortie d'un nouveau produit", "Vous informe du restock du produit", "Vous informe du changement de prix du produit"];
+
+    for (let i= 0; i < alertsName.length; i++) {
+        let existAlert = await Alert.findOne({
+            where: {
+                name: alertsName[i]
+            }
+        });
+        if (!existAlert) {
+            await Alert.create({
+                name: alertsName[i],
+                description: alertsDescriptions[i]
+            });
+        }
+    }
+}
+
+alertsFixtures();

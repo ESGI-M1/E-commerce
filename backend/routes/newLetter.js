@@ -1,6 +1,7 @@
 const { Router } = require("express");
-const { NewsLetter, AlerteUser, Alerte, User } = require("../models");
+const { NewsLetter, AlertUser, Alert, User } = require("../models");
 const mailer = require('../services/mailer')
+const checkRole = require('../middlewares/checkRole')
 const router = new Router();
 
 router.get("/", async (req, res) => {
@@ -8,19 +9,19 @@ router.get("/", async (req, res) => {
   res.json(newsLetters);
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const newsletterData = req.body;
     const newsletter = await NewsLetter.create(newsletterData);
-    const idAlert = await Alerte.findOne({
+    const idAlert = await Alert.findOne({
       where: {
         name: 'news_letter'
       }
     });
     if (idAlert) {
-      const userToPrevent = await AlerteUser.findAll({
+      const userToPrevent = await AlertUser.findAll({
         where: {
-          alerte_id: idAlert.id
+          alert_id: idAlert.id
         }
       });
       if (userToPrevent) {
@@ -37,7 +38,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const newsletterData = req.body;
     const newsletter = await NewsLetter.findByPk(parseInt(req.params.id));
@@ -52,7 +53,7 @@ router.patch("/:id", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const nbDeleted = await NewsLetter.destroy({
       where: {

@@ -35,7 +35,7 @@ import Products from '../views/admin/adminProducts.vue';
 import ProductVariants from '../views/admin/adminProductVariants.vue';
 import Orders from '../views/admin/adminOrders.vue'
 import Returns from '../views/admin/adminReturns.vue'
-import Alertes from '../views/AlertesView.vue'
+import Alerts from '../views/AlertsView.vue'
 import NewsLetter from '../views/NewsLetterView.vue'
 import Shop from '../views/admin/adminShop.vue'
 
@@ -206,9 +206,9 @@ const routes = [
     meta: { requiresAdmin: true }
   },
   {
-    path: '/alertes',
+    path: '/alerts',
     name: 'Alertes',
-    component: Alertes
+    component: Alerts
   },
   {
     path: '/newsletters',

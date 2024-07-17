@@ -40,7 +40,7 @@ module.exports = function (connection) {
         {
             sequelize: connection,
             modelName: 'Cart',
-            tableName: 'carts',
+            tableName: 'Carts',
             timestamps: true,
         }
     );

@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { Op, QueryTypes } = require("sequelize");
-const { connection, Category, Image, Product, ProductOption, ProductVariant, ProductVariantDetail, User, AlerteUser, Alerte } = require("../models");
+const { connection, Category, Image, Product, ProductOption, ProductVariant, ProductVariantDetail, User, AlertUser, Alert } = require("../models");
 const mailer = require('../services/mailer');
 const checkRole = require("../middlewares/checkRole");
 
@@ -58,15 +58,15 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 
         // Product
         const product = await Product.create(productData);
-        const idAlert = await Alerte.findOne({
+        const idAlert = await Alert.findOne({
             where: {
                 name: 'new_product'
             }
         });
         if (idAlert) {
-            const userToPrevent = await AlerteUser.findAll({
+            const userToPrevent = await AlertUser.findAll({
                 where: {
-                    alerte_id: idAlert.id
+                    alert_id: idAlert.id
                 }
             });
             if (userToPrevent) {
@@ -156,15 +156,15 @@ router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
             }
             if (parseInt(product.price) !== productData.price) {
                 await product.update(productData);
-                const idAlert = await Alerte.findOne({
+                const idAlert = await Alert.findOne({
                     where: {
                         name: 'change_product_price'
                     }
                 });
                 if (idAlert) {
-                    const userToPrevent = await AlerteUser.findAll({
+                    const userToPrevent = await AlertUser.findAll({
                         where: {
-                            alerte_id: idAlert.id
+                            alert_id: idAlert.id
                         }
                     });
                     if (userToPrevent) {

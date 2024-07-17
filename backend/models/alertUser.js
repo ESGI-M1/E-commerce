@@ -1,13 +1,13 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = function (connection) {
-  class AlerteUser extends Model {}
+  class AlertUser extends Model {}
 
-  AlerteUser.init({
-    alerte_id: {
+  AlertUser.init({
+    alert_id: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'Alertes',
+        model: 'Alerts',
         key: 'id'
       }
     },
@@ -20,9 +20,9 @@ module.exports = function (connection) {
     }
   }, {
     sequelize: connection,
-    modelName: 'AlerteUser',
-    tableName: 'AlerteUsers',
+    modelName: 'AlertUser',
+    tableName: 'AlertUsers',
   });
 
-  return AlerteUser;
+  return AlertUser;
 }

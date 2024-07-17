@@ -7,7 +7,6 @@ const bodyParser = require('body-parser');
 const UserRouter = require("./routes/user");
 const ProductRouter = require("./routes/product");
 const ProductVariantRouter = require("./routes/productVariant");
-const VariantOptionRouter = require("./routes/variantOption");
 const CategoryRouter = require("./routes/category");
 const ImageRouter = require("./routes/image");
 const CartRouter = require("./routes/cart");
@@ -19,7 +18,7 @@ const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
 const rateLimiter = require('./rateLimiter');
-const AlertesRouter = require("./routes/alerteUser")
+const AlertsRouter = require("./routes/alertUser")
 const NewsLetterRouter = require("./routes/newLetter");
 const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
@@ -45,8 +44,7 @@ app.use(bodyParser.json());
 
 app.use("/users", UserRouter, checkAuth);
 app.use("/products", ProductRouter);
-app.use("/product_variants", ProductVariantRouter);
-app.use("/variant_options", VariantOptionRouter);
+app.use("/productVariants", ProductVariantRouter);
 app.use('/categories', CategoryRouter);
 app.use('/images', ImageRouter);
 app.use('/carts', CartRouter);
@@ -56,7 +54,7 @@ app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
 app.use('/stripe', StripeRouter);
-app.use('/alertes', AlertesRouter);
+app.use('/alerts', AlertsRouter);
 app.use('/newsletters', NewsLetterRouter);
 app.use('/paypal', PaypalRouter);
 app.use('/addressorders', AddressOrderRouter);

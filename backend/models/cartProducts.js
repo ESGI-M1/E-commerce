@@ -20,7 +20,7 @@ module.exports = function (connection) {
                 type: DataTypes.INTEGER,
                 allowNull: false,
                 references: {
-                    model: 'carts',
+                    model: 'Carts',
                     key: 'id',
                 },
             },

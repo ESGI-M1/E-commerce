@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { NewsLetter, AlerteUser, Alerte, User } = require("../models");
+const { NewsLetter, AlertUser, Alert, User } = require("../models");
 const mailer = require('../services/mailer')
 const router = new Router();
 
@@ -12,15 +12,15 @@ router.post("/", async (req, res, next) => {
   try {
     const newsletterData = req.body;
     const newsletter = await NewsLetter.create(newsletterData);
-    const idAlert = await Alerte.findOne({
+    const idAlert = await Alert.findOne({
       where: {
         name: 'news_letter'
       }
     });
     if (idAlert) {
-      const userToPrevent = await AlerteUser.findAll({
+      const userToPrevent = await AlertUser.findAll({
         where: {
-          alerte_id: idAlert.id
+          alert_id: idAlert.id
         }
       });
       if (userToPrevent) {

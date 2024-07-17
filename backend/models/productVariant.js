@@ -4,7 +4,6 @@ module.exports = function(connection) {
     class ProductVariant extends Model {
         static associate(models) {
             ProductVariant.belongsTo(models.Product, { foreignKey: 'productId', as: 'product', onDelete: 'CASCADE' });
-            ProductVariant.hasMany(models.ProductVariantDetail, { foreignKey: 'productVariantId', as: 'productVariantDetails' });
         }
     }
 
@@ -37,7 +36,7 @@ module.exports = function(connection) {
                     notEmpty: true,
                 },
             },
-            stockQuantity: {
+            stock: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
                 defaultValue: 0,

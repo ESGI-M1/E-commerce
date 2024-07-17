@@ -1,17 +1,17 @@
 const { Router } = require("express");
-const { User, AlerteUser, Alerte } = require("../models");
+const { User, AlertUser, Alert } = require("../models");
 const mailer = require('../services/mailer');
 const router = new Router();
 
 router.get("/", async (req, res) => {
-  const alertes = await Alerte.findAll();
-  res.json(alertes);
+  const alerts = await Alert.findAll();
+  res.json(alerts);
 });
 
 router.get("/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
-    const userAlertsIds = await AlerteUser.findAll({
+    const userAlertsIds = await AlertUser.findAll({
       where: {
         user_id: userId
       },
@@ -19,7 +19,7 @@ router.get("/:userId", async (req, res, next) => {
 
     const userAlerts = [];
     for (let i = 0; i < userAlertsIds.length; i++) {
-      userAlerts.push(userAlertsIds[i].alerte_id);
+      userAlerts.push(userAlertsIds[i].alert_id);
     }
 
     res.json(userAlerts);
@@ -33,26 +33,26 @@ router.post("/:userId/:id", async (req, res, next) => {
     const userId = req.params.userId;
     const alertId = req.params.id;
 
-    const deletedAlert = await AlerteUser.destroy({
+    const deletedAlert = await AlertUser.destroy({
       where: {
         user_id: userId,
-        alerte_id: alertId
+        alert_id: alertId
       },
     });
 
     if (deletedAlert === 1) {
       res.status(204);
     } else {
-      await AlerteUser.create({
+      await AlertUser.create({
         user_id: userId,
-        alerte_id: alertId
+        alert_id: alertId
       });
-      const alerte = await Alerte.findOne({
+      const alert = await Alert.findOne({
         where: {
           id: alertId
         }
       });
-      if (alerte.name === 'news_letter') {
+      if (alert.name === 'news_letter') {
         const user = await User.findOne({
           where: {
             id: userId

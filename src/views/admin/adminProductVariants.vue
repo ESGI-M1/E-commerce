@@ -20,16 +20,17 @@
         </div>
       </div>
 
-      <form v-if="productOptions.length === 0" @submit.prevent="setProductOptions">
+      <form v-if="productOptions.length === 0" @submit.prevent="setProductOptions" id="product-options-form">
         <div class="div-header">
           <h2>Options de déclinaison</h2>
           <button type="submit" class="btn btn-primary">
-            <i class="fa fa-floppy-disk"></i> Enregistrer
+            <i class="fa fa-floppy-disk"></i> Générer
           </button>
         </div>
 
+        <p>Cette action est définitive pour le produit, et va générer ses variantes.</p><br>
         <ul v-for="option in allVariantOptions" :key="option.id">
-          <input type="checkbox" :id="option.id" :value="option.id" class="option-checkbox" />
+          <input type="checkbox" :id="option.id" :value="option.id" class="option-checkbox" v-model="selectedVariantOptions">
           <label :for="option.id">{{ option.name }}</label>
         </ul>
       </form>
@@ -173,8 +174,9 @@ const productOptions = ref([]);
 const productVariants = ref([]);
 const variantOptions = ref([]);
 const allVariantOptions = ref([]);
+const selectedVariantOptions = ref([]);
 
-const productId = ref(route.params.id);
+const productId = route.params.id;
 const product = ref({ name: '', reference: '', description: '', price: 0, active: true, Categories: [] });
 const currentProductVariant = ref({ name: '', reference: '', price: 0, stockQuantity: 0 });
 
@@ -187,21 +189,34 @@ const fetchProduct = async (id) => {
   }
 };
 
+const fetchProductVariants = async (productId) => {
+  try {
+    const response = await axios.get(`http://localhost:3000/product_variants`, { productId: { productId } });
+    productVariants.value = response.data || [];
+  } catch (error) {
+    console.error("Erreur lors du chargement des déclinaisons de produit", error);
+  }
+};
+
 const fetchProductOptions = async (productId) => {
   try {
-    const response = await axios.get(`http://localhost:3000/products/${productId}/options`);
+    const response = await axios.get(`http://localhost:3000/product_options`, { productId: { productId } });
     productOptions.value = response.data || [];
   } catch (error) {
     console.error("Erreur lors du chargement des options de produit", error);
   }
 };
 
-const fetchProductVariants = async (productId) => {
+const setProductOptions = async () => {
   try {
-    const response = await axios.get(`http://localhost:3000/product_variants/${productId}`);
-    productVariants.value = response.data || [];
+
+    axios.post(`http://localhost:3000/product_options`,
+      { productId: productId, productOptions: selectedVariantOptions.value },
+    ).then(response => {
+      productOptions.value = response.data || [];
+    });
   } catch (error) {
-    console.error("Erreur lors du chargement des déclinaisons de produit", error);
+    console.error("Erreur lors de la génération des options de produit", error);
   }
 };
 
@@ -277,10 +292,10 @@ const closeModal = () => {
 onMounted(async () => {
   try {
     await Promise.all([
-      fetchProduct(productId.value),
-      fetchProductOptions(productId.value),
-      fetchProductVariants(productId.value),
-      fetchVariantOptions(productId.value),
+      fetchProduct(productId),
+      fetchProductOptions(productId),
+      fetchProductVariants(productId),
+      fetchVariantOptions(productId),
       fetchAllVariantOptions()
     ]);
   } catch (error) {
@@ -316,7 +331,7 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-form {
+form:not(#product-options-form) {
   margin-top: 20px;
 }
 

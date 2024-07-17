@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { ProductOption } = require("../models");
+const { Product, ProductOption, ProductVariant } = require("../models");
 const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
@@ -21,13 +21,22 @@ router.get("/", async (req, res, next) => {
 
 router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
-        const { ...productOptionData } = req.body;
+        const { productId, productOptions } = req.body;
 
-        const productOption = await ProductOption.create(
-            productOptionData
-        );
+        const product = await Product.findByPk(productId);
 
-        res.status(201).json(productOption);
+        if (!product) return res.status(404).send("Product not found");
+
+        if (productOptions && productOptions.length) {
+            const variantOptions = await product.setVariantOptions(productOptions);
+
+            const productVariants = await ProductVariant.findAll({
+                where: { ProductId: productId },
+                include: ProductOption,
+            });
+
+            res.status(201).json(variantOptions);
+        }
     } catch (e) {
         next(e);
     }

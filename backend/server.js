@@ -2,6 +2,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 
 const checkAuth = require("./middlewares/checkAuth");
+const bodyParser = require('body-parser');
 
 const UserRouter = require("./routes/user");
 const ProductRouter = require("./routes/product");
@@ -40,6 +41,7 @@ require('./migrate');
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
 app.use(cors(options))
+app.use(bodyParser.json());
 
 app.use("/users", UserRouter, checkAuth);
 app.use("/products", ProductRouter);

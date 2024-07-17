@@ -2,10 +2,9 @@ const { Router } = require('express');
 const router = Router();
 const Stripe = require('stripe');
 const stripe = Stripe('sk_test_51PSJfGRvgxYLdiJ7BNE7Bd66RYSlpx4rxDPaZaNA3Gp3BbpTpX9TMiFQzgRMtWViErcK6NJiWrCj1613DtUr756M00OVXx6tdH');
-const PDFDocument = require('pdf-lib').PDFDocument;
-const { format } = require('date-fns');
 const { PaymentMethod } = require("../models");
 const checkAuth = require("../middlewares/checkAuth");
+const bodyParser = require('body-parser');
 
 router.post('/', checkAuth, async (req, res) => {
   try {
@@ -31,6 +30,8 @@ router.post('/', checkAuth, async (req, res) => {
         };
       }),
       mode: 'payment',
+      //success_url: `${import.meta.env.VITE_API_SECOND_URL}/success/${orderId}/${cartId}`,
+      //cancel_url: `${import.meta.env.VITE_API_SECOND_URL}/error/${orderId}`,
       success_url: `http://localhost:5173/success/${orderId}/${cartId}`,
       cancel_url: `http://localhost:5173/error/${orderId}`,
     });
@@ -80,13 +81,40 @@ router.post('/invoice/:idOrder', checkAuth, async (req, res) => {
     });
 
     const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
-    const invoicePdf = await stripe.invoices.retrieveInvoicePdf(finalizedInvoice.id);
 
-    res.json({ invoicePdfUrl: invoicePdf });
+    res.json({ invoicePdfUrl: finalizedInvoice.invoice_pdf });
 
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+router.get('/webhook', async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, 'whsec_7TNIrhY9IN4UZ4HOyd9CIN0QhNQx1nh6');
+  } catch (err) {
+    console.error('Erreur lors de la construction de l\'événement webhook :', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Traiter l'événement Stripe reçu
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      console.log('Paiement réussi :', paymentIntent.id);
+
+      // Mettre à jour l'état de la commande dans ta base de données
+      // Exemple : await Order.findByIdAndUpdate(paymentIntent.metadata.orderId, { status: 'paid' });
+
+      break;
+    default:
+      console.log('Événement Stripe non géré :', event.type);
+  }
+
+  res.json({ received: true });
 });
 
 

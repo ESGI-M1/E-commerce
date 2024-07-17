@@ -26,6 +26,8 @@ services:
       MAILER_PASSWORD: ddzx ztcb frrk ijsk
       BASE_URL: http://localhost:5173
       NODE_ENV: development
+      STRIPE_API_KEY: sk_test_51PSJfGRvgxYLdiJ7BNE7Bd66RYSlpx4rxDPaZaNA3Gp3BbpTpX9TMiFQzgRMtWViErcK6NJiWrCj1613DtUr756M00OVXx6tdH
+      STRIPE_WEBHOOK_SECRET: whsec_7TNIrhY9IN4UZ4HOyd9CIN0QhNQx1nh6
     ports:
       - 127.0.0.1:3000:3000
     volumes:
@@ -92,6 +94,15 @@ services:
     environment:
       ADMINER_DEFAULT_SERVER: postgres
     restart: unless-stopped
+
+  stripe:
+    build:
+      context: .
+      dockerfile: Dockerfile.stripe
+    container_name: stripe-cli
+    environment:
+      - STRIPE_API_KEY=sk_test_51PSJfGRvgxYLdiJ7BNE7Bd66RYSlpx4rxDPaZaNA3Gp3BbpTpX9TMiFQzgRMtWViErcK6NJiWrCj1613DtUr756M00OVXx6tdH
+    command: ["listen", "--forward-to", "http://node:3000/stripe/webhook"]
 
 volumes:
   mongo-data: {}

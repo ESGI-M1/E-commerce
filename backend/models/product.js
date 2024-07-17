@@ -11,7 +11,6 @@ module.exports = function(connection) {
             models.VariantOption.belongsToMany(Product, { through: 'ProductOptions' });
 
             Product.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
-            Product.hasMany(models.CartProduct, { foreignKey: 'productId', as: 'CartProducts' });
 
             Product.belongsToMany(models.AlertUser, {
               through: models.AlertUserProduct,

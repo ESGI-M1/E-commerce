@@ -53,15 +53,15 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 
         // Product
         const product = await Product.create(productData);
-        const idAlert = await Alerte.findOne({
+        const idAlert = await Alert.findOne({
             where: {
                 name: 'new_product'
             }
         });
         if (idAlert) {
-            const userToPrevent = await AlerteUser.findAll({
+            const userToPrevent = await AlertUser.findAll({
                 where: {
-                    alerte_id: idAlert.id
+                    alert_id: idAlert.id
                 }
             });
             if (userToPrevent) {

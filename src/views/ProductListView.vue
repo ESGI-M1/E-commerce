@@ -15,7 +15,7 @@
         <h2 class="product-name">{{ product.name }}</h2>
         <p class="product-description">{{ product.description }}</p>
         <p class="product-reference">{{ product.reference }}</p>
-        <p class="product-price">${{ parseFloat(product.price).toFixed(2) }}</p>
+        <p class="product-price">{{ parseFloat(product.price).toFixed(2) }}€</p>
       </div>
     </div>
   </div>

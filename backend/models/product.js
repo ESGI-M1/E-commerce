@@ -7,7 +7,11 @@ module.exports = function(connection) {
             Product.belongsToMany(models.Category, { through: 'ProductCategories' });
             models.Category.belongsToMany(Product, { through: 'ProductCategories' });
 
+            Product.belongsToMany(models.VariantOption, { through: 'ProductOptions' });
+            models.VariantOption.belongsToMany(Product, { through: 'ProductOptions' });
+
             Product.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
+            Product.hasMany(models.CartProduct, { foreignKey: 'productId', as: 'CartProducts' });
 
             Product.belongsToMany(models.AlertUser, {
               through: models.AlertUserProduct,

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import BreadCrumb from './BreadCrumb.vue'
-
-import { ref, onMounted, type UnwrapRef } from 'vue'
+import { ref, onMounted, inject, type UnwrapRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from '../tools/axios';
+import axios from '../tools/axios'
 import Cookies from 'js-cookie'
 
 const route = useRoute()
@@ -11,6 +10,7 @@ const router = useRouter()
 const isFavorite = ref(false)
 const productId = ref(route.params.id as string)
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+const showNotification = inject('showNotification');
 
 interface Product {
   id: string;
@@ -20,7 +20,7 @@ interface Product {
   reference: string;
   comments: string[];
   Categories: number[];
-}
+};
 
 const product = ref<Product>({
   id: '',
@@ -29,8 +29,8 @@ const product = ref<Product>({
   price: 0,
   reference: '',
   comments: [],
-  Categories: []
-})
+  Categories: [],
+});
 
 const alerts = ref<AlertSubscribe>([] as AlertSubscribe);
 
@@ -48,15 +48,15 @@ interface Alert {
 }
 
 const fetchProductById = async (id: string) => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${id}`)
-  product.value = response.data
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${id}`);
+  product.value = response.data;
 
   if (user) {
-    const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`)
-    const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId)
-    isFavorite.value = favoriteProductIds.includes(product.value.id)
+    const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`);
+    const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId);
+    isFavorite.value = favoriteProductIds.includes(product.value.id);
   }
-}
+};
 
 async function fetchAlertUserProduct(alertId: string, userId: string, productId: string) {
   try {
@@ -69,36 +69,34 @@ async function fetchAlertUserProduct(alertId: string, userId: string, productId:
 
 const addToFavorites = async (productId: string) => {
   if (!user) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/favorites`, {
-      productId
-    })
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/favorites`, { productId });
 
     if (response.status === 201) {
       isFavorite.value = true
-      alert('Produit ajouté aux favoris avec succès')
+      showNotification('Produit ajouté aux favoris avec succès', 'success');
     }
-}
+};
 
 const removeFromFavorites = async (productId: string) => {
   if (!user) {
-    throw new Error('User is not authenticated')
+    throw new Error('User is not authenticated');
   }
 
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
   isFavorite.value = false
-  alert('Produit supprimé des favoris avec succès')
+  showNotification('Produit supprimé des favoris avec succès', 'success');
 }
 
 const addToCart = async (quantity: number) => {
   if (!user) {
     if (localStorage.getItem('temporaryId')) {
-      user = localStorage.getItem('temporaryId')
+      user = localStorage.getItem('temporaryId');
     } else {
-      user = Math.floor(Math.random() * 2147483647).toString()
-      localStorage.setItem('temporaryId', user)
+      user = Math.floor(Math.random() * 2147483647).toString();
+      localStorage.setItem('temporaryId', user);
     }
   }
 
@@ -108,12 +106,11 @@ const addToCart = async (quantity: number) => {
       productId: product.value.id,
       quantity: quantity
     })
-    alert('Produit ajouté au panier avec succès')
-    router.push('/cart')
+    showNotification('Produit ajouté au panier avec succès', 'success');
   } catch (error) {
-    alert("Échec de l'ajout du produit au panier")
+    showNotification('Échec de l\'ajout du produit au panier', 'error');
   }
-}
+};
 
 async function getProductAlerts() {
   try {
@@ -184,80 +181,62 @@ onMounted(async () => {
 </script>
 
 <template>
-  <BreadCrumb
-    v-if="product.Categories && product.Categories[0]"
-    :category="product.Categories[0]"
-  />
+  <BreadCrumb v-if="product.Categories && product.Categories[0]" :category="product.Categories[0]" />
+
   <div v-if="product" class="product-page">
-    <div class="product-image-container">
-      <img :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'" 
-      :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name" 
-      class="product-image" 
-      />
-    </div>
-    <div class="product-info">
+    <img
+      class="product-image"
+      :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'"
+      :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name"
+    />
+
+    <div class="product-infos">
       <h2>{{ product.name }}</h2>
       <p>{{ product.description }}</p>
-      <p><strong>Prix :</strong> ${{ product.price }}</p>
-      <div v-if="product.reference === 'chaussure'" class="sizes-container">
-        <p><strong>Tailles disponibles :</strong></p>
-        <div
-          class="size"
-          v-for="size in ['38', '39', '40', '41', '42', '43']"
-          :key="size"
-          @click="selectSize(size)"
-        >
-          {{ size }}
-        </div>
-      </div>
-      <div class="button-container">
-        <button @click="() => addToCart(1)" class="add-to-cart">Ajouter au Panier</button>
-        <div class="favorite-container">
-          <button
-            v-if="isFavorite"
-            @click.stop="removeFromFavorites(product.id)"
-            class="remove-from-favorites"
-          >
-            <i class="fas fa-heart"></i> Ajouté aux Favoris
-          </button>
-          <button v-else @click.stop="addToFavorites(product.id)" class="add-to-favorites">
-            <i class="far fa-heart"></i> Ajouter aux Favoris
-          </button>
-        </div>
+      <p>Prix : {{ product.price }}€</p>
 
-        <div v-if="alerts && alerts.length > 0">
-          <h2>Alertes</h2>
-          <ul>
-            <li class="alertItem" v-for="alert in alerts">
-              <div class="alertContainer">
-                <div class="alertName">
-                  {{ alert.description }}
-                </div>
-                <div class="alertStatus">
-                  <label class="switch">
-                    <input :id="'alert' + alert.id" type="checkbox" :checked="alert.subscribe" @click="changeStatus(alert.id, product.id)">
-                    <span></span>
-                  </label>
-                </div>
+      <button @click="() => addToCart(1)" class="cart-actions">Ajouter au panier</button>
+
+      <button v-if="isFavorite" @click.stop="removeFromFavorites(product.id)" class="favorite-actions">
+        <i class="fas fa-heart"></i> Ajouté aux favoris
+      </button>
+
+      <button v-else @click.stop="addToFavorites(product.id)" class="favorite-actions">
+        <i class="far fa-heart"></i> Ajouter aux favoris
+      </button>
+
+      <div v-if="alerts && alerts.length > 0">
+        <h2>Alertes</h2>
+        <ul>
+          <li class="alertItem" v-for="alert in alerts">
+            <div class="alertContainer">
+              <div class="alertName">
+                {{ alert.description }}
               </div>
-            </li>
-          </ul>
-        </div>
+              <div class="alertStatus">
+                <label class="switch">
+                  <input :id="'alert' + alert.id" type="checkbox" :checked="alert.subscribe" @click="changeStatus(alert.id, product.id)">
+                  <span></span>
+                </label>
+              </div>
+            </div>
+          </li>
+        </ul>
       </div>
+
     </div>
   </div>
 </template>
 
 <style scoped>
+
 .product-page {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+  flex-wrap: wrap;
 }
 
-.product-image-container {
-  margin-right: 20px;
+.product-page > * {
+  flex: 1 1 50%;
 }
 
 .product-image {
@@ -266,76 +245,52 @@ onMounted(async () => {
   height: auto;
 }
 
-.product-info {
-  text-align: center;
-}
-
-.product-info h2 {
-  margin-top: 0;
-}
-
-.product-info p {
-  margin-bottom: 10px;
-}
-
-.sizes-container {
-  margin-top: 20px;
-}
-
-.size {
-  display: inline-block;
-  background-color: #eee;
-  padding: 5px 10px;
-  margin-right: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.button-container {
+.product-infos {
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: center;
-  margin-top: 20px;
+  gap: 12px;
+  padding: 0 72px;
 }
 
-.add-to-cart,
-.add-to-favorites,
-.remove-from-favorites {
-  padding: 10px 30px;
-  margin: 0 10px;
+.product-infos p {
+  text-align: justify;
+}
+
+.cart-actions,
+.favorite-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
   border: none;
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.add-to-cart {
-  background-color: #000;
   color: white;
 }
 
-.add-to-favorites {
-  background-color: #ff99cc;
-  color: white;
-  display: flex;
-  align-items: center;
+.cart-actions {
+  background-color: #2F855A;
 }
 
-.remove-from-favorites {
-  background-color: #ff9999;
-  color: white;
-  display: flex;
-  align-items: center;
+.favorite-actions {
+  background-color: #000000;
 }
 
 .fa-heart {
-  margin-right: 5px;
+  margin-right: 6px;
 }
 
-.add-to-cart:hover,
-.add-to-favorites:hover,
-.remove-from-favorites:hover {
+.cart-actions:hover,
+.favorite-actions:hover {
   opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .product-page > * {
+    flex: 1 1 100%;
+  }
 }
 
 .alertItem {

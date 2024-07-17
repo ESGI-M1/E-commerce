@@ -1,31 +1,37 @@
-<script lang="ts">
-//import Sidebar from './components/sidebar/Sidebar.vue'
-//import { sidebarWidth } from './components/sidebar/state'
+<script setup lang="ts">
+import { ref, inject } from 'vue';
 import Navbar from './components/navbar/NavbarComponent.vue'
+import Footer from './components/navbar/FooterComponent.vue'
+import Sidebar from './components/sidebar/SidebarComponent.vue'
+import { sidebarWidth } from './components/sidebar/state'
+import NotificationComponent from './components/notification/NotificationComponent.vue'
 
-export default {
-  //components: { Sidebar, Navbar},
-  components: { Navbar }
-  /*setup() {
-    return { sidebarWidth }
-  }*/
-}
+const notificationMessage = inject('notificationMessage', ref(''));
+const notificationType = inject('notificationType', ref(''));
 </script>
+
 <template>
-  <Navbar />
-  <!--<Sidebar />-->
-  <!--<div :style="{ 'margin-left': sidebarWidth }">-->
-  <div class="background">
-    <router-view />
+  <div>
+    <Sidebar v-if="$route.meta.requiresAdmin" />
+    <Navbar />
+    <div
+      :style="$route.meta.requiresAdmin
+      ? { marginLeft: sidebarWidth, transition: 'margin-left 0.3s ease' }
+      : { transition: 'margin-left 0.3s ease' }"
+    >
+      <router-view />
+    </div>
   </div>
+  <Footer v-if="!$route.meta.requiresAdmin" />
+  <NotificationComponent :message="notificationMessage" :type="notificationType" />
 </template>
 
 <style>
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
 }
 

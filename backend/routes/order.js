@@ -1,6 +1,8 @@
 const { Router } = require("express");
 const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod } = require("../models");
 const router = new Router();
+const { PDFDocument } = require('pdf-lib');
+const { format } = require('date-fns');
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
 
@@ -53,7 +55,6 @@ router.get('/own', checkAuth, async (req, res, next) => {
           ]
       });
 
-      // Transformez les résultats pour avoir une structure avec commandes et paniers
       const orderMap = {};
 
       for (const cart of carts) {
@@ -118,14 +119,7 @@ router.get('/:id', checkAuth, async (req, res, next) => {
           as: 'promoCode',
         }
       ]
-    });
-
-    const payment = await PaymentMethod.findOne({
-      where: {
-        orderId: req.params.id,
-        userId: req.user.id
-      },
-    });
+    });      
 
     const order = await Order.findOne({
       where: {
@@ -146,9 +140,19 @@ router.get('/:id', checkAuth, async (req, res, next) => {
     });
 
     if (!order || !cart) return res.status(404).json({ error: 'Commande ou panier non trouvé' });
-    
-    order.dataValues.cart = cart;
-    order.dataValues.payment = payment;
+
+    const payment = await PaymentMethod.findOne({
+      where: {
+        orderId: req.params.id,
+        userId: req.user.id,
+      },
+    });
+
+    if (payment) {
+      order.dataValues.Payment = payment;
+    }
+
+    order.dataValues.Cart = cart;
 
     res.json(order);
   } catch (error) {
@@ -228,7 +232,6 @@ router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
           }
 
           if (orderMap[orderId]) {
-              console.log('cart:', cart)
               orderMap[orderId].carts.push({
                   id: cart.id,
                   quantity: cart.quantity,
@@ -236,6 +239,17 @@ router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
                   promo: cart.promoCode,
               });
           }
+      }
+
+      const payment = await PaymentMethod.findOne({
+        where: {
+          orderId: orderId,
+          userId: req.user.id,
+        },
+      });
+
+      if (payment) {
+        orderMap[orderId].payment = payment;
       }
 
       const ordersWithCarts = Object.values(orderMap);

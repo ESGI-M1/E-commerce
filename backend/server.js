@@ -1,11 +1,12 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const rateLimiter = require('./rateLimiter');
 
 const checkAuth = require("./middlewares/checkAuth");
 
 const UserRouter = require("./routes/user");
 const ProductRouter = require("./routes/product");
+const ProductVariantRouter = require("./routes/productVariant");
+const VariantOptionRouter = require("./routes/variantOption");
 const CategoryRouter = require("./routes/category");
 const ImageRouter = require("./routes/image");
 const CartRouter = require("./routes/cart");
@@ -16,14 +17,14 @@ const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
+const rateLimiter = require('./rateLimiter');
 const AlertsRouter = require("./routes/alertUser")
 const NewsLetterRouter = require("./routes/newLetter");
 const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
 const StatsRouter = require("./routes/stats");
-
-//const migrate = require("./migrate");
+const ShopRouter = require("./routes/shop");
 
 const app = express();
 const cors = require('cors')
@@ -42,6 +43,8 @@ app.use(cors(options))
 
 app.use("/users", UserRouter, checkAuth);
 app.use("/products", ProductRouter);
+app.use("/product_variants", ProductVariantRouter);
+app.use("/variant_options", VariantOptionRouter);
 app.use('/categories', CategoryRouter);
 app.use('/images', ImageRouter);
 app.use('/carts', CartRouter);
@@ -57,6 +60,7 @@ app.use('/paypal', PaypalRouter);
 app.use('/addressorders', AddressOrderRouter);
 app.use('/addressusers', AddressUserRouter);
 app.use('/stats', StatsRouter);
+app.use('/shop', ShopRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

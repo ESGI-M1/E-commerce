@@ -3,26 +3,26 @@
     <h1>Mon Profil</h1>
     <div class="profile-details">
       <p>
-        <strong>Nom:</strong> {{ user.lastname }}
+        <strong>Nom :</strong> {{ user.lastname || 'Non renseigné' }}
         <a @click="openeditLastnameModal(user.lastname)"><i class="fa fa-edit edit-icon" ></i></a>
       </p>
       <p>
-        <strong>Prénom:</strong> {{ user.firstname }}
+        <strong>Prénom :</strong> {{ user.firstname || 'Non renseigné' }}
         <a @click="openeditFirstnameModal(user.firstname)"><i class="fa fa-edit edit-icon" ></i></a>
       </p>
       <p>
-        <strong>Email:</strong> {{ user.email }}
+        <strong>Email :</strong> {{ user.email || 'Non renseigné' }}
         <a @click="openeditEmailModal(user.email)"><i class="fa fa-edit edit-icon" ></i></a>
       </p>
       <p>
-        <strong>Numéro de téléphone:</strong> {{ user.phone }}
+        <strong>Numéro de téléphone :</strong> {{ user.phone || 'Non renseigné' }}
         <a @click="openeditPhoneModal(user.phone)"><i class="fa fa-edit edit-icon" ></i></a>
       </p>
 
       <div v-if="user.deliveryAddress && user.deliveryAddress.length > 0">
         <div v-for="(address, index) in user.deliveryAddress" :key="address.id" class="delivery-address">
           <div class="address-info" @click="openEditAddressModal(address)">
-            <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
+            <p><strong>Adresse de livraison n°{{ index + 1 }} :</strong></p>
             <p>{{ address.street }}</p>
             <p>{{ address.postalCode }} {{ address.city }}</p>
             <p>{{ address.country }}</p>
@@ -43,15 +43,29 @@
       </div>
 
       <div v-else>
-        <p>Aucune adresse de livraison enregistrée.</p>
+        <p>Aucune adresse de livraison enregistrée</p>
       </div>
 
-      <button class="btn-add" @click="openAddAddressModal"><i class="fa fa-plus"></i> Ajouter une adresse de livraison</button>
+      <div class="buttons">
+        <button class="btn btn-add" @click="openAddAddressModal">
+          <i class="fa fa-plus"></i> Ajouter une adresse de livraison
+        </button>
+        <fancy-confirm
+            :class="'btn btn-danger'"
+            :confirmationMessage="'Etes-vous sûr de vouloir supprimer votre compte ?'"
+            :elementType="'button'"
+            @confirmed="deleteUser(user.id)"
+        >
+          <template #buttonText>
+            <i class="fa fa-trash"></i> Supprimer mon compte
+          </template>
+        </fancy-confirm>
+      </div>
     </div>
 
     <div v-if="isOpen" class="modal-overlay">
       <div class="modal">
-        <span class="close" @click="closeModal">&times;</span>
+        <span class="close" @click="isOpen = !isOpen">&times;</span>
         <h2 v-if="mode === 'editAddress'">Modifier l'adresse de livraison</h2>
         <h2 v-else-if="mode === 'addAddress'">Ajouter une adresse de livraison</h2>
         <h2 v-else>Modifier {{ modeLabel }}</h2>
@@ -91,13 +105,13 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import { useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import FancyConfirm from '../components/ConfirmComponent.vue';
 import Cookies from 'js-cookie';
-import { useUserStore } from '@/store/user';
 
+const showNotification = inject('showNotification');
 const user = ref(null)
 const router = useRouter()
 const isOpen = ref(false)
@@ -170,17 +184,19 @@ const openEditAddressModal = (address) => {
   form.value.country = address.country;
 };
 
-const closeModal = () => {
-  isOpen.value = false
-}
-
 const deleteAddress = async (id) => {
   try {
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/addressusers/${id}`);
     user.value.deliveryAddress = user.value.deliveryAddress.filter((address) => address.id !== id)
+    showNotification('Adresse de livraison supprimée avec succès', 'success');
   } catch (error) {
+    showNotification('Erreur lors de la suppression de l\'adresse de livraison', 'error');
     console.error(error)
   }
+}
+
+const deleteUser = async (userId: number) => {
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
 }
 
 const handleSubmit = async () => {
@@ -190,25 +206,29 @@ const handleSubmit = async () => {
 
     let response;
     if (mode.value === 'addAddress') {
-
       response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addressusers`, form.value);
       user.value.deliveryAddress.push(response.data);
-
+      showNotification('Adresse de livraison ajoutée avec succès', 'success');
     } else if (mode.value === 'editAddress' && editingAddress) {
-
       response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/addressusers/` + form.value.id, form.value);
       Object.assign(editingAddress, response.data);
-
+      showNotification('Adresse de livraison modifiée avec succès', 'success');
     } else {
-
+      try {
       const field = mode.value;
       response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/users/${authToken}`, { [field]: form.value[field] });
       user.value[field] = response.data[field];
-      
+      showNotification('Informations enregistrées avec succès', 'success');
+      } catch (error) {
+        showNotification('Erreur lors de la modification des informations', 'error');
+      }
     }
-
     closeModal();
 };
+
+const closeModal = () => {
+  isOpen.value = false;
+}
 
 onMounted(async () => {
   await fetchUserProfile()
@@ -216,6 +236,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+
 .profile-container {
   margin: 20px;
   padding: 20px;
@@ -261,18 +282,10 @@ onMounted(async () => {
   align-items: center;
 }
 
-.btn-delete {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 6px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.btn-delete:hover {
-  background-color: #c82333;
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .btn-add {
@@ -282,7 +295,6 @@ onMounted(async () => {
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  margin-top: 10px;
 }
 
 .close {
@@ -321,4 +333,5 @@ onMounted(async () => {
   margin-left: 10px;
   color: #007bff;
 }
+
 </style>

@@ -1,40 +1,26 @@
-<script lang="ts">
+<script setup lang="ts">
 import SidebarLink from './SidebarLink.vue'
+import { ref, computed } from 'vue'
 import { collapsed, toggleSidebar, sidebarWidth } from './state'
-
-export default {
-  props: {},
-  components: { SidebarLink },
-  setup() {
-    return { collapsed, toggleSidebar, sidebarWidth }
-  }
-}
 </script>
 
 <template>
-  <div class="sidebar" :style="{ width: sidebarWidth }">
-    <h1>
-      <span v-if="collapsed">
-        <div>V</div>
-        <div>S</div>
-      </span>
-      <span v-else>Vue Sidebar</span>
-    </h1>
-
+  <div class="sidebar" :class="{ collapsed: collapsed }" :style="{ width: sidebarWidth }">
     <SidebarLink to="/" icon="fas fa-home">Accueil</SidebarLink>
-    <SidebarLink to="/product" icon="fa fa-tag">Produits</SidebarLink>
-    <SidebarLink to="/friends" icon="fas fa-users">Utilisateurs</SidebarLink>
-    <SidebarLink to="/dashboard" icon="fas fa-columns">Dashboard</SidebarLink>
-    <SidebarLink to="/analytics" icon="fas fa-chart-bar">Analytics</SidebarLink>
-    <SidebarLink to="/image" icon="fas fa-image">Images</SidebarLink>
-    <SidebarLink to="/login" icon="fas fa-sign-in-alt">Login</SidebarLink>
-    <SidebarLink to="/signup" icon="fas fa-user-plus">Signup</SidebarLink>
-    <SidebarLink to="/products" icon="fas fa-shopping-cart">Products</SidebarLink>
-
-    <span class="collapse-icon" :class="{ 'rotate-180': collapsed }" @click="toggleSidebar">
+    <hr>
+    <SidebarLink to="/admin/ressources" icon="fas fa-tachometer-alt">Tableau de bord</SidebarLink>
+    <SidebarLink to="/admin/users" icon="fas fa-users">Utilisateurs</SidebarLink>
+    <hr>
+    <SidebarLink to="/admin/products" icon="fas fa-box-open">Produits</SidebarLink>
+    <SidebarLink to="/admin/categories" icon="fas fa-th-list">Catégories</SidebarLink>
+    <hr>
+    <SidebarLink to="/admin/orders" icon="fas fa-shopping-bag">Commandes</SidebarLink>
+    <SidebarLink to="/admin/returns" icon="fas fa-undo">Retours</SidebarLink>
+    <SidebarLink to="/admin/promos" icon="fas fa-tags">Promos</SidebarLink>
+  </div>
+  <span class="collapse-icon" :class="{ 'rotate-180': collapsed }" @click="toggleSidebar">
       <i class="fas fa-angle-double-left" />
     </span>
-  </div>
 </template>
 
 <style>
@@ -49,33 +35,42 @@ export default {
 .sidebar {
   color: white;
   background-color: var(--sidebar-bg-color);
-
   float: left;
   position: fixed;
   z-index: 1;
-  top: 0;
+  top: 58px;
   left: 0;
   bottom: 0;
   padding: 0.5em;
-
   transition: 0.3s ease;
-
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 0;
+  padding: 0;
 }
 
 .sidebar h1 {
   height: 2.5em;
 }
 
+.sidebar hr {
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 1em 0.5em;
+}
+
 .collapse-icon {
   position: absolute;
   bottom: 0;
+  left: 0;
   padding: 0.75em;
-
-  color: rgba(255, 255, 255, 0.7);
-
+  color: black;
   transition: 0.2s linear;
+  z-index: 9999;
 }
 
 .rotate-180 {

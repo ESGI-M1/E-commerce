@@ -1,11 +1,12 @@
 <template>
   <div class="products">
-    <h1>Produits ({{ products.length }})</h1>
-    <div class="text-right">
+    <div class="div-header">
+      <h1>Produits ({{ products.length }})</h1>
       <button @click="showAddProductModal" class="btn btn-success">
-        <i class="fa fa-plus"></i> Ajouter Produit
+        <i class="fa fa-plus"></i> Ajouter un produit
       </button>
     </div>
+
     <table>
       <thead>
         <tr>
@@ -37,7 +38,7 @@
           </td>
           <td>{{ product.name }}</td>
           <td>{{ product.reference }}</td>
-          <td>{{ product.description }}</td>
+          <td>{{ truncateString(product.description, 200) }}</td>
           <td>{{ product.price }} €</td>
           <td>
             <ul>
@@ -48,11 +49,13 @@
             <i :class="product.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
           </td>
           <td>
-            <div class="flex">
-            <a @click="showEditProductModal(product)" class="a-primary">
+            <div class="actions">
+            <a @click="showEditProductModal(product)" class="a-primary" title="Modifier">
               <i class="fa fa-edit"></i>
             </a>
-            &nbsp;
+            <a :href="'/admin/products/' + product.id + '/variants'" class="a-primary" title="Modifier les déclinaisons">
+              <i class="fa fa-edit"></i>
+            </a>
             <fancy-confirm
                 :class="'a-danger'"
                 :confirmationMessage="'Etes-vous sûr de vouloir supprimer le produit ?'"
@@ -136,10 +139,11 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { z } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
+const showNotification = inject('showNotification');
 const productSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Le nom est requis'),
@@ -187,6 +191,7 @@ const addProduct = async () => {
   const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/products`, parsedProduct, { withCredentials: true })
   products.value.push(response.data)
   closeModal()
+  showNotification('Produit ajouté avec succès', 'success');
 }
 
 const updateProduct = async () => {
@@ -200,11 +205,13 @@ const updateProduct = async () => {
     products.value[index] = currentProduct.value
   }
   closeModal()
+  showNotification('Produit modifié avec succès', 'success');
 }
 
 const deleteProduct = async (product) => {
   await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`, { withCredentials: true })
   products.value = products.value.filter((p) => p.id !== product.id)
+  showNotification('Produit supprimé avec succès', 'success');
 }
 
 const categories = ref([])
@@ -254,6 +261,7 @@ const updateProductImage = async (productId, newImage) => {
   if (updatedProductIndex !== -1) {
     products.value[updatedProductIndex].Images = response.data.Images
   }
+  showNotification('Image modifiée avec succès', 'success');
 }
 
 const triggerFileInput = () => {
@@ -266,6 +274,11 @@ const triggerFileInput = () => {
     updateProductImage(currentProduct.value.id, newImage)
   })
   fileInput.click()
+}
+
+const truncateString = (string: string, sub: number) => {
+  if (!string) return ''
+  return string.length > sub ? `${string.substring(0, sub)}...` : string
 }
 
 /*
@@ -317,6 +330,13 @@ form {
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .buttons {

@@ -12,14 +12,12 @@
       <div class="cart-items" v-if="carts && carts.length > 0">
         <div v-for="(cart, index) in carts" :key="index">
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
-            <div class="item-details" @click="showProductDetails(item.variantOptions.ProductVariant.product.id)">
-              <h3>{{ item.variantOptions.ProductVariant.product.name }}</h3>
-              <p>{{ item.variantOptions.size }} / {{ item.variantOptions.color }}</p>
+            <div class="item-details" @click="showProductDetails(item.variantOption.productVariant.product.id)">
+              <h3>{{ item.variantOption.productVariant.product.name }} | {{ item.variantOption.productVariant.name }}</h3>
+              <p>{{ item.variantOption.size }} / {{ item.variantOption.color }}</p>
               <img 
-                :src="item.variantOptions.ProductVariant.images && item.variantOptions.ProductVariant.images.length > 0 ? item.variantOptions.ProductVariant.images[0].url : 
-                  '../../produit_avatar.jpg'" 
-                :alt="item.variantOptions.ProductVariant.images && item.variantOptions.ProductVariant.images.length > 0 ? item.variantOptions.ProductVariant.images[0].description : 
-                  item.variantOptions.ProductVariant.product.name" 
+                :src="item.variantOption.productVariant.images[0].url"
+                :alt="item.variantOption.productVariant.images[0].description" 
                 class="product-image" 
               />
             </div>
@@ -33,8 +31,8 @@
               </select>
             </div>
             <div class="item-price">
-              <p>{{ item.variantOptions.price }} €</p>
-              <p>Total: {{ (item.variantOptions.price * item.quantity).toFixed(2) }} €</p>
+              <p>{{ item.variantOption.price }} €</p>
+              <p>Total: {{ (item.variantOption.price * item.quantity).toFixed(2) }} €</p>
             </div>
           </div>
         </div>
@@ -98,64 +96,64 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, inject } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, inject } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from '../tools/axios';
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
 import { load } from '../components/loading/loading'; 
 
 const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
-const router = useRouter()
-const carts = ref(null)
-const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
-const promo = ref(null)
-const promoCode = ref('')
-const promoError = ref('')
+const router = useRouter();
+const carts = ref(null);
+const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId');
+const promo = ref(null);
+const promoCode = ref('');
+const promoError = ref('');
 
 const removePromo = async (automatic: boolean) => {
   try {
     startLoading();
     const cartIds = carts.value[0].id;
     await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
+      `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
       { userId: authToken, cartIds },
-    )
-    promoError.value = ''
+    );
+    promoError.value = '';
     if (!automatic) {
-      showNotification('Code promo supprimé avec succès', 'success')
+      showNotification('Code promo supprimé avec succès', 'success');
     } else {
-      showNotification('Le code promo '+ promo.value.code +' a expiré !', 'error')
+      showNotification('Le code promo ' + promo.value.code + ' a expiré !', 'error');
     }
-    promo.value = null
-    fetchCartItems()
+    promo.value = null;
+    fetchCartItems();
   } finally {
     stopLoading();
   }
-}
+};
 
 const applyPromoCode = async () => {
   try {
-  const response = await axios.post(
-    `${import.meta.env.VITE_API_BASE_URL}/promos/${promoCode.value}/apply`,
-    null,
-    { params: { userId: authToken } }
-  )
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/promos/${promoCode.value}/apply`,
+      null,
+      { params: { userId: authToken } }
+    );
 
-  if (response.data.success) {
-    promo.value = response.data
-    fetchCartItems()
-    promoError.value = ''
-    showNotification('Code promo appliqué avec succès', 'success')
-  }
-} catch (error) {
+    if (response.data.success) {
+      promo.value = response.data;
+      fetchCartItems();
+      promoError.value = '';
+      showNotification('Code promo appliqué avec succès', 'success');
+    }
+  } catch (error) {
     if (error.response.status === 400) {
-        promoError.value = 'Ce code promo a expiré.'
-      } else {
-        promoError.value = 'Ce code promo n\'est pas valide.'
-      }
+      promoError.value = 'Ce code promo a expiré.';
+    } else {
+      promoError.value = 'Ce code promo n\'est pas valide.';
+    }
   }
-}
+};
 
 const fetchCartItems = async () => {
   if (authToken) {
@@ -176,33 +174,33 @@ const fetchCartItems = async () => {
         carts.value = null;
         promo.value = null;
       }
-        let date = new Date();
-        let year = date.getFullYear();
-        let month = ('0' + (date.getMonth() + 1)).slice(-2);
-        let day = ('0' + date.getDate()).slice(-2);
-        let formattedDate = `${year}-${month}-${day}`;
+      let date = new Date();
+      let year = date.getFullYear();
+      let month = ('0' + (date.getMonth() + 1)).slice(-2);
+      let day = ('0' + date.getDate()).slice(-2);
+      let formattedDate = `${year}-${month}-${day}`;
 
       if (promo.value && promo.value.endDate < formattedDate) {
-        removePromo(true)
+        removePromo(true);
       }
+      console.log(carts.value);
     } catch (error) {
       carts.value = null;
-      promo.value = null; 
+      promo.value = null;
     }
   }
 };
 
 const updateCartQuantity = async (id, quantity) => {
-  try{ 
+  try {
     startLoading();
-  if (quantity === 'remove') {
-    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`);
-  } else {
-    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`, { quantity });
-
-  }
-  fetchCartItems();
-} finally {
+    if (quantity === 'remove') {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`);
+    } else {
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`, { quantity });
+    }
+    fetchCartItems();
+  } finally {
     stopLoading();
   }
 };
@@ -210,31 +208,31 @@ const updateCartQuantity = async (id, quantity) => {
 const subtotal = computed(() => {
   if (carts.value && carts.value[0]) {
     return carts.value[0].CartProducts
-      .reduce((acc, item) => acc + item.variantOptions.price * item.quantity, 0)
-      .toFixed(2)
+      .reduce((acc, item) => acc + item.variantOption.price * item.quantity, 0)
+      .toFixed(2);
   }
   return '0.00';
-})
+});
 
 const total = computed(() => {
-  return parseFloat(subtotal.value).toFixed(2)
-})
+  return parseFloat(subtotal.value).toFixed(2);
+});
 
 const checkout = () => {
   if (!Cookies.get('USER')) {
-    router.push('/login')
+    router.push('/login');
   } else {
-    router.push('/payment')
+    router.push('/payment');
   }
-}
+};
 
 const showProductDetails = (id: string) => {
-  router.push({ name: 'ProductDetail', params: { id } })
-}
+  router.push({ name: 'ProductDetail', params: { id } });
+};
 
 onMounted(() => {
-  fetchCartItems()
-})
+  fetchCartItems();
+});
 </script>
 
 <style scoped>

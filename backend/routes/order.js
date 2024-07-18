@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, VariantOption } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
@@ -41,16 +41,24 @@ router.get('/own', checkAuth, async (req, res, next) => {
                   attributes: ['discountPercentage']
               },
               {
-                  model: CartProduct,
-                  as: 'CartProducts',
+                  model: VariantOption,
+                  as: 'variantOption',
                   include: [
                       {
-                          model: Product,
-                          as: 'product',
-                          attributes: ['id', 'name', 'price'],
-                          include: [Category],
-                      }
-                  ]
+                          model: ProductVariant,
+                          as: 'productVariant',
+                          include: [
+                              {
+                                  model: Image,
+                                  as: 'images',
+                              },
+                              {
+                                  model: Product,
+                                  as: 'product',
+                              }
+                          ]
+                        }
+                      ]
               }
           ]
       });
@@ -109,9 +117,24 @@ router.get('/:id', checkAuth, async (req, res, next) => {
           model: CartProduct,
           as: 'CartProducts',
           include: [{ 
-            model: Product, 
-            as: 'product',
-            include: [Category, Image],
+            model: VariantOption, 
+            as: 'variantOption',
+            include: [
+              {
+                model: ProductVariant,
+                as: 'productVariant',
+                include: [ 
+                  {
+                    model: Image,
+                    as: 'images',
+                  },
+                  {
+                    model: Product,
+                    as: 'product',
+                  }
+                ]
+              }
+            ],
           }]
         },
         {

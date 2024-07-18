@@ -196,7 +196,7 @@ const addToCart = async (quantity: number) => {
   try {
     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
       userId: user,
-      variantId: activeProductVariant.value.variantOptions[0].id,
+      variantOptionId: activeProductVariant.value.variantOptions[0].id,
       quantity: quantity
     })
     showNotification('Produit ajouté au panier avec succès', 'success');

@@ -13,25 +13,29 @@ router.post('/', checkAuth, async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: items.map(item => {
-        let unitAmount = item.product.price;
-        if (promo && promo.discountPercentage) {
-          unitAmount -= (unitAmount * promo.discountPercentage) / 100;
-        }
-        return {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: item.product.name,
-              description: `Quantité: ${item.quantity}\nPrix unitaire: ${unitAmount} €`
+        // Assurez-vous que `item.variantOption` est correctement défini
+        if (item.variantOption && item.variantOption.productVariant) {
+          let unitAmount = item.variantOption.price;
+          if (promo && promo.discountPercentage) {
+            unitAmount -= (unitAmount * promo.discountPercentage) / 100;
+          }
+          return {
+            price_data: {
+              currency: 'eur',
+              product_data: {
+                name: item.variantOption.productVariant.product.name +' | '+ item.variantOption.productVariant.name,
+                description: `Quantité: ${item.quantity}\nPrix unitaire: ${unitAmount} €`
+              },
+              unit_amount: Math.round(unitAmount * 100),
             },
-            unit_amount: Math.round(unitAmount * 100),
-          },
-          quantity: item.quantity,
-        };
+            quantity: item.quantity,
+          };
+        } else {
+          throw new Error(`Missing variantOption.name in item: ${JSON.stringify(item)}`);
+        }
       }),
+      
       mode: 'payment',
-      //success_url: `${import.meta.env.VITE_API_SECOND_URL}/success/${orderId}/${cartId}`,
-      //cancel_url: `${import.meta.env.VITE_API_SECOND_URL}/error/${orderId}`,
       success_url: `http://localhost:5173/success/${orderId}/${cartId}`,
       cancel_url: `http://localhost:5173/error/${orderId}`,
     });

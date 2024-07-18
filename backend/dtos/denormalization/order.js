@@ -2,7 +2,7 @@ const { Order : OrderMongo } = require("../../mongo");
 
 module.exports = async function denormalizeOrder (order, models) {
 
-    const { Order, Cart, User, PromoCode, CartProduct, Product, Category, Image } = models;
+    const { Order, Cart, User, PromoCode, CartProduct, Product, Category, Image, VariantOption, ProductVariant } = models;
 
     const orderDenormalized = await Order.findByPk(order.id, {
         attributes: ["id", "totalAmount", "status", "deliveryDate", "deliveryMethod"],
@@ -22,10 +22,24 @@ module.exports = async function denormalizeOrder (order, models) {
                         as: 'CartProducts',
                         include: [
                             {
-                                model: Product,
-                                as: 'product',
-                                attributes: ['id', 'reference', 'name', 'price', 'description'],
-                                include: [Category, Image],
+                                model: VariantOption,
+                                as: 'variantOption',
+                                include: [
+                                    {
+                                        model: ProductVariant,
+                                        as: 'productVariant',
+                                        include: [
+                                            {
+                                                model: Image,
+                                                as: 'images',
+                                            },
+                                            {
+                                                model: Product,
+                                                as: 'product',
+                                            }
+                                        ]
+                                    }
+                                ],
                             }
                         ]
                     }

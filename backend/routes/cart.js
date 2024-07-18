@@ -4,9 +4,60 @@ const router = new Router();
 const crypto = require('crypto');
 const checkAuth = require("../middlewares/checkAuth");
 
-router.get("/", async (req, res) => {
-  const cartItems = await Cart.findAll({ include: [{ model: Product, as: 'product' }] });
-  res.json(cartItems);
+// Récupère tous les produits du panier d'un utilisateur
+router.get("/:userId", async (req, res, next) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const cartItems = await Cart.findAll({
+      where: { userId, orderId: null },
+      include: [
+        {
+          model: CartProduct,
+          as: 'CartProducts',
+          include: [{
+            model: VariantOption,
+            as: 'variantOption',
+            include: [
+              {
+                model: ProductVariant,
+                as: 'productVariant',
+                include: [ 
+                  {
+                    model: Image,
+                    as: 'images',
+                  },
+                  {
+                    model: Product,
+                    as: 'product',
+                  }
+                ]
+              }
+            ],
+          }]
+        },
+        {
+          model: User,
+          as: 'user',
+        }
+      ]
+    });
+
+    if (cartItems.length > 0) {
+         const user = cartItems[0].user;
+
+      const addresses = await AddressUser.findAll({
+        where: { userId: user.id },
+      });
+
+      user.dataValues.deliveryAddress = addresses;
+      res.json(cartItems);
+    } else {
+      res.status(200).json();
+    }
+  } catch (e) {
+    console.error(e);
+    next(e);
+  }
 });
 
 router.get("/product/:id", async (req, res, next) => {
@@ -75,9 +126,9 @@ function generateRandomPassword(length) {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { userId, variantId } = req.body;
+    const { userId, variantOptionId } = req.body;
 
-    if (!userId || !variantId) {
+    if (!userId || !variantOptionId) {
       return res.status(400).json({ error: 'Missing userId or productId' });
     }
 
@@ -101,13 +152,13 @@ router.post("/", async (req, res, next) => {
       cart = await Cart.create({ userId : parseInt(userId) });
     }
 
-    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, variantId : parseInt(variantId) } });
+    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, variantOptionId : parseInt(variantOptionId) } });
 
     if (cartProduct) {
       cartProduct.quantity += 1;
       await cartProduct.save();
     } else {
-      await CartProduct.create({ cartId: cart.id, variantId, quantity: 1 });
+      await CartProduct.create({ cartId: cart.id, variantOptionId, quantity: 1 });
     }
 
     res.status(200).json({ message: 'Product added to cart' });
@@ -116,64 +167,6 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-// Récupère tous les produits du panier d'un utilisateur
-router.get("/:userId", async (req, res, next) => {
-  try {
-    const userId = parseInt(req.params.userId);
-
-    const cartItems = await Cart.findAll({
-      where: { userId, orderId: null },
-      include: [
-        {
-          model: CartProduct,
-          as: 'CartProducts',
-          include: [{
-            model: VariantOption,
-            as: 'variantOption',
-            include: [
-              {
-                model: ProductVariant,
-                as: 'productVariant',
-                include: [ 
-                  {
-                    model: Image,
-                    as: 'images',
-                  },
-                  {
-                    model: Product,
-                    as: 'product',
-                    include: [Category],
-                  }
-                ]
-              }
-            ],
-          }]
-        },
-        {
-          model: User,
-          as: 'user',
-        }
-      ]
-    });
-
-    if (cartItems.length > 0) {
-      const user = cartItems[0].user;
-
-      const addresses = await AddressUser.findAll({
-        where: { userId: user.id },
-      });
-
-      user.dataValues.deliveryAddress = addresses;
-
-      res.json(cartItems);
-    } else {
-      res.status(200).json();
-    }
-  } catch (e) {
-    console.error(e);  // Log l'erreur complète pour le débogage
-    next(e);
-  }
-});
 
 router.patch("/update-order/:cartId", async (req, res, next) => {
   const cartId = parseInt(req.params.cartId);
@@ -211,7 +204,7 @@ router.patch("/update-user/:cartId", checkAuth, async (req, res, next) => {
       await cart.save();
     } else {
       for (const cartProduct of cart.CartProducts) {
-        const existingProduct = existingCart.CartProducts.find(cp => cp.productId === cartProduct.productId);
+        const existingProduct = existingCart.CartProducts.find(cp => cp.variantOptionId === cartProduct.variantOptionId);
         if (existingProduct) {
           existingProduct.quantity += cartProduct.quantity;
           await existingProduct.save();

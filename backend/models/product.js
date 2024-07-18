@@ -26,31 +26,32 @@ module.exports = function(connection) {
                 if (fields.includes("active") || fields.includes("price") || fields.includes("name") || fields.includes("description") || fields.includes("reference")) {
                     await denormalizeProduct(product, models);
                 }
-                if (fields.includes("Categories")) {
-                    await Product.verifyDefaultCategory(product, models);
-                }
             });
 
-            Product.addHook("afterDestroy", async (product) =>
+            Product.addHook("afterDestroy", async (product) => {
                 await denormalizeProduct(product, models)
-            );
+            });
+            
 
             Product.addHook("beforeCreate", async (product) => {
-                await Product.verifyDefaultCategory(product, models);
+                await Product.verifyDefaultCategory(product);
             });
 
             Product.addHook("beforeUpdate", async (product) => {
-                await Product.verifyDefaultCategory(product, models);
+                await Product.verifyDefaultCategory(product);
             });
         }
 
-        static async verifyDefaultCategory(product, models) {
-            const categories = await product.getCategories();
+        static async verifyDefaultCategory(product) {
+            // TO DO FIX
+
+            /*const categories = await product.getCategories();
             if (categories.length === 1) {
                 product.defaultCategoryId = categories[0].id;
             } else if (!categories.map(cat => cat.id).includes(product.defaultCategoryId)) {
                 throw new Error('La catégorie par défaut doit correspondre à une des catégories sélectionnées.');
             }
+                */
         }
     }
 

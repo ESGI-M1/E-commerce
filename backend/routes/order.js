@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, VariantOption } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, VariantOption, ProductVariant } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
@@ -34,33 +34,6 @@ router.get('/own', checkAuth, async (req, res, next) => {
   try {
       const carts = await Cart.findAll({
           where: { userId },
-          include: [
-              {
-                  model: PromoCode,
-                  as: 'promoCode',
-                  attributes: ['discountPercentage']
-              },
-              {
-                  model: VariantOption,
-                  as: 'variantOption',
-                  include: [
-                      {
-                          model: ProductVariant,
-                          as: 'productVariant',
-                          include: [
-                              {
-                                  model: Image,
-                                  as: 'images',
-                              },
-                              {
-                                  model: Product,
-                                  as: 'product',
-                              }
-                          ]
-                        }
-                      ]
-              }
-          ]
       });
 
       const orderMap = {};
@@ -81,19 +54,6 @@ router.get('/own', checkAuth, async (req, res, next) => {
                       carts: []
                   };
               }
-          }
-
-          if (orderMap[orderId]) {
-              orderMap[orderId].carts.push({
-                  id: cart.id,
-                  quantity: cart.quantity,
-                  product: cart.CartProducts.map(cp => ({
-                      id: cp.productId,
-                      quantity: cp.quantity,
-                      product: cp.product,
-                  })),
-                  promo: cart.promoCode,
-              });
           }
       }
 

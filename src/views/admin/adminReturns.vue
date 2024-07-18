@@ -24,7 +24,7 @@
             <th>Produit</th>
             <th>Statut</th>
             <th>Raison</th>
-            <th>Methode de retour</th>
+            <th>Méthode de retour</th>
             <th></th>
           </tr>
         </thead>
@@ -40,8 +40,16 @@
             <td v-else>
               Utilisateur non trouvé
             </td>
-            <td class="product-info">
-              <span class="product-name">#{{ returnProduct.product.id }} {{ returnProduct.product.name }}</span>
+            <td class="product-info" v-if="returnProduct.variantOption">
+              <span class="product-name">
+                #{{ returnProduct.variantOption.productVariant.product.id }} {{ returnProduct.variantOption.productVariant.product.name }}
+              </span>
+              <span class="product-variant">
+                | {{ returnProduct.variantOption.productVariant.name }}
+              </span>
+              <span class="product-option">
+                | {{ returnProduct.variantOption.color }} | {{ returnProduct.variantOption.size }}
+              </span>
               <span class="product-quantity">x{{ returnProduct.quantity }}</span>
             </td>
             <td :title="returnProduct.status === 'returned' ? 'Terminé' : 'En attente'">
@@ -83,12 +91,25 @@ interface Product {
   name: string
 }
 
+interface ProductVariant {
+  id: number
+  name: string
+  product: Product
+}
+
+interface VariantOption {
+  id: number
+  color: string
+  size: string
+  productVariant: ProductVariant
+}
+
 interface ReturnProduct {
   id: number
   orderId: number | null
   createdAt: string
   user: User | null
-  product: Product
+  variantOption: VariantOption
   quantity: number
   status: string
   reason: string
@@ -158,6 +179,7 @@ onMounted(() => {
   fetchReturnProducts()
 })
 </script>
+
 
 <style scoped>
 .returns {

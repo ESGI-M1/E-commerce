@@ -11,9 +11,9 @@ module.exports = function (connection) {
         foreignKey: 'userId',
         as: 'user',
       });
-      ReturnProduct.belongsTo(models.Product, {
-        foreignKey: 'productId',
-        as: 'product',
+      ReturnProduct.belongsTo(models.VariantOption, {
+        foreignKey: 'variantOptionId',
+        as: 'variantOption',
       });
     }
   }
@@ -28,11 +28,11 @@ module.exports = function (connection) {
             key: 'id',
         },
         },
-      productId: {
+      variantOptionId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'Products',
+            model: 'VariantOptions',
             key: 'id',
         },
         },

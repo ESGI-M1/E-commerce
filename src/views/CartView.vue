@@ -12,13 +12,16 @@
       <div class="cart-items" v-if="carts && carts.length > 0">
         <div v-for="(cart, index) in carts" :key="index">
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
-            <div class="item-details" @click="showProductDetails(item.product.id)">
-              <h3>{{ item.product.name }}</h3>
-              <img :src="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].url : 
+            <div class="item-details" @click="showProductDetails(item.variantOptions.ProductVariant.product.id)">
+              <h3>{{ item.variantOptions.ProductVariant.product.name }}</h3>
+              <p>{{ item.variantOptions.size }} / {{ item.variantOptions.color }}</p>
+              <img 
+                :src="item.variantOptions.ProductVariant.images && item.variantOptions.ProductVariant.images.length > 0 ? item.variantOptions.ProductVariant.images[0].url : 
                   '../../produit_avatar.jpg'" 
-                  :alt="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].description : 
-                  item.product.name" class="product-image" 
-                  />
+                :alt="item.variantOptions.ProductVariant.images && item.variantOptions.ProductVariant.images.length > 0 ? item.variantOptions.ProductVariant.images[0].description : 
+                  item.variantOptions.ProductVariant.product.name" 
+                class="product-image" 
+              />
             </div>
             <div class="item-quantity">
               <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
@@ -30,8 +33,8 @@
               </select>
             </div>
             <div class="item-price">
-              <p>{{ item.product.price }} €</p>
-              <p>Total: {{ (item.product.price * item.quantity).toFixed(2) }} €</p>
+              <p>{{ item.variantOptions.price }} €</p>
+              <p>Total: {{ (item.variantOptions.price * item.quantity).toFixed(2) }} €</p>
             </div>
           </div>
         </div>
@@ -207,7 +210,7 @@ const updateCartQuantity = async (id, quantity) => {
 const subtotal = computed(() => {
   if (carts.value && carts.value[0]) {
     return carts.value[0].CartProducts
-      .reduce((acc, item) => acc + item.product.price * item.quantity, 0)
+      .reduce((acc, item) => acc + item.variantOptions.price * item.quantity, 0)
       .toFixed(2)
   }
   return '0.00';
@@ -233,7 +236,6 @@ onMounted(() => {
   fetchCartItems()
 })
 </script>
-
 
 <style scoped>
 .cart {

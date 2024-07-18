@@ -9,7 +9,7 @@ router.get('/', checkAuth, async (req, res) => {
     where: { userId: req.user.id },
     include: [
       { model: Product, as: 'product',          
-        include: [Category, Image],
+        include: [Category],
       }
     ]
   });

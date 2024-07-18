@@ -48,7 +48,7 @@ router.get('/own', checkAuth, async (req, res, next) => {
                           model: Product,
                           as: 'product',
                           attributes: ['id', 'name', 'price'],
-                          include: [Category, Image],
+                          include: [Category],
                       }
                   ]
               }
@@ -200,7 +200,7 @@ router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
                   model: Product,
                   as: 'product',
                   attributes: ['id', 'name', 'price'],
-                  include: [Category, Image],
+                  include: [Category],
               },
               {
                   model: PromoCode,

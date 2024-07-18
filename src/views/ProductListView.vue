@@ -6,20 +6,36 @@
       class="product-card"
       @click="showProductDetails(product.id)"
     >
-      <img
-        :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'"
-        :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name"
-        class="product-image"
-      />
-      <div class="product-info">
-        <h2 class="product-name">{{ product.name }}</h2>
-        <p class="product-description">{{ product.description }}</p>
-        <p class="product-reference">{{ product.reference }}</p>
-        <p class="product-price">{{ parseFloat(product.price).toFixed(2) }}€</p>
+      <div v-if="product.ProductVariants.length">
+        <div
+          v-for="variant in product.ProductVariants"
+          :key="variant.id"
+        >
+          <img
+            v-if="variant.images.length"
+            :src="variant.images[0].url"
+            :alt="variant.images[0].description"
+            class="product-image"
+          />
+          <div class="product-info">
+            <h2 class="product-name">{{ product.name }}</h2>
+            <p class="product-description">{{ product.description }}</p>
+            <p class="product-variant-name">{{ variant.name }}</p>
+            <p class="product-price">{{ parseFloat(variant.variantOptions[0].price).toFixed(2) }}€</p>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <div class="product-info">
+          <h2 class="product-name">{{ product.name }}</h2>
+          <p class="product-description">{{ product.description }}</p>
+          <p class="product-price">N/A</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
@@ -31,8 +47,13 @@ const productsStore = useProductsStore()
 const router = useRouter()
 
 const fetchProducts = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`)
-  productsStore.products = response.data
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`)
+    productsStore.products = response.data
+    console.log(productsStore.products)
+  } catch (error) {
+    console.error('Error fetching products:', error)
+  }
 }
 
 const showProductDetails = (id: string) => {
@@ -43,6 +64,7 @@ onMounted(() => {
   fetchProducts()
 })
 </script>
+
 
 <style scoped>
 .product-list {
@@ -89,7 +111,7 @@ onMounted(() => {
   margin-bottom: 10px;
 }
 
-.product-reference {
+.product-variant-name {
   color: grey;
   margin-bottom: 10px;
 }
@@ -99,3 +121,4 @@ onMounted(() => {
   color: #2c3e50;
 }
 </style>
+

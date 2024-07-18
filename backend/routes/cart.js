@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Cart, Product, User, CartProduct, Image, Category, AddressUser } = require("../models");
+const { Cart, Product, User, CartProduct, Image, Category, AddressUser, ProductVariant, VariantOption } = require("../models");
 const router = new Router();
 const crypto = require('crypto');
 const checkAuth = require("../middlewares/checkAuth");
@@ -34,7 +34,7 @@ router.get("/order/:id", async (req, res, next) => {
         include: [{ 
           model: Product, 
           as: 'product',
-          include: [Category, Image],
+          include: [Category],
         }]
       }]
     });
@@ -75,9 +75,9 @@ function generateRandomPassword(length) {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { userId, productId } = req.body;
+    const { userId, variantId } = req.body;
 
-    if (!userId || !productId) {
+    if (!userId || !variantId) {
       return res.status(400).json({ error: 'Missing userId or productId' });
     }
 
@@ -101,13 +101,13 @@ router.post("/", async (req, res, next) => {
       cart = await Cart.create({ userId : parseInt(userId) });
     }
 
-    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, productId : parseInt(productId) } });
+    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, variantId : parseInt(variantId) } });
 
     if (cartProduct) {
       cartProduct.quantity += 1;
       await cartProduct.save();
     } else {
-      await CartProduct.create({ cartId: cart.id, productId, quantity: 1 });
+      await CartProduct.create({ cartId: cart.id, variantId, quantity: 1 });
     }
 
     res.status(200).json({ message: 'Product added to cart' });
@@ -128,9 +128,25 @@ router.get("/:userId", async (req, res, next) => {
           model: CartProduct,
           as: 'CartProducts',
           include: [{
-            model: Product,
-            as: 'product',
-            include: [Category, Image],
+            model: VariantOption,
+            as: 'variantOption',
+            include: [
+              {
+                model: ProductVariant,
+                as: 'productVariant',
+                include: [ 
+                  {
+                    model: Image,
+                    as: 'images',
+                  },
+                  {
+                    model: Product,
+                    as: 'product',
+                    include: [Category],
+                  }
+                ]
+              }
+            ],
           }]
         },
         {
@@ -154,6 +170,7 @@ router.get("/:userId", async (req, res, next) => {
       res.status(200).json();
     }
   } catch (e) {
+    console.error(e);  // Log l'erreur complète pour le débogage
     next(e);
   }
 });

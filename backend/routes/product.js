@@ -1,22 +1,76 @@
 const { Router } = require("express");
-const { Op, QueryTypes } = require("sequelize");
-const { connection, Category, Image, Product, ProductOption, ProductVariant, ProductVariantDetail, User, AlertUser, Alert } = require("../models");
+const { Op, QueryTypes, where } = require("sequelize");
+const { connection, Category, Image, Product, ProductOption, ProductVariant, ProductVariantDetail, User, AlertUser, Alert, VariantOption } = require("../models");
 const mailer = require('../services/mailer');
 const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
 router.get("/", async (req, res) => {
-
     req.query.active = true;
+    req.query.name = 'Original';
 
-    const products = await Product.findAll({
-        where: req.query,
-        include: [Category, Image],
-    });
+    try {
+        const products = await Product.findAll({
+            include: [
+                Category,
+                {
+                    model: ProductVariant,
+                    as: 'ProductVariants',
+                    attributes: ['id', 'name'],
+                    where: req.query,
+                    include: [
+                        {
+                            model: Image,
+                            as: 'images',
+                        },
+                        {
+                            model: VariantOption,
+                            as: 'variantOptions',
+                            attributes: ['price'],
+                            where: { color: 'white', size: 'M'},
+                        },
+                    ],
+                },
+            ],
+        });
 
-    res.json(products);
+        res.json(products);
+    } catch (error) {
+        console.error("Error fetching products: ", error);
+        res.status(500).json({ error: "An error occurred while fetching products." });
+    }
 });
+
+router.get("/:id", async (req, res, next) => {
+    try {
+        const productId = parseInt(req.params.id);
+        
+        const product = await Product.findByPk(productId, {
+            include: [
+                { model: Category },
+                {
+                    model: ProductVariant,
+                    as: 'ProductVariants', // Assurez-vous d'utiliser l'alias correct ici
+                    include: [
+                        { model: Image },
+                        { model: VariantOption, as: 'variantOptions' } // Assurez-vous d'utiliser l'alias correct ici
+                    ]
+                }
+            ]
+        });
+
+        if (product) {
+            res.json(product);
+        } else {
+            res.sendStatus(404);
+        }
+    } catch (e) {
+        next(e);
+    }
+});
+  
+  
 
 router.get("/admin", checkRole({ roles: "admin" }), async (req, res) => {
 
@@ -107,23 +161,6 @@ router.post("/:id/options", checkRole({ roles: "admin" }), async (req, res, next
         );
 
         res.sendStatus(201);
-    } catch (e) {
-        next(e);
-    }
-});
-
-router.get("/:id", async (req, res, next) => {
-    try {
-        const productId = parseInt(req.params.id);
-        
-        const product = await Product.findByPk(productId, {
-            include: [
-                { model: Category },
-                { model: Image }
-            ]
-        });
-
-        if (product ? res.json(product) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }

@@ -25,15 +25,15 @@ do {
   }
 } while (args.length);
 
-/*connection
+connection
   .sync({
     alter: true,
     //force: true
   })
   .then(() => console.log("Database synced"))
-  //.then(() => connection.close());*/
+  //.then(() => connection.close());
 
-  try {
+  /*try {
     if (options["--dir"] === "up") {
       execSync('npx sequelize-cli db:migrate', { stdio: 'inherit' });
     } else if (options["--dir"] === "down") {
@@ -44,3 +44,4 @@ do {
   } catch (error) {
     console.error("An error occurred while running the migration script:", error);
   }
+*/

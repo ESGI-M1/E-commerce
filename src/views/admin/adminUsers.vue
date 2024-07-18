@@ -134,7 +134,7 @@ const userSchema = z.object({
   lastname: z.string().min(1, 'Le nom est requis'),
   email: z.string().email('Adresse email invalide'),
   phone: z.string().optional().nullable().refine(value => value === null || value === '' || phoneRegex.test(value), {
-    message: "Le numéro de téléphone doit être au format +33xxxxxxxxx ou 06xxxxxxxx",
+    message: "Le numéro de téléphone doit être au format +33xxxxxxxxx ou 0xxxxxxxx",
   }),
   role: z.string(),
   active: z.boolean().optional(),

@@ -26,6 +26,7 @@
           <th>Description</th>
           <th>Prix</th>
           <th>Catégories</th>
+          <th>Catégorie par défaut</th>
           <th>Actif</th>
           <th>Actions</th>
         </tr>
@@ -55,6 +56,7 @@
               <li v-for="category in product.Categories" :key="category.id">{{ category.name }}</li>
             </ul>
           </td>
+          <td>{{ product.defaultCategoryId ? categories.find((c) => c.id === product.defaultCategoryId).name : '' }}</td>
           <td>
             <i :class="product.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
           </td>
@@ -128,6 +130,15 @@
                 </option>
               </select>
             </div>
+
+            <div class="form-group">
+              <label for="categoryDefault">Catégorie par défaut</label>
+              <select v-model="currentProduct.defaultCategoryId" id="categoryDefault">
+                <option v-for="category in categories" :key="category.id" :value="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
           </template>
 
           <div class="form-group">
@@ -163,19 +174,11 @@ const productSchema = z.object({
   description: z.string().min(1, 'La description est requise'),
   price: z.number().positive('Le prix doit être supérieur à 0'),
   active: z.boolean(),
-  Categories: z.array(z.number())
+  Categories: z.array(z.number()),
+  defaultCategoryId: z.number().optional()
 })
 
-interface Product {
-  id?: number;
-  name: string;
-  reference: string;
-  description: string;
-  price: number;
-  active: boolean;
-  Categories: number[];
-  Images?: { url: string; description: string }[];
-}
+type Product = z.infer<typeof productSchema>;
 
 const products = ref<Product[]>([])
 const currentProduct = ref<Product>({
@@ -196,6 +199,7 @@ const fetchProducts = async () => {
 }
 
 const addProduct = async () => {
+
   const parsedProduct = productSchema.parse({
     ...currentProduct.value,
     price: parseFloat(currentProduct.value.price)
@@ -207,6 +211,7 @@ const addProduct = async () => {
 }
 
 const updateProduct = async () => {
+
   const parsedProduct = productSchema.parse({
     ...currentProduct.value,
     price: parseFloat(currentProduct.value.price)
@@ -244,7 +249,9 @@ const showAddProductModal = () => {
     reference: '',
     description: '',
     price: 0,
-    Categories: []
+    Categories: [],
+    active: true,
+    defaultCategory: null
   }
   showModal.value = true
 }

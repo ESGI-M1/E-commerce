@@ -325,6 +325,7 @@ onMounted(() => {
 }
 
 .form-group input[type='text'],
+.form-group input[type='tel'],
 .form-group input[type='email'],
 .form-group input[type='password'] {
   width: 100%;

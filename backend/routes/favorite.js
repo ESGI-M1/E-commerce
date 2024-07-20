@@ -1,40 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { Favorite, Product, Image, Category, ProductVariant, VariantOption } = require('../models');
+const { Favorite, Product } = require('../models');
 const checkAuth = require('../middlewares/checkAuth');
 
 router.get('/', checkAuth, async (req, res) => {
-  req.query.name = 'Original';
 
   const favorites = await Favorite.findAll({
     where: { userId: req.user.id },
-    include: [
-      { model: Product, as: 'product',          
-        include: [
-          {
-          model: Category,
-          },
-          {
-            model: ProductVariant,
-            as: 'ProductVariants',
-            attributes: ['id', 'name'],
-            where: req.query,
-            include: [
-                {
-                    model: Image,
-                    as: 'images',
-                },
-                {
-                    model: VariantOption,
-                    as: 'variantOptions',
-                    attributes: ['price'],
-                    where: { color: 'white', size: 'M'},
-                },
-            ],
-        },
-        ],
-      }
-    ]
+    include: {
+      model: Product,
+      as: 'product',
+    }
   });
 
   res.json(favorites);

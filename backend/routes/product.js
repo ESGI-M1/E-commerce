@@ -1,6 +1,6 @@
 const { Router } = require("express");
-const { Op, QueryTypes} = require("sequelize");
-const { connection, Category, Image, Product, ProductOption, ProductVariant, User, AlertUser, Alert, VariantOption } = require("../models");
+const { Op} = require("sequelize");
+const { Category, Image, Product, ProductVariant, User, AlertUser, Alert, AttributeValue, Attribute } = require("../models");
 const mailer = require('../services/mailer');
 const checkRole = require("../middlewares/checkRole");
 
@@ -19,6 +19,7 @@ router.get("/", async (req, res) => {
                 {
                     model: ProductVariant,
                     as: 'variants',
+                    required: false,
                     where: {
                         active: true,
                         default: true,
@@ -27,6 +28,14 @@ router.get("/", async (req, res) => {
                         {
                             model: Image,
                             as: 'images',
+                        },
+                        {
+                            model: AttributeValue,
+                            as: 'attributeValues',
+                            include: {
+                                model: Attribute,
+                                as: 'attribute',
+                            },
                         },
                     ],
                 },
@@ -63,15 +72,27 @@ router.get("/:id", async (req, res, next) => {
         
         const product = await Product.findByPk(productId, {
             include: [
-                { model: Category },
+                Category,
                 {
                     model: ProductVariant,
-                    as: 'variants', // Assurez-vous d'utiliser l'alias correct ici
+                    as: 'variants',
+                    required: false,
                     include: [
-                        { model: Image },
-                    ]
-                }
-            ]
+                        {
+                            model: Image,
+                            as: "images",
+                        },
+                        {
+                            model: AttributeValue,
+                            as: "attributeValues",
+                            include: {
+                                model: Attribute,
+                                as: "attribute",
+                            },
+                        },
+                    ],
+                },
+            ],
         });
 
         if (product) {
@@ -130,13 +151,6 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 
         }
             */
-
-        // Product Variant
-       await ProductVariant.create({
-            productId: product.id,
-            stockQuantity: 0,
-            active: true,
-        });
 
         res.status(201).json(product);
     } catch (e) {

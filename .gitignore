@@ -34,3 +34,5 @@ coverage
 
 *.env
 /serv/fail2ban/fail2ban
+
+/backend/uploads

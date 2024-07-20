@@ -5,7 +5,6 @@ module.exports = function(connection) {
         static associate(models) {
             ProductVariant.belongsTo(models.Product, { foreignKey: 'productId' });
             ProductVariant.hasMany(models.AttributeValue, { as: 'attributeValues', foreignKey: 'productVariantId' });
-            ProductVariant.hasMany(models.Image, { foreignKey: 'productVariantId', as: 'images' });
         }
     }
 

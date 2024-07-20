@@ -140,12 +140,10 @@
               </select>
             </div>
           </template>
-
           <div class="form-group">
             <label for="active">Actif</label>
             <input v-model="currentProduct.active" type="checkbox" id="active" />
           </div>
-
           <div class="buttons">
             <button type="submit" class="btn btn-primary">
               {{ isEditing ? 'Modifier' : 'Ajouter' }}
@@ -181,8 +179,7 @@ const productSchema = z.object({
   price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
   active: z.boolean(),
   Categories: z.array(categorySchema),
-  defaultCategoryId: z.number().optional()
-
+  defaultCategoryId: z.number().nullable().optional()
 })
 
 const productsSchema = z.array(productSchema)
@@ -297,40 +294,6 @@ const showEditProductModal = (product : Product) => {
 
 const closeModal = () => {
   showModal.value = false
-}
-
-const updateProductImage = async (productId, newImage) => {
-  const formData = new FormData()
-  formData.append('image', newImage)
-
-  const response = await axios.post(
-    `${import.meta.env.VITE_API_BASE_URL}/products/${productId}/image`,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    }
-  )
-
-  // Mettre à jour les images du produit dans la liste
-  const updatedProductIndex = products.value.findIndex((p) => p.id === productId)
-  if (updatedProductIndex !== -1) {
-    products.value[updatedProductIndex].Images = response.data.Images
-  }
-  showNotification('Image modifiée avec succès', 'success');
-}
-
-const triggerFileInput = () => {
-  const fileInput = document.createElement('input')
-  fileInput.type = 'file'
-  fileInput.accept = 'image/*'
-  fileInput.style.display = 'none'
-  fileInput.addEventListener('change', (event) => {
-    const newImage = event.target.files[0]
-    updateProductImage(currentProduct.value.id, newImage)
-  })
-  fileInput.click()
 }
 
 const truncateString = (string: string, sub: number) => {

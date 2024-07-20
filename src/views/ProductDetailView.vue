@@ -1,74 +1,52 @@
 <template>
-  <BreadCrumb v-if="product.Categories && product.Categories.length > 0" :category="product.Categories[0]" />
+
+  <BreadCrumb v-if="false" :category="product.Categories[0]" />
 
   <div v-if="product" class="product-page">
-
-    <div class="selected-variant" v-if="activeProductVariant">
-  <img
-    v-if="activeProductVariant.Images.length"
-    class="product-image"
-    :src="activeProductVariant.Images[0].url"
-    :alt="activeProductVariant.Images[0].description"
-  />
-
-  <div>
-    <div class="other-variant-images">
-      <div
-        v-for="variant in product.ProductVariants"
-        :key="variant.id"
-        class="variant-option"
-        @click="selectVariant(variant)"
-      >
-      <div v-if="variant.id !== activeProductVariant.id"
-      >
+    <div class="selected-variant" v-if="selectedVariant.images">
+      <template v-for="image in selectedVariant.images" :key="image.id">
         <img
-          v-if="variant.Images.length"
-          :src="variant.Images[0].url"
-          :alt="variant.Images[0].description"
-          class="variant-image"
+          class="product-image"
+          :src="imageUrl + `/images/variant/${image.id}`" 
+          :alt="image.description"
         />
-      </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="product-infos">
-    <h2>{{ product.name }}</h2>
-    <p>{{ product.description }}</p>
-    <p>Prix : {{ activeProductVariant.price }}€</p>
-
-    <div class="variant-options">
-      <h4>Options:</h4>
-      <div class="size-select">
-        <label for="size">Taille:</label>
-        <select id="size" v-model="selectedSize" @change="selectSize(selectedSize)">
-          <option v-for="option in selectedVariant.variantOptions" :key="option.id" :value="option.size">
-            {{ option.size }}
-          </option>
-        </select>
-      </div>
-      <div class="color-select" v-if="availableColors.length">
-        <label for="color">Couleur:</label>
-        <select id="color" v-model="selectedColor" @change="selectColor(selectedColor)">
-          <option v-for="color in availableColors" :key="color">
-            {{ color }}
-          </option>
-        </select>
-      </div>
+      </template>
     </div>
 
-    <button @click="() => addToCart(1)" class="cart-actions">Ajouter au panier</button>
+    <div class="product-infos">
+      <h2>{{ product.name }}</h2>
+      <p>{{ product.description }}</p>
+      <p>Prix : {{ selectedVariant?.price }} €</p>
 
-    <button v-if="isFavorite" @click.stop="removeFromFavorites(product.id)" class="favorite-actions">
-      <i class="fas fa-heart"></i> Ajouté aux favoris
-    </button>
+      <div class="variant-attributes">
+        <h3>Options:</h3>
+        <div class="product-variants">
+          <div v-for="attribute in attributes" :key="attribute.name" class="variant-options">
+            <h4>{{ attribute.name }}</h4>
+            <div v-for="value in attribute.values" :key="value" class="variant-option">
+              <input
+                type="radio"
+                :id="value"
+                :value="value"
+                :name="attribute.name"
+                v-model="selectedVariant"
+              />
+              <label :for="value">{{ value }}</label>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <button v-else @click.stop="addToFavorites(product.id)" class="favorite-actions">
-      <i class="far fa-heart"></i> Ajouter aux favoris
-    </button>
-  </div>
-</div>
+      <button @click="() => addToCart(1)" class="cart-actions">Ajouter au panier</button>
 
+      <button v-if="isFavorite" @click.stop="removeFromFavorites(product.id)" class="favorite-actions">
+        <i class="fas fa-heart"></i> Ajouté aux favoris
+      </button>
+
+      <button v-else @click.stop="addToFavorites(product.id)" class="favorite-actions">
+        <i class="far fa-heart"></i> Ajouter aux favoris
+      </button>
+    </div>
   </div>
 </template>
 
@@ -76,112 +54,152 @@
 import BreadCrumb from './BreadCrumb.vue'
 import { ref, onMounted, inject, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { z, ZodError } from 'zod'
 import axios from '../tools/axios'
 import Cookies from 'js-cookie'
 
 const route = useRoute()
 const router = useRouter()
 const isFavorite = ref(false)
-const productId = ref(route.params.id as string)
+const productId = route.params.id
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const showNotification = inject('showNotification');
 
-interface VariantOption {
-  id: string;
-  size: string;
-  color: string;
-  stock: number;
-  price: number; // Ajouter le prix ici
-}
+const imageUrl = import.meta.env.VITE_API_BASE_URL;
 
-interface ProductVariant {
-  id: string;
-  name: string;
-  price: number;
-  images: Array<{ id: string; url: string; description: string }>;
-  variantOptions: VariantOption[];
-}
+const categorySchema = z.object({
+  id: z.number(),
+  name: z.string()
+})
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  reference: string;
-  comments: string[];
-  Categories: number[];
-  productVariants: ProductVariant[];
-}
+const attributeSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, 'Le nom est requis')
+})
 
-const product = ref<Product>({
-  id: '',
-  name: '',
-  description: '',
-  price: 0,
-  reference: '',
-  comments: [],
-  Categories: [],
-  productVariants: []
-});
+const attributeValueSchema = z.object({
+  id: z.number(),
+  value: z.string().min(1, 'La valeur est requise'),
+  attribute: attributeSchema
+})
 
-const selectedVariant = ref<ProductVariant | null>(null);
-const activeProductVariant = ref<ProductVariant | null>(null);
-const selectedSize = ref<string>('');
-const selectedColor = ref<string>(''); // Ajouter une référence pour la couleur sélectionnée
-const availableColors = computed(() => {
-  if (selectedVariant.value && selectedSize.value) {
-    return selectedVariant.value.variantOptions
-      .filter(option => option.size === selectedSize.value)
-      .map(option => option.color);
-  }
-  return [];
-});
+const imageSchema = z.object({
+  id: z.number(),
+  description: z.string().optional()
+})
 
-const fetchProductById = async (id: string) => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${id}`);
-  product.value = response.data;
+const productVariantSchema = z.object({
+  id: z.number(),
+  productId: z.number(),
+  reference: z.string().min(1, 'La référence est requise'),
+  price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
+  stock: z.number().min(0, 'Le stock doit être supérieur ou égal à 0'),
+  active: z.boolean(),
+  default: z.boolean(),
+  attributeValues: z.array(attributeValueSchema).optional(),
+  images: z.array(imageSchema)
+})
 
-  const originalVariant = product.value.ProductVariants.find(variant => variant.name === 'Original');
-  if (originalVariant) {
-    selectedVariant.value = originalVariant;
-    activeProductVariant.value = originalVariant;
-    selectedSize.value = originalVariant.variantOptions[0]?.size || '';
-    selectedColor.value = originalVariant.variantOptions[0]?.color || '';
-  } else if (product.value.productVariants.length > 0) {
-    selectedVariant.value = product.value.productVariants[0]; // Sélectionner le premier variant par défaut
-    activeProductVariant.value = product.value.productVariants[0]; // Afficher le premier variant par défaut
-    selectedSize.value = product.value.productVariants[0]?.variantOptions[0]?.size || '';
-    selectedColor.value = product.value.productVariants[0]?.variantOptions[0]?.color || '';
+const productSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, 'Le nom est requis'),
+  reference: z.string().min(1, 'La référence est requise'),
+  description: z.string().min(1, 'La description est requise'),
+  price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
+  active: z.boolean(),
+  Categories: z.array(categorySchema),
+  defaultCategoryId: z.number().nullable(),
+  variants: z.array(productVariantSchema)
+})
+
+type Product = z.infer<typeof productSchema>
+type ProductVariant = z.infer<typeof productVariantSchema>
+
+const product = ref<Product>()
+const selectedVariant = ref<ProductVariant>()
+
+const attributes = computed(() => {
+  if (!product.value || !product.value.variants || product.value.variants.length === 0) {
+    return [];
   }
 
-  if (user) {
-    const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`);
-    const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId);
-    isFavorite.value = favoriteProductIds.includes(product.value.id);
+  const attributeMap = new Map<number, { name: string, values: string[] }>();
+
+  product.value.variants.forEach(variant => {
+    if (variant.active) {
+      variant.attributeValues.forEach(attributeValue => {
+        if (!attributeMap.has(attributeValue.attribute.id)) {
+          attributeMap.set(attributeValue.attribute.id, {
+            name: attributeValue.attribute.name,
+            values: []
+          });
+        }
+        attributeMap.get(attributeValue.attribute.id)?.values.push(attributeValue.value);
+      });
+    }
+  });
+
+  return Array.from(attributeMap.values()).map(attr => {
+    return {
+      ...attr,
+      values: Array.from(new Set(attr.values)) // Remove duplicates
+    };
+  });
+});
+
+
+const fetchProduct = async () => {
+
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${productId}`);
+    product.value = productSchema.parse(response.data);
+
+    selectedVariant.value = product.value.variants.find(variant => variant.default === true);
+
+    if (user) {
+      const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`);
+      const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId);
+      isFavorite.value = favoriteProductIds.includes(product.value.id);
+    }
+  } catch (error) {
+    if (error instanceof ZodError) {
+      console.error(error.errors);
+    } else {
+      console.error(error);
+    }
   }
 };
 
 const addToFavorites = async (productId: string) => {
-  if (!user) {
-    router.push('/login');
-    return;
-  }
-  const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/favorites`, { productId });
+  try {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/favorites`, { productId });
 
-  if (response.status === 201) {
-    isFavorite.value = true
-    showNotification('Produit ajouté aux favoris avec succès', 'success');
+    if (response.status === 201) {
+      isFavorite.value = true
+      showNotification('Produit ajouté aux favoris avec succès', 'success');
+    }
+  } catch (error) {
+    showNotification('Échec de l\'ajout du produit aux favoris', 'error');
   }
 };
 
 const removeFromFavorites = async (productId: string) => {
-  if (!user) {
-    throw new Error('User is not authenticated');
-  }
 
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
-  isFavorite.value = false
-  showNotification('Produit supprimé des favoris avec succès', 'success');
+  try {
+    if (!user) {
+      throw new Error('User is not authenticated');
+    }
+
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
+    isFavorite.value = false
+    showNotification('Produit supprimé des favoris avec succès', 'success');
+  } catch (error) {
+    showNotification('Échec de la suppression du produit des favoris', 'error');
+  }
 }
 
 const addToCart = async (quantity: number) => {
@@ -196,7 +214,7 @@ const addToCart = async (quantity: number) => {
   try {
     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
       userId: user,
-      variantOptionId: activeProductVariant.value.variantOptions[0].id,
+      variantOptionId: selectedVariant.value.id,
       quantity: quantity
     })
     showNotification('Produit ajouté au panier avec succès', 'success');
@@ -205,41 +223,8 @@ const addToCart = async (quantity: number) => {
   }
 };
 
-const selectVariant = (variant: ProductVariant) => {
-  selectedVariant.value = variant;
-  activeProductVariant.value = variant;
-  selectedSize.value = variant.variantOptions[0]?.size || '';
-  selectedColor.value = variant.variantOptions[0]?.color || '';
-};
-
-const selectSize = (size: string) => {
-  selectedSize.value = size;
-  const variantOption = selectedVariant.value?.variantOptions.find(option => option.size === size && option.color === selectedColor.value);
-  if (variantOption) {
-    activeProductVariant.value = {
-      ...selectedVariant.value,
-      price: variantOption.price,
-      images: selectedVariant.value.images,
-      variantOptions: selectedVariant.value.variantOptions.filter(option => option.size === size)
-    };
-  }
-};
-
-const selectColor = (color: string) => {
-  selectedColor.value = color;
-  const variantOption = selectedVariant.value?.variantOptions.find(option => option.size === selectedSize.value && option.color === color);
-  if (variantOption) {
-    activeProductVariant.value = {
-      ...selectedVariant.value,
-      price: variantOption.price,
-      images: selectedVariant.value.images,
-      variantOptions: selectedVariant.value.variantOptions.filter(option => option.color === color)
-    };
-  }
-};
-
 onMounted(() => {
-  fetchProductById(productId.value);
+  fetchProduct();
 });
 </script>
 

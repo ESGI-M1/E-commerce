@@ -83,6 +83,17 @@
           </select>
         </div>
         <div class="form-group">
+          <label for="imageFile">Image</label>
+          <input type="file" @change="handleFileUpload" id="imageFile" accept="image/*" />
+          <div v-if="imagePreview" class="image-preview">
+            <img :src="imagePreview" alt="Preview" />
+          </div>
+        </div>
+        <div class="form-group" v-if="selectedImage">
+          <label for="imageDescription">Description de l'image</label>
+          <input type="text" v-model="imageDescription" id="imageDescription" />
+        </div>
+        <div class="form-group">
           <label for="active">Actif</label>
           <input type="checkbox" v-model="currentVariant.active" id="active" />
         </div>
@@ -97,7 +108,7 @@
 import axios from '../../tools/axios';
 import Modal from '../../components/ModalView.vue';
 import FancyConfirm from '../../components/ConfirmComponent.vue';
-import { ref, reactive, onMounted, inject } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import { z, ZodError } from 'zod'
 import { useRoute } from 'vue-router';
 
@@ -160,6 +171,10 @@ const product = ref<productType>()
 const currentVariant = ref<productVariantType>()
 const currentAttributes = ref<attribute[]>([])
 const productVariants = ref<productVariantsType>([])
+
+const selectedImage = ref<File | null>(null);
+const imagePreview = ref<string | null>(null); // Pour la prévisualisation
+const imageDescription = ref('');
 
 const titleModal = {
   variant: 'une déclinaison',
@@ -244,6 +259,43 @@ const changeDefaultVariant = async (id: number) => {
   }
 }
 
+const uploadImage = async (productVariantId: number) => {
+  try {
+    if (selectedImage.value) {
+      const formData = new FormData();
+      formData.append('productVariantId', productVariantId.toString());
+      formData.append('image', selectedImage.value);
+      formData.append('description', imageDescription.value);
+      
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/images`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      showNotification('Image ajoutée avec succès', 'success');
+    }
+  } catch (error) {
+    console.error(error);
+    showNotification('Erreur lors de l\'ajout de l\'image', 'error');
+  }
+};
+
+const handleFileUpload = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files.length > 0) {
+    selectedImage.value = input.files[0];
+    
+    // Afficher l'aperçu de l'image
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    selectedImage.value = null;
+    imagePreview.value = null;
+  }
+};
+
 const handleSubmit = async (modalName: string) => {
   try{
 
@@ -256,6 +308,7 @@ const handleSubmit = async (modalName: string) => {
     if(isEditing.value){
       const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/productVariants/${currentVariant.value.id}`, data)
       const parsedData = productVariantSchema.parse(response.data)
+      await uploadImage(response.data.id);
       const index = productVariants.value.findIndex((variant) => variant.id === currentVariant.value.id)
       productVariants.value[index] = parsedData
       showNotification('Déclinaison modifiée avec succès', 'success')
@@ -263,12 +316,13 @@ const handleSubmit = async (modalName: string) => {
     } else {
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/productVariants`, data)
       const parsedData = productVariantSchema.parse(response.data)
+      await uploadImage(response.data.id);
       productVariants.value.push(parsedData)
       showNotification('Déclinaison ajoutée avec succès', 'success')
     }
 
+    
     showModal.value = false
-
   }
   catch (error) {
 

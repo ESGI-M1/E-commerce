@@ -5,7 +5,7 @@ module.exports = function(connection) {
     class Image extends Model {
         static associate(models) {
             Image.belongsTo(models.ProductVariant, { foreignKey: 'productVariantId' });
-            models.ProductVariant.hasMany(Image, { foreignKey: 'productVariantId' });
+            models.ProductVariant.hasMany(Image, { foreignKey: 'productVariantId', as: 'images' });
         }
     }
 
@@ -16,26 +16,16 @@ module.exports = function(connection) {
                 primaryKey: true,
                 autoIncrement: true,
             },
-            url: {
+            description: {
+                type: DataTypes.TEXT,
+            },
+            fileName: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 validate: {
                     notEmpty: true,
                 },
-                defaultValue: '../../produit_avatar.jpg',
             },
-            description: {
-                type: DataTypes.TEXT,
-            },
-            createdAt: {
-                type: DataTypes.DATE,
-                allowNull: true
-              },
-              updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: true
-              }
-            
         },
         { sequelize: connection, timestamps: true, }
     );

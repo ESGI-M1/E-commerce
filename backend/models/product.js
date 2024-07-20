@@ -5,8 +5,13 @@ module.exports = function(connection) {
     class Product extends Model {
         static associate(models) {
             Product.belongsToMany(models.Category, { through: 'ProductCategories' });
+            models.Category.belongsToMany(Product, { through: 'ProductCategories' });
+
             Product.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
-            Product.hasMany(models.ProductVariant, { foreignKey: 'productId', as: 'ProductVariants' });
+
+            // Déclinaison
+            Product.hasMany(models.ProductVariant, { foreignKey: 'productId', as: 'variants' });
+
         }
 
         static addHooks(models) {
@@ -42,6 +47,25 @@ module.exports = function(connection) {
             },
             description: {
                 type: DataTypes.TEXT,
+            },
+            reference: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                unique: true,
+                validate: {
+                    notEmpty: true,
+                },
+            },
+            price: {
+                type: DataTypes.DECIMAL,
+                allowNull: false,
+                validate: {
+                    notEmpty: true,
+                },
+            },
+            active: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
             },
         },
         {

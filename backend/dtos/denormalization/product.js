@@ -2,6 +2,7 @@ const { Product : ProductMongo } = require("../../mongo");
 
 module.exports = async function denormalizeProduct (product, models) {
 
+    return;
     const { Product, Category } = models;
     const productDenormalized = await Product.findByPk(product.id, {
         include: [

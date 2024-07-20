@@ -301,14 +301,13 @@ const handleSubmit = async (type: string) => {
     }
 
     if(!isInit.value) {
-      axios.post(`${import.meta.env.VITE_API_BASE_URL}/shop`, data)
-        .then(response => {
-          if (response.data) {
-            shop.value = shopSchema.parse(response.data);
-            isOpen.value = false;
-            showNotification('Boutique modifiée avec succès', 'success');
-          }
-        });
+      const response = axios.post(`${import.meta.env.VITE_API_BASE_URL}/shop`, data)
+      if (response.data) {
+        shop.value = shopSchema.parse(response.data);
+        isOpen.value = false;
+        showNotification('Boutique modifiée avec succès', 'success');
+      }
+
     }
     else{
       const response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/shop/${shop.value.id}`, data);

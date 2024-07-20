@@ -1,19 +1,66 @@
 const { Router } = require("express");
 const { Op } = require("sequelize");
-const { ProductVariant, ProductVariantDetail, VariantOption, VariantValue } = require("../models");
+const { ProductVariant, Image, Attribute, AttributeValue } = require("../models");
 const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
-router.get("/", async (req, res) => {
-    const productVariants = await ProductVariant.findAll({
-        where: req.query,
-    });
+router.get("/", async (req, res, next) => {
 
-    res.json(productVariants);
+    try{
+        const productVariants = await ProductVariant.findAll({
+            where: req.query,
+            include: [
+                {
+                    model: Image,
+                    as: "images",
+                },
+                {
+                    model: AttributeValue,
+                    as: "attributeValues",
+                    include: {
+                        model: Attribute,
+                        as: "attribute",
+                    },
+                },
+            ],
+        });
+        res.json(productVariants);
+    }
+    catch (e) {
+        next(e);
+    }
+
 });
 
-router.get("/search", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
+    try {
+        const productId = parseInt(req.params.id);
+
+        const productVariants = await ProductVariant.findByPk(productId, {
+            include: [
+                {
+                    model: Image,
+                    as: "images",
+                },
+                {
+                    model: AttributeValue,
+                    as: "attributeValues",
+                    include: {
+                        model: Attribute,
+                        as: "attribute",
+                    },
+                },
+            ],
+        });
+
+        if (productVariants ? res.json(productVariants) : res.sendStatus(404));
+    } catch (e) {
+        next(e);
+    }
+});
+
+router.get("/search", async (req, res, next) => {
     try{
         const { q } = req.query;
         const productVariants = await ProductVariant.findAll({
@@ -33,57 +80,33 @@ router.get("/search", async (req, res) => {
 
 router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
-        const { ...productVariantData } = req.body;
+        const { attributeValues, ...productVariantData } = req.body;
+        
         const productVariant = await ProductVariant.create(productVariantData);
-        res.status(201).json(productVariant);
-    } catch (e) {
-        next(e);
-    }
-});
 
-router.patch("/:id/reset", checkRole({ roles: "admin" }), async (req, res, next) => {
-    try {
-        const productVariant = await ProductVariant.findByPk(parseInt(req.params.id));
-        if (productVariant) {
-            await productVariant.update({
-                name: null,
-                reference: null,
-                price: null,
-            });
-            res.json(productVariant);
-        } else {
-            res.sendStatus(404);
+        if (attributeValues && attributeValues.length) {
+            const attributeValuesIds = attributeValues.map((attributeValue) => attributeValue.id);
+            await productVariant.setAttributeValues(attributeValuesIds);
         }
-    } catch (e) {
-        next(e);
-    }
-});
 
-router.get("/:id", async (req, res, next) => {
-    try {
-        const productId = parseInt(req.params.id);
-
-        const productVariants = await ProductVariant.findAll({
-            where: {
-                productId: productId,
-            },
-            include: {
-                model: ProductVariantDetail,
-                as: "productVariantDetails",
-                include: [
-                    {
-                        model: VariantOption,
-                        as: "variantOption",
+        await productVariant.reload({
+            include: [
+                {
+                    model: Image,
+                    as: "images",
+                },
+                {
+                    model: AttributeValue,
+                    as: "attributeValues",
+                    include: {
+                        model: Attribute,
+                        as: "attribute",
                     },
-                    {
-                        model: VariantValue,
-                        as: "variantValue",
-                    },
-                ],
-            },
+                },
+            ],
         });
 
-        if (productVariants ? res.json(productVariants) : res.sendStatus(404));
+        res.status(201).json(productVariant);
     } catch (e) {
         next(e);
     }
@@ -91,15 +114,36 @@ router.get("/:id", async (req, res, next) => {
 
 router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
-        const { ...productVariantData } = req.body;
+        const { attributeValues, ...productVariantData } = req.body;
         const productVariant = await ProductVariant.findByPk(parseInt(req.params.id));
 
-        if (productVariant) {
-            await productVariant.update(productVariantData);
-            res.json(productVariant);
-        } else {
-            res.sendStatus(404);
+        if(!productVariant) return res.sendStatus(404);
+
+        if (attributeValues && attributeValues.length) {
+            const attributeValuesIds = attributeValues.map((attributeValue) => attributeValue.id);
+            await productVariant.setAttributeValues(attributeValuesIds);
         }
+
+        await productVariant.update(productVariantData);
+
+        await productVariant.reload({
+            include: [
+                {
+                    model: Image,
+                    as: "images",
+                },
+                {
+                    model: AttributeValue,
+                    as: "attributeValues",
+                    include: {
+                        model: Attribute,
+                        as: "attribute",
+                    },
+                },
+            ],
+        });
+
+        res.json(productVariant);       
     } catch (e) {
         next(e);
     }
@@ -120,7 +164,7 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
 
 router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
-        const { ...productVariantData } = req.body;
+        const { attributeValues, ...productVariantData } = req.body;
         await ProductVariant.destroy({
             where: {
                 id: parseInt(req.params.id),
@@ -128,10 +172,58 @@ router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
         });
 
         const productVariant = await ProductVariant.create(productVariantData);
+
+        if (attributeValues && attributeValues.length) {
+            const attributeValuesIds = attributeValues.map((attributeValue) => attributeValue.id);
+            await productVariant.setAttributeValues(attributeValuesIds);
+        }
+
+        await productVariant.reload({
+            include: [
+                {
+                    model: Image,
+                    as: "images",
+                },
+                {
+                    model: AttributeValue,
+                    as: "attributeValues",
+                    include: {
+                        model: Attribute,
+                        as: "attribute",
+                    },
+                },
+            ],
+        });
+
         res.status(200).json(productVariant);
     } catch (e) {
         next(e);
     }
 });
+
+router.post("/set-default/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
+    try {
+        const productVariantId = parseInt(req.params.id);
+
+        const productVariant = await ProductVariant.findByPk(productVariantId);
+
+        if (!productVariant) {
+            return res.sendStatus(404);
+        }
+
+        await ProductVariant.update(
+            { default: false },
+            { where: { productId: productVariant.productId, default: true } }
+        );
+
+        await productVariant.update({ default: true });
+
+        res.sendStatus(200);
+    } catch (e) {
+        next(e);
+    }
+});
+
+
 
 module.exports = router;

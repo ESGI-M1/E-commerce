@@ -63,9 +63,9 @@
             <a @click="showEditProductModal(product)" class="a-primary" title="Modifier">
               <i class="fa fa-edit"></i>
             </a>
-            <a :href="'/admin/products/' + product.id + '/variants'" class="a-primary" title="Modifier les déclinaisons">
+            <RouterLink :to="{ name: 'ProductVariants', params : { productId: product.id } }" class="a-primary" title="Modifier les déclinaisons">
               <i class="fa fa-edit"></i>
-            </a>
+            </RouterLink>
             <fancy-confirm
                 :class="'a-danger'"
                 :confirmationMessage="'Etes-vous sûr de vouloir supprimer le produit ?'"
@@ -123,7 +123,7 @@
             <div class="form-group">
               <label for="categories">Catégories</label>
               <select v-model="currentProduct.Categories" id="categories" multiple>
-                <option v-for="category in categories" :key="category.id" :value="category.id">
+                <option v-for="category in categories" :key="category.id" :value="category">
                   {{ category.name }}
                 </option>
               </select>
@@ -150,32 +150,32 @@
 <script setup lang="ts">
 import axios from '../../tools/axios';
 import { ref, onMounted, inject, computed } from 'vue'
-import { z } from 'zod'
+import { z, ZodError } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 import { load } from '../../components/loading/loading'; 
 
 const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
+
+const categorySchema = z.object({
+  id: z.number(),
+  name: z.string()
+})
+
 const productSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Le nom est requis'),
   reference: z.string().min(1, 'La référence est requise'),
   description: z.string().min(1, 'La description est requise'),
-  price: z.number().positive('Le prix doit être supérieur à 0'),
+  price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
   active: z.boolean(),
-  Categories: z.array(z.number())
+  Categories: z.array(categorySchema),
 })
 
-interface Product {
-  id?: number;
-  name: string;
-  reference: string;
-  description: string;
-  price: number;
-  active: boolean;
-  Categories: number[];
-  Images?: { url: string; description: string }[];
-}
+const productsSchema = z.array(productSchema)
+
+type Product = z.infer<typeof productSchema>
+
 
 const products = ref<Product[]>([])
 const currentProduct = ref<Product>({
@@ -191,44 +191,70 @@ const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchProducts = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`)
-  products.value = response.data
+
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`) // TODO PARSE ZOD
+    products.value = productsSchema.parse(response.data)
+  } catch(error) {
+
+    if(error instanceof ZodError) {
+      console.log(error.errors)
+    }
+
+    console.log(error)
+    showNotification('Une erreur est survenue lors du chargement des produits', 'error');
+  }
+
 }
 
 const addProduct = async () => {
-  const parsedProduct = productSchema.parse({
-    ...currentProduct.value,
-    price: parseFloat(currentProduct.value.price)
-  })
-  const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/products`, parsedProduct, { withCredentials: true })
-  products.value.push(response.data)
-  closeModal()
-  showNotification('Produit ajouté avec succès', 'success');
+
+  try {
+    const parsedProduct = productSchema.parse(currentProduct.value)
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/products`, parsedProduct)
+    products.value.push(response.data)
+    closeModal()
+    showNotification('Produit ajouté avec succès', 'success');
+  } catch(error) {
+
+    if(error instanceof ZodError) {
+      console.log(error.errors)
+    }
+
+    console.log(error)
+  }
 }
 
 const updateProduct = async () => {
-  const parsedProduct = productSchema.parse({
-    ...currentProduct.value,
-    price: parseFloat(currentProduct.value.price)
-  })
-  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/products/${currentProduct.value.id}`, parsedProduct, { withCredentials: true })
-  const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
-  if (index !== -1) {
-    products.value[index] = currentProduct.value
+
+  try {
+    const parsedProduct = productSchema.parse(currentProduct.value)
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/products/${currentProduct.value.id}`, parsedProduct)
+    const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
+    if (index !== -1) {
+      products.value[index] = currentProduct.value
+    }
+    closeModal()
+    showNotification('Produit modifié avec succès', 'success');
+  } catch(error) {
+
+    if(error instanceof ZodError) {
+      console.log(error.errors)
+    }
+
+    console.log(error)
   }
-  closeModal()
-  showNotification('Produit modifié avec succès', 'success');
 }
 
 const deleteProduct = async (product) => {
- try{ 
-  startLoading();
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`, { withCredentials: true })
-  products.value = products.value.filter((p) => p.id !== product.id)
-  showNotification('Produit supprimé avec succès', 'success');
- } finally {
-  stopLoading();
-}
+  try{ 
+    startLoading();
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`, { withCredentials: true })
+    products.value = products.value.filter((p) => p.id !== product.id)
+    showNotification('Produit supprimé avec succès', 'success');
+  } finally {
+    stopLoading();
+  }
 }
 
 const categories = ref([])
@@ -249,7 +275,7 @@ const showAddProductModal = () => {
   showModal.value = true
 }
 
-const showEditProductModal = (product) => {
+const showEditProductModal = (product : Product) => {
   isEditing.value = true
   currentProduct.value = { ...product }
   showModal.value = true
@@ -319,7 +345,7 @@ const filteredProducts = computed(() => {
     filtered = filtered.filter(product => {
       // Vérifier si le prix commence par les chiffres entrés
       const productPriceString = product.price.toString()
-      if (productPriceString.startsWith(filters.value.price)) {
+      if (productPriceString.startsWith(filters.value.price)) {  
         return true
       }
       // Vérifier si le prix est exactement égal à la valeur saisie

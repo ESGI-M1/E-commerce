@@ -25,6 +25,7 @@ const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
 const StatsRouter = require("./routes/stats");
 const ShopRouter = require("./routes/shop");
+const handleStripeWebhook = require('./stripe/stripeWebhook');
 
 const app = express();
 const cors = require('cors')
@@ -53,7 +54,9 @@ app.use('/favorites', FavoriteRouter);
 app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
+app.use('/webhook', bodyParser.raw({ type: 'application/json' }));
 app.use('/stripe', StripeRouter);
+app.post('/webhook', handleStripeWebhook);
 app.use('/alerts', AlertsRouter);
 app.use('/newsletters', NewsLetterRouter);
 app.use('/paypal', PaypalRouter);

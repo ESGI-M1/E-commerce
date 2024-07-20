@@ -92,30 +92,4 @@ router.post('/invoice/:idOrder', checkAuth, async (req, res) => {
   }
 });
 
-router.post('/webhook', async (req, res) => {
-  //const sig = req.headers['stripe-signature'];
-  let payload = req.body.read
-  let sig = req.env['HTTP_STRIPE_SIGNATURE']
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(payload, sig, 'whsec_7TNIrhY9IN4UZ4HOyd9CIN0QhNQx1nh6');
-  } catch (err) {
-    console.error('Erreur lors de la construction de l\'événement webhook :', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object;
-      console.log('Paiement réussi :', paymentIntent.id);
-      break;
-    default:
-      console.log('Événement Stripe non géré :', event.type);
-  }
-
-  res.json({ received: true });
-});
-
-
 module.exports = router;

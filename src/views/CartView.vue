@@ -13,12 +13,14 @@
         <div v-for="(cart, index) in carts" :key="index">
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
             <div class="item-details" @click="showProductDetails(item.variantOption.productVariant.product.id)">
-              <h3>{{ item.variantOption.productVariant.product.name }} | {{ item.variantOption.productVariant.name }}</h3>
-              <p>{{ item.variantOption.size }} / {{ item.variantOption.color }}</p>
-              <img 
-                :src="item.variantOption.productVariant.images[0].url"
-                :alt="item.variantOption.productVariant.images[0].description" 
-                class="product-image" 
+              <h3>{{ item.productVariant.Product.name }}</h3>
+              <p v-for="attributeValue in item.productVariant.attributeValues" :key="attributeValue.id">
+                {{ attributeValue.attribute.name }} - {{ attributeValue.value }}
+              </p>
+              <img
+                class="product-image"
+                :src="imageUrl + `/images/variant/${item.productVariant.images[0].id}`"
+                :alt="item.productVariant.images[0].description"
               />
             </div>
             <div class="item-quantity">
@@ -31,8 +33,8 @@
               </select>
             </div>
             <div class="item-price">
-              <p>{{ item.variantOption.price }} €</p>
-              <p>Total: {{ (item.variantOption.price * item.quantity).toFixed(2) }} €</p>
+              <p>{{ item.productVariant.price}} €</p>
+              <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
             </div>
           </div>
         </div>
@@ -110,6 +112,8 @@ const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring
 const promo = ref(null);
 const promoCode = ref('');
 const promoError = ref('');
+const imageUrl = import.meta.env.VITE_API_BASE_URL;
+
 
 const removePromo = async (automatic: boolean) => {
   try {
@@ -183,7 +187,6 @@ const fetchCartItems = async () => {
       if (promo.value && promo.value.endDate < formattedDate) {
         removePromo(true);
       }
-      console.log(carts.value);
     } catch (error) {
       carts.value = null;
       promo.value = null;
@@ -208,7 +211,7 @@ const updateCartQuantity = async (id, quantity) => {
 const subtotal = computed(() => {
   if (carts.value && carts.value[0]) {
     return carts.value[0].CartProducts
-      .reduce((acc, item) => acc + item.variantOption.price * item.quantity, 0)
+      .reduce((acc, item) => acc + item.productVariant.price * item.quantity, 0)
       .toFixed(2);
   }
   return '0.00';

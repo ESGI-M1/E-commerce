@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Cart, Product, User, CartProduct, Image, Category, AddressUser, ProductVariant, VariantOption } = require("../models");
+const { Cart, Product, User, CartProduct, Image, Category, AddressUser, ProductVariant, AttributeValue, Attribute } = require("../models");
 const router = new Router();
 const crypto = require('crypto');
 const checkAuth = require("../middlewares/checkAuth");
@@ -15,24 +15,26 @@ router.get("/:userId", async (req, res, next) => {
           model: CartProduct,
           as: 'CartProducts',
           include: [{
-            model: VariantOption,
-            as: 'variantOption',
+            model: ProductVariant,
+            as: 'productVariant',
             include: [
-              {
-                model: ProductVariant,
-                as: 'productVariant',
-                include: [ 
+              Product, 
+              {   
+                model: Image, 
+                as: 'images' 
+              },
+              { 
+                model: AttributeValue, 
+                as: 'attributeValues',
+                include: [
                   {
-                    model: Image,
-                    as: 'images',
-                  },
-                  {
-                    model: Product,
-                    as: 'product',
+                    model: Attribute,
+                    as: 'attribute',
                   }
                 ]
-              }
-            ],
+              },
+            ]
+            
           }]
         },
         {
@@ -126,12 +128,11 @@ function generateRandomPassword(length) {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { userId, variantOptionId } = req.body;
+    const userId = parseInt(req.body.userId);
+    const productVariantId = parseInt(req.body.productVariantId);
 
-    if (!userId || !variantOptionId) {
-      return res.status(400).json({ error: 'Missing userId or productId' });
-    }
-
+    if (!userId || !productVariantId) return res.status(400).json({ error: 'Missing userId or productId' });
+    
     let user = await User.findByPk(parseInt(userId));
 
     if (!user) {
@@ -146,19 +147,19 @@ router.post("/", async (req, res, next) => {
       });
     }
 
-    let cart = await Cart.findOne({ where: { userId : parseInt(userId), orderId: null } });
+    let cart = await Cart.findOne({ where: { userId: user.id, orderId: null } });
 
     if (!cart) {
       cart = await Cart.create({ userId : parseInt(userId) });
     }
 
-    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, variantOptionId : parseInt(variantOptionId) } });
+    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, productVariantId } });
 
     if (cartProduct) {
       cartProduct.quantity += 1;
       await cartProduct.save();
     } else {
-      await CartProduct.create({ cartId: cart.id, variantOptionId, quantity: 1 });
+      await CartProduct.create({ cartId: cart.id, productVariantId, quantity: 1 });
     }
 
     res.status(200).json({ message: 'Product added to cart' });
@@ -204,7 +205,7 @@ router.patch("/update-user/:cartId", checkAuth, async (req, res, next) => {
       await cart.save();
     } else {
       for (const cartProduct of cart.CartProducts) {
-        const existingProduct = existingCart.CartProducts.find(cp => cp.variantOptionId === cartProduct.variantOptionId);
+        const existingProduct = existingCart.CartProducts.find(cp => cp.productVariantId === cartProduct.productVariantId);
         if (existingProduct) {
           existingProduct.quantity += cartProduct.quantity;
           await existingProduct.save();
@@ -234,7 +235,7 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-router.post('/remove-promo', async (req, res) => {
+router.post('/remove-promo', async (req, res, next) => {
   const { userId, cartIds } = req.body;
 
   try {

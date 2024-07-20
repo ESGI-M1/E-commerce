@@ -4,7 +4,7 @@ module.exports = function(connection) {
     class CartProduct extends Model {
         static associate(models) {
             CartProduct.belongsTo(models.Cart, { foreignKey: 'cartId', as: 'cart', onDelete: 'CASCADE' });
-            CartProduct.belongsTo(models.VariantOption, { foreignKey: 'variantOptionId', as: 'variantOption', onDelete: 'CASCADE' });
+            CartProduct.belongsTo(models.ProductVariant, { foreignKey: 'productVariantId', as: 'productVariant', onDelete: 'CASCADE' });
         }
     }
 
@@ -15,14 +15,6 @@ module.exports = function(connection) {
                 allowNull: false,
                 references: {
                     model: 'Carts',
-                    key: 'id'
-                }
-            },
-            variantOptionId: {
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                references: {
-                    model: 'VariantOptions',
                     key: 'id'
                 }
             },

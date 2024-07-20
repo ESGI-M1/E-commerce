@@ -18,9 +18,9 @@
     <div class="navbar-section actions">
       <!-- Shopping Cart Icon -->
       <a class="icon" href="/cart">
-  <i class="fas fa-shopping-cart"></i>
-  <span class="badge">{{ cartsNumber }}</span>
-</a>
+        <i class="fas fa-shopping-cart"></i>
+        <span class="badge">{{ cartsNumber }}</span>
+      </a>
 
       &nbsp;
       <!-- Search Bar -->
@@ -36,15 +36,15 @@
       <div v-if="isAuthenticated" class="user-menu">
         <i class="fas fa-user"></i>
         <div class="dropdown">
-          <RouterLink to="/profile" class="dropdown-item">Mon profil</RouterLink>
-          <RouterLink to="/favorites" class="dropdown-item">Mes favoris</RouterLink>
-          <RouterLink to="/admin/ressources" v-if="isAdmin" class="dropdown-item">Gestion des ressources</RouterLink>
-          <RouterLink to="/order" class="dropdown-item">Historique des commandes</RouterLink>
-          <a :href="'/alerts'" class="dropdown-item">Mes alertes</a>
+          <RouterLink :to="{ name: 'Profile' }" class="dropdown-item">Mon profil</RouterLink>
+          <RouterLink :to="{ name: 'Favoris' }" class="dropdown-item">Mes favoris</RouterLink>
+          <RouterLink :to="{ name: 'Ressources' }" class="dropdown-item">Gestion des ressources</RouterLink>
+          <RouterLink :to="{ name: 'Commandes' }" class="dropdown-item">Historique des commandes</RouterLink>
+          <RouterLink :to="{ name: 'Alertes' }" class="dropdown-item">Mes alertes</RouterLink>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
       </div>
-      <RouterLink v-else to="/identifier" class="login-button">S'identifier</RouterLink>
+      <RouterLink v-else :to="{ name: 'Identifier' }" class="login-button">Connexion</RouterLink>
     </div>
   </nav>
 </template>
@@ -82,7 +82,7 @@ const fetchCartItems = async () => {
   const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
   cartsNumber.value = null;
 
-  if (authToken) {
+  if (authToken && false) {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
 

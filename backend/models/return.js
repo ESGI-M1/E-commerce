@@ -11,9 +11,9 @@ module.exports = function (connection) {
         foreignKey: 'userId',
         as: 'user',
       });
-      ReturnProduct.belongsTo(models.VariantOption, {
-        foreignKey: 'variantOptionId',
-        as: 'variantOption',
+      ReturnProduct.belongsTo(models.ProductVariant, {
+        foreignKey: 'variantProductId',
+        as: 'variantProduct',
       });
     }
   }
@@ -28,14 +28,14 @@ module.exports = function (connection) {
             key: 'id',
         },
         },
-      variantOptionId: {
+      variantProductId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'VariantOptions',
+            model: 'ProductVariants',
             key: 'id',
         },
-        },
+      },
       status: {
         type: DataTypes.ENUM('returned', 'processing'),
         allowNull: false,

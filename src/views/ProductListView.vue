@@ -6,9 +6,9 @@
       class="product-card"
       @click="showProductDetails(product.id)"
     >
-      <div v-if="product.ProductVariants.length">
+      <div v-if="product.variants && product.variants.length">
         <div
-          v-for="variant in product.ProductVariants"
+          v-for="variant in product.variants"
           :key="variant.id"
         >
           <img
@@ -21,7 +21,7 @@
             <h2 class="product-name">{{ product.name }}</h2>
             <p class="product-description">{{ product.description }}</p>
             <p class="product-variant-name">{{ variant.name }}</p>
-            <p class="product-price">{{ parseFloat(variant.variantOptions[0].price).toFixed(2) }}€</p>
+            <p class="product-price">{{ variant.price }}€</p>
           </div>
         </div>
       </div>
@@ -50,7 +50,6 @@ const fetchProducts = async () => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`)
     productsStore.products = response.data
-    console.log(productsStore.products)
   } catch (error) {
     console.error('Error fetching products:', error)
   }

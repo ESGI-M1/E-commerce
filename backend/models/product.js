@@ -9,11 +9,10 @@ module.exports = function(connection) {
 
             Product.belongsTo(models.Category, { as: 'defaultCategory', foreignKey: 'defaultCategoryId' });
 
-            Product.belongsToMany(models.VariantOption, { through: 'ProductOptions' });
-            models.VariantOption.belongsToMany(Product, { through: 'ProductOptions' });
-
             Product.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
-            Product.hasMany(models.ProductVariant, { foreignKey: 'productId', as: 'ProductVariants' });
+
+            Product.hasMany(models.ProductVariant, { foreignKey: 'productId', as: 'variants' });
+
         }
 
         static addHooks(models) {
@@ -72,24 +71,25 @@ module.exports = function(connection) {
             description: {
                 type: DataTypes.TEXT,
             },
-            defaultCategoryId: {
-                type: DataTypes.INTEGER,
-                allowNull: true,
-                references: {
-                    model: 'Categories',
-                    key: 'id'
-                }
-            },
-            createdAt: {
-                type: DataTypes.DATE,
+            reference: {
+                type: DataTypes.STRING,
                 allowNull: false,
-                defaultValue: DataTypes.NOW,
+                unique: true,
+                validate: {
+                    notEmpty: true,
+                },
             },
-            updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: true,
-                defaultValue: DataTypes.NOW,
-            }
+            price: {
+                type: DataTypes.DECIMAL,
+                allowNull: false,
+                validate: {
+                    notEmpty: true,
+                },
+            },
+            active: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
         },
         {
             sequelize: connection,

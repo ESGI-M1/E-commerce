@@ -12,6 +12,8 @@ import { collapsed, toggleSidebar, sidebarWidth } from './state'
     <SidebarLink to="/admin/users" icon="fas fa-users">Utilisateurs</SidebarLink>
     <hr>
     <SidebarLink to="/admin/products" icon="fas fa-box-open">Produits</SidebarLink>
+    <SidebarLink to="/admin/attributes" icon="fas fa-cogs">Attributs</SidebarLink>
+
     <SidebarLink to="/admin/categories" icon="fas fa-th-list">Catégories</SidebarLink>
     <hr>
     <SidebarLink to="/admin/orders" icon="fas fa-shopping-bag">Commandes</SidebarLink>

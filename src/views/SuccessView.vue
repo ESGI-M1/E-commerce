@@ -18,11 +18,6 @@ const updateCartOrder = async () => {
     const response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-order/${cartId.value}`, {
       orderId: orderId.value,
     });
-    const stripeSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe/webhook`, {
-});
-const { sessionId } = stripeSession.data;
-await stripe.redirectToCheckout({ sessionId });
-
 };
 
 onMounted(() => {

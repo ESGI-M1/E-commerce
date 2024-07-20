@@ -18,7 +18,7 @@
             <h2>{{ favorite.product.name }}</h2>
             <p class="product-description">{{ favorite.product.description }}</p>
             <p class="product-price">
-              <strong>Prix :</strong> ${{ parseFloat(favorite.product.price).toFixed(2) }}
+              {{ favorite.product.ProductVariants[0].variantOptions[0].price }} €
             </p>
           </div>
         </div>

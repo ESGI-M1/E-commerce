@@ -145,7 +145,7 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/order/:orderId/returnProduct/:productId',
+    path: '/order/:orderId/returnProduct/:variantOptionId',
     name: 'ReturnProducts',
     component: ReturnProduct,
     meta: { requiresAuth: true },

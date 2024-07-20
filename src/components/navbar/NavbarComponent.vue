@@ -7,40 +7,12 @@
 
     <div class="navbar-section links">
       <!-- Navigation Links -->
-      <div class="nav-item">
-        <a href="#" class="nav-link">Homme</a>
-        <div class="dropdown">
-          <a href="#" class="dropdown-item">Vêtements</a>
-          <a href="#" class="dropdown-item">Chaussures</a>
-          <a href="#" class="dropdown-item">Accessoires</a>
+      <div class="nav-item" v-for="category in shopStore.mainCategories" :key="category.id">
+        <RouterLink :to="{ name: 'Category', params: { slug : category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
+          <div v-if="category.subCategories.length > 0" class="dropdown">
+            <RouterLink v-for="subCategory in category.subCategories" :key="subCategory.id" :to="{ name: 'Category', params: { slug : subCategory.slug }}" class="dropdown-item">{{ subCategory.name }}</RouterLink>
+          </div>
         </div>
-      </div>
-      <div class="nav-item">
-        <a href="#" class="nav-link">Femme</a>
-        <div class="dropdown">
-          <a href="#" class="dropdown-item">Vêtements</a>
-          <a href="#" class="dropdown-item">Chaussures</a>
-          <a href="#" class="dropdown-item">Accessoires</a>
-        </div>
-      </div>
-      <div class="nav-item">
-        <a href="#" class="nav-link">Enfant</a>
-        <div class="dropdown">
-          <a href="#" class="dropdown-item">Vêtements</a>
-          <a href="#" class="dropdown-item">Chaussures</a>
-          <a href="#" class="dropdown-item">Accessoires</a>
-        </div>
-      </div>
-      <div class="nav-item">
-        <a href="#" class="nav-link">Nouveauté</a>
-      </div>
-      <div class="nav-item">
-        <a href="#" class="nav-link">Promotion</a>
-        <div class="dropdown">
-          <a href="#" class="dropdown-item">Offres Spéciales</a>
-          <a href="#" class="dropdown-item">Soldes</a>
-        </div>
-      </div>
     </div>
 
     <div class="navbar-section actions">
@@ -81,25 +53,26 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
+import { useShopStore } from '@/store/shop'
 import Cookies from 'js-cookie'
 
 import axios from 'axios'
 
 const router = useRouter()
-const search = ref('')
 const productsStore = useProductsStore()
+const shopStore = useShopStore()
+const search = ref('')
 const cartsNumber = ref(null)
 
 const searchProducts = async () => {
   // route search
-  if (router.currentRoute.value.name !== 'Search') {
-    router.push('/search')
-  }
-
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/search?q=${search.value}`)
-    productsStore.setProducts(response.data)
-    productsStore.setFilter({ name: search.value })
+    axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/search?q=${search.value}`)
+    .then(response => {
+      router.push('/search?q=' + search.value)
+      productsStore.setProducts(response.data)
+      productsStore.setFilter({ name: search.value })
+    })
   } catch (error) {
     console.error('Error fetching products:', error)
   }
@@ -142,6 +115,7 @@ const logout = () => {
 
 onMounted(() => {
   fetchCartItems()
+  shopStore.fetchShop()
 })
 </script>
 

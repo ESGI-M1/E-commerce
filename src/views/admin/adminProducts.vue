@@ -26,6 +26,7 @@
           <th>Description</th>
           <th>Prix</th>
           <th>Catégories</th>
+          <th>Catégorie par défaut</th>
           <th>Actif</th>
           <th>Actions</th>
         </tr>
@@ -55,6 +56,7 @@
               <li v-for="category in product.Categories" :key="category.id">{{ category.name }}</li>
             </ul>
           </td>
+          <td>{{ product.defaultCategoryId ? categories.find((c) => c.id === product.defaultCategoryId).name : '' }}</td>
           <td>
             <i :class="product.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
           </td>
@@ -128,6 +130,15 @@
                 </option>
               </select>
             </div>
+
+            <div class="form-group">
+              <label for="categoryDefault">Catégorie par défaut</label>
+              <select v-model="currentProduct.defaultCategoryId" id="categoryDefault">
+                <option v-for="category in categories" :key="category.id" :value="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
           </template>
 
           <div class="form-group">
@@ -170,12 +181,13 @@ const productSchema = z.object({
   price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
   active: z.boolean(),
   Categories: z.array(categorySchema),
+  defaultCategoryId: z.number().optional()
+
 })
 
 const productsSchema = z.array(productSchema)
 
-type Product = z.infer<typeof productSchema>
-
+type Product = z.infer<typeof productSchema>;
 
 const products = ref<Product[]>([])
 const currentProduct = ref<Product>({
@@ -249,7 +261,7 @@ const updateProduct = async () => {
 const deleteProduct = async (product) => {
   try{ 
     startLoading();
-    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`, { withCredentials: true })
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`)
     products.value = products.value.filter((p) => p.id !== product.id)
     showNotification('Produit supprimé avec succès', 'success');
   } finally {
@@ -270,7 +282,9 @@ const showAddProductModal = () => {
     reference: '',
     description: '',
     price: 0,
-    Categories: []
+    Categories: [],
+    active: true,
+    defaultCategory: null
   }
   showModal.value = true
 }

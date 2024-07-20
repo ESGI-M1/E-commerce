@@ -13,7 +13,6 @@ router.post('/', checkAuth, async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: items.map(item => {
-        // Assurez-vous que `item.variantOption` est correctement défini
         if (item.variantOption && item.variantOption.productVariant) {
           let unitAmount = item.variantOption.price;
           if (promo && promo.discountPercentage) {
@@ -93,26 +92,23 @@ router.post('/invoice/:idOrder', checkAuth, async (req, res) => {
   }
 });
 
-router.get('/webhook', async (req, res) => {
-  const sig = req.headers['stripe-signature'];
+router.post('/webhook', async (req, res) => {
+  //const sig = req.headers['stripe-signature'];
+  let payload = req.body.read
+  let sig = req.env['HTTP_STRIPE_SIGNATURE']
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, 'whsec_7TNIrhY9IN4UZ4HOyd9CIN0QhNQx1nh6');
+    event = stripe.webhooks.constructEvent(payload, sig, 'whsec_7TNIrhY9IN4UZ4HOyd9CIN0QhNQx1nh6');
   } catch (err) {
     console.error('Erreur lors de la construction de l\'événement webhook :', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Traiter l'événement Stripe reçu
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
       console.log('Paiement réussi :', paymentIntent.id);
-
-      // Mettre à jour l'état de la commande dans ta base de données
-      // Exemple : await Order.findByIdAndUpdate(paymentIntent.metadata.orderId, { status: 'paid' });
-
       break;
     default:
       console.log('Événement Stripe non géré :', event.type);

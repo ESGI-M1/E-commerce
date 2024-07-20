@@ -50,7 +50,6 @@ const fetchProducts = async () => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`)
     productsStore.products = response.data
-    console.log(productsStore.products)
   } catch (error) {
     console.error('Error fetching products:', error)
   }

@@ -1,27 +1,38 @@
 import { defineStore } from 'pinia';
 import axios from '../tools/axios';
 import { z, ZodError } from 'zod';
-import path from 'path';
 
 const shopSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-  favicon: z.string(),
-  logo: z.string(),
-  street: z.string(),
-  postalCode: z.string(),
-  city: z.string(),
-  country: z.string(),
-  phone: z.string().optional(),
-  email: z.string().email(),
-  legalNotice: z.string(),
-  cgv: z.string(),
-  cgu: z.string(),
-  rgpd: z.string(),
-  siret: z.string(),
-  tva: z.string(),
-  active: z.boolean(),
-  isFetched: z.boolean().optional(),
+    name: z.string(),
+    description: z.string().optional(),
+    favicon: z.string(),
+    logo: z.string(),
+    street: z.string(),
+    postalCode: z.string(),
+    city: z.string(),
+    country: z.string(),
+    phone: z.string().optional(),
+    email: z.string().email(),
+    legalNotice: z.string(),
+    cgv: z.string(),
+    cgu: z.string(),
+    rgpd: z.string(),
+    siret: z.string(),
+    tva: z.string(),
+    active: z.boolean(),
+    isFetched: z.boolean().optional(),
+    mainCategories: z.array(z.object({
+        id: z.number(),
+        name: z.string(),
+        slug: z.string(),
+        active: z.boolean(),
+        subCategories: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            slug: z.string(),
+            active: z.boolean(),
+        })).optional(),
+    })).optional(),
 });
 
 export const useShopStore = defineStore('shop', {
@@ -44,6 +55,8 @@ export const useShopStore = defineStore('shop', {
         tva: '',
         active: true,
         isFetched: false,
+        isLoading: false,
+        mainCategories: [],
     }),
     getters: {
         getShop: (state) => {
@@ -100,42 +113,48 @@ export const useShopStore = defineStore('shop', {
         getActive: (state) => {
             return state.active;
         },
+        getMainCategories: (state) => {
+            return state.mainCategories;
+        },
     },
     actions: {
         async fetchShop(force = false) {
-            if (this.isFetched) return;
+            if (this.isFetched && !force || this.isLoading) return;
 
             try {
+                this.isLoading = true;
                 axios.get(`${import.meta.env.VITE_API_BASE_URL}/shop`).then((response) => {
-                    const validatedData = shopSchema.parse(response.data);
-                    this.name = validatedData.name;
-                    this.description = validatedData.description;
-                    this.favicon = validatedData.favicon;
-                    this.logo = validatedData.logo;
-                    this.street = validatedData.street;
-                    this.postalCode = validatedData.postalCode;
-                    this.city = validatedData.city;
-                    this.country = validatedData.country;
-                    this.phone = validatedData.phone;
-                    this.email = validatedData.email;
-                    this.legalNotice = validatedData.legalNotice;
-                    this.cgv = validatedData.cgv;
-                    this.cgu = validatedData.cgu;
-                    this.rgpd = validatedData.rgpd;
-                    this.siret = validatedData.siret;
-                    this.tva = validatedData.tva;
-                    this.active = validatedData.active;
+                    const shop = shopSchema.parse(response.data);
+                    this.name = shop.name;
+                    this.description = shop.description;
+                    this.favicon = shop.favicon;
+                    this.logo = shop.logo;
+                    this.street = shop.street;
+                    this.postalCode = shop.postalCode;
+                    this.city = shop.city;
+                    this.country = shop.country;
+                    this.phone = shop.phone;
+                    this.email = shop.email;
+                    this.legalNotice = shop.legalNotice;
+                    this.cgv = shop.cgv;
+                    this.cgu = shop.cgu;
+                    this.rgpd = shop.rgpd;
+                    this.siret = shop.siret;
+                    this.tva = shop.tva;
+                    this.active = shop.active;
+                    this.mainCategories = shop.mainCategories;
                     this.isFetched = true;
+                })
+                .finally(() => {
+                    this.isLoading = false;
                 });
             } catch (e) {
                 if (e instanceof ZodError) {
                     console.error(e.errors);
+                } else {
+                    console.error(e);
                 }
-
-                console.error(e);
             }
-        }
+        },
     },
 });
-
-

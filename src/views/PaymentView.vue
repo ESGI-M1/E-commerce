@@ -90,10 +90,10 @@
               <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
                 <div class="item-details" @click="showProductDetails(item.product.id)">
                   <h3 v-if="item.product">{{ item.product.name }}</h3>
-                  <img 
-                    :src="item.variantOption.productVariant.images[0].url" 
-                    :alt="item.variantOption.productVariant.images[0].description" 
-                    class="product-image" 
+                  <img
+                    class="product-image"
+                    :src="imageUrl + `/images/variant/${item.productVariant.images[0].id}`"
+                    :alt="item.productVariant.images[0].description"
                   />
                 </div>
                 <div class="item-quantity">
@@ -101,7 +101,7 @@
                   <p>{{ item.quantity }}</p>
                 </div>
                 <div class="item-price">
-                  <p>{{ item.variantOption.price }} €</p>
+                  <p>{{ item.productVariant.price}} €</p>
                 </div>
               </div>
             </div>
@@ -156,6 +156,7 @@ const promo = ref(null)
 const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
 const carts = ref(null)
+const imageUrl = import.meta.env.VITE_API_BASE_URL;
 
 interface Address {
   street: string;
@@ -215,13 +216,13 @@ const updateLivraisonDomicileAddress = (address) => {
 }
 
 const subtotal = computed(() => {
-  return carts.value
-    ? carts.value.reduce(
-        (acc, cart) => acc + cart.CartProducts.reduce((sum, item) => sum + item.variantOption.price * item.quantity, 0),
-        0
-      ).toFixed(2)
-    : 0
-})
+  if (carts.value && carts.value[0]) {
+    return carts.value[0].CartProducts
+      .reduce((acc, item) => acc + item.productVariant.price * item.quantity, 0)
+      .toFixed(2);
+  }
+  return '0.00';
+});
 
 const total = computed(() => {
   return parseFloat(subtotal.value).toFixed(2)

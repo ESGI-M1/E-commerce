@@ -1,11 +1,29 @@
 const { Router } = require("express");
 const router = new Router();
-const { Shop } = require("../models");
+const { Shop, Category } = require("../models");
 const checkRole = require("../middlewares/checkRole");
+const { where } = require("sequelize");
 
 router.get("/", async (req, res, next) => {
     try {
-        const shop = await Shop.findOne();
+        const shop = await Shop.findOne({
+            include: {
+                model: Category,
+                as: 'mainCategories',
+                required: false,
+                where: {
+                    active: true
+                },
+                include: {
+                    model: Category,
+                    as: 'subCategories',
+                    required: false,
+                    where: {
+                        active: true
+                    }
+                }
+            }
+        });
         res.json(shop);
     } catch (e) {
         next(e);
@@ -23,8 +41,18 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 
 router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
+        const { mainCategories, ...shopData } = req.body;
         const shop = await Shop.findByPk(parseInt(req.params.id));
-        const updatedShop = await shop.update(req.body);
+
+        if(mainCategories && mainCategories.length > 0) {
+            await shop.setMainCategories(mainCategories);
+        }
+
+        await shop.update(req.body);
+
+        const updatedShop = await Shop.findByPk(parseInt(req.params.id), {
+            include: 'mainCategories',
+        });
         updatedShop ? res.json(updatedShop) : res.sendStatus(404);
     } catch (e) {
         next(e);

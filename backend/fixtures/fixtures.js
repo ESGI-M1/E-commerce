@@ -1,4 +1,5 @@
-const { User, Product, AddressUser, AddressOrder, Favorite, Category, Order, Cart, Alert, Cookie } = require('../models');
+const { where } = require('sequelize');
+const { User, Product, AddressUser, AddressOrder, Favorite, Category, Order, Cart, Shop, Alert, Cookie } = require('../models');
 
 const usersFixtures = async () => {
 
@@ -72,7 +73,7 @@ const usersFixtures = async () => {
     )
 
 };
-//usersFixtures();
+usersFixtures();
 
 const productsFixtures = async () => {
     // Create categories once
@@ -88,6 +89,13 @@ const productsFixtures = async () => {
         slug: 'category-2',
         description: 'Description of category 2',
         active: false,
+    });
+
+    await Category.create({
+        name: 'Category 3',
+        slug: 'category-3',
+        description: 'Description of category 3',
+        active: true,
     });
 
     // Create products
@@ -127,6 +135,37 @@ const productsFixtures = async () => {
     await product_1.addCategory(category_1);
     await product_2.addCategories([category_1, category_2]);
     await product_3.addCategory(category_2);
+
+    shopFixtures();
+
+};
+
+const shopFixtures = async () => {
+
+    const shop = await Shop.create({
+        name: 'Zorglux',
+        description: 'Description of Zorglux',
+        favicon: 'favicon.ico',
+        logo: 'logo.png',
+        street: '123 Rue du moulin',
+        postalCode: '60000',
+        city: 'Beauvais',
+        country: 'France',
+        phone: '+33612345678',
+        email: 'zorglux@zorglux.com',
+        legalNotice: 'Legal notice of Zorglux',
+        cgv: 'CGV of Zorglux',
+        cgu: 'CGU of Zorglux',
+        rgpd: 'RGPD of Zorglux',
+        siret: '123456789',
+        tva: '123456789',
+        active: true,
+    });
+
+    const categories = await Category.findAll();
+
+    await shop.addMainCategories(categories);
+
 };
 
 const alertsFixtures = async () => {
@@ -148,7 +187,7 @@ const alertsFixtures = async () => {
     }
 }
 
-//alertsFixtures();
+alertsFixtures();
 
 const cookieFixtures = async () => {
     const types = ["essentiels"];

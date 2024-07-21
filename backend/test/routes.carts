@@ -11,7 +11,7 @@ let cart;
 const getUser = async () => {
   if (user) return user;
 
-  user = User.create({
+  user = await User.create({
     firstname: 'John',
     lastname: 'Doe',
     email: 'zorglux+addressusers@zorglux.com',
@@ -25,7 +25,7 @@ const getAddressOrder = async () => {
 
     if (addressOrder) return addressOrder;
   
-    addressOrder = AddressOrder.create({
+    addressOrder = await AddressOrder.create({
       userId: getUser().id,
       street: '123 rue de la rue',
       city: 'Paris',
@@ -74,7 +74,7 @@ const getCookie = async () => {
   const getCart = async () => {
     if (cart) return cart;
 
-     cart = Cart.create({
+     cart = await Cart.create({
         orderId: order.id,
         user
     });
@@ -92,7 +92,7 @@ beforeAll(async () => {
 describe('Cart routes', () => {
 
   it('should add a product to the cart', async () => {
-    const product = Product.create({
+    const product = await Product.create({
       name: 'Product',
       reference: '123456',
       price: 100,
@@ -110,11 +110,11 @@ describe('Cart routes', () => {
     const cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, productId: product.id } });
   
     expect(cartProduct).toBeDefined();
-    expect(cartProduct.quantity).toBe(1); // Vérifiez que la quantité est correcte
+    expect(cartProduct.quantity).toBe(1);
   });  
 
   it('should update a cart with orderId', async () => {
-   let order2 = Order.create({
+   let order2 = await Order.create({
         totalAmount: 100,
         status: 'pending',
         deliveryDate: new Date(),

@@ -112,6 +112,12 @@ const productSchema = z.object({
   variants: z.array(productVariantSchema)
 })
 
+const cartSchema = z.object({
+  userId: z.number(),
+  productVariantId: z.number().positive('L\'identifiant de la variante du produit doit être supérieur à 0'),
+  quantity: z.number().positive('La quantité doit être supérieure à 0')
+})
+
 type Product = z.infer<typeof productSchema>
 type ProductVariant = z.infer<typeof productVariantSchema>
 
@@ -164,9 +170,9 @@ const fetchProduct = async () => {
   } catch (error) {
     if (error instanceof ZodError) {
       console.error(error.errors);
-    } else {
-      console.error(error);
     }
+
+    console.error(error);
   }
 };
 
@@ -212,13 +218,20 @@ const addToCart = async (quantity: number) => {
     }
   }
   try {
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
+    const cart = cartSchema.parse({
       userId: user,
       productVariantId: selectedVariant.value.id,
-      quantity: quantity
-    })
+      quantity
+    });
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, cart);
     showNotification('Produit ajouté au panier avec succès', 'success');
   } catch (error) {
+
+    if (error instanceof ZodError) {
+      console.error(error.errors);
+    }
+
+    console.error(error);
     showNotification('Échec de l\'ajout du produit au panier', 'error');
   }
 };

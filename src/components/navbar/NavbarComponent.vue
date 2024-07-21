@@ -71,11 +71,13 @@
           <a :href="'/alerts'" class="dropdown-item">Mes alertes</a>
           <RouterLink to="/admin/ressources" v-if="isAdmin" class="dropdown-item">Gestion des ressources</RouterLink>
           <RouterLink to="/order" class="dropdown-item">Historique des commandes</RouterLink>
+          <a @click="showCookiePage" class="dropdown-item">Gestion des cookies</a>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
       </div>
       <RouterLink v-else to="/login" class="login-button">S'identifier</RouterLink>
     </div>
+    <CookieComponent @closePage="closeCookiePage" v-if="showCookies"/>
   </nav>
 </template>
 
@@ -86,11 +88,13 @@ import { useProductsStore } from '@/store/products'
 import Cookies from 'js-cookie'
 
 import axios from 'axios'
+import CookieComponent from '@/components/CookieComponent.vue'
 
 const router = useRouter()
 const search = ref('')
 const productsStore = useProductsStore()
 const cartsNumber = ref(null)
+const showCookies = ref(false);
 
 const searchProducts = async () => {
   // route search
@@ -142,8 +146,38 @@ const logout = () => {
   router.push('/')
 }
 
+async function checkUserAsAcceptedCookie()  {
+  const user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+  if (user) {
+    const asCookie = await asAnyCookie(user);
+    if (!asCookie) {
+      showCookies.value = true
+    }
+  }
+}
+
+async function asAnyCookie(userId: number) {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/cookie/user/${userId}`);
+    if (response.data) {
+      return true;
+    }
+  } catch (e) {
+    return false;
+  }
+}
+
+function showCookiePage() {
+  showCookies.value = true;
+}
+
+function closeCookiePage() {
+  showCookies.value = false;
+}
+
 onMounted(() => {
   fetchCartItems()
+  checkUserAsAcceptedCookie()
 })
 </script>
 

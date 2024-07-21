@@ -25,6 +25,7 @@ const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
 const StatsRouter = require("./routes/stats");
 const ShopRouter = require("./routes/shop");
+const CookieUserRouter = require("./routes/cookieUser");
 
 const app = express();
 const cors = require('cors')
@@ -61,6 +62,7 @@ app.use('/addressorders', AddressOrderRouter);
 app.use('/addressusers', AddressUserRouter);
 app.use('/stats', StatsRouter);
 app.use('/shop', ShopRouter);
+app.use('/cookie', CookieUserRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

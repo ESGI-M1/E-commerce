@@ -1,4 +1,4 @@
-const { User, Product, AddressUser, AddressOrder, Favorite, Category, Order, Cart, Alert } = require('../models');
+const { User, Product, AddressUser, AddressOrder, Favorite, Category, Order, Cart, Alert, Cookie } = require('../models');
 
 const usersFixtures = async () => {
 
@@ -72,7 +72,7 @@ const usersFixtures = async () => {
     )
 
 };
-usersFixtures();
+//usersFixtures();
 
 const productsFixtures = async () => {
     // Create categories once
@@ -148,4 +148,27 @@ const alertsFixtures = async () => {
     }
 }
 
-alertsFixtures();
+//alertsFixtures();
+
+const cookieFixtures = async () => {
+    const types = ["essentiels"];
+    const descriptions = [
+      "Ces cookies sont nécessaire au bon fonctionnement de notre site web, en effet ous utilisons vos différentes informations personnelles (nom, prenom, adresse, email) afin de pouvoir exercer différents traitements, tels que l'envoi d'email, la gestion de panier, la gestion de vos favoris etc..."
+    ];
+
+    for (let i=0; i < types.length; i++) {
+        let existCookieType = await Cookie.findOne({
+            where: {
+                type: types[i]
+            }
+        });
+        if (!existCookieType) {
+            await Cookie.create({
+                type: types[i],
+                description: descriptions[i]
+            });
+        }
+    }
+}
+
+cookieFixtures();

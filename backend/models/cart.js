@@ -28,6 +28,10 @@ module.exports = function (connection) {
                     key: 'id',
                 },
             },
+            heldUntil: {
+                type: DataTypes.DATE,
+                allowNull: true
+            },
             createdAt: {
                 type: DataTypes.DATE,
                 allowNull: true

@@ -3,8 +3,8 @@
     <header>
       <h1>Mon Panier</h1>
       <p v-if="!authToken">
-        <router-link to="/login">Rejoins-nous</router-link> ou
-        <router-link to="/signup">S'identifier</router-link>
+        <router-link to="/login">S'identifier</router-link> ou
+        <router-link to="/signup">Rejoins-nous</router-link>
       </p>
     </header>
 
@@ -33,7 +33,7 @@
               </select>
             </div>
             <div class="item-price">
-              <p>{{ item.productVariant.price}} €</p>
+              <p>{{ item.productVariant.price }} €</p>
               <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
             </div>
           </div>
@@ -91,7 +91,8 @@
             </p>
           </div>
         </div>
-        <button @click="checkout" class="checkout-button">Paiement</button>
+        <button @click="checkout" class="checkout-button">Accéder au paiement</button>
+        <button @click="holdCart" class="hold-cart-button">Réserver le panier</button>
       </div>
     </div>
   </div>
@@ -229,6 +230,17 @@ const checkout = () => {
   }
 };
 
+const holdCart = async () => {
+  try {
+    startLoading();
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts/hold`, { userId: authToken });
+    showNotification('Le panier a été réservé avec succès pendant 15 minutes', 'success');
+    fetchCartItems();
+  } finally {
+    stopLoading();
+  }
+};
+
 const showProductDetails = (id: string) => {
   router.push({ name: 'ProductDetail', params: { id } });
 };
@@ -349,9 +361,9 @@ input[type='text'] {
   font-weight: bold;
 }
 
-.checkout-button {
+.checkout-button,
+.hold-cart-button {
   padding: 10px 20px;
-  background-color: #000;
   border: none;
   border-radius: 4px;
   color: white;
@@ -360,8 +372,20 @@ input[type='text'] {
   margin-bottom: 10px;
 }
 
+.checkout-button {
+  background-color: #000;
+}
+
 .checkout-button:hover {
   background-color: #333;
+}
+
+.hold-cart-button {
+  background-color: #2F855A;
+}
+
+.hold-cart-button:hover {
+  background-color: #2a704f;
 }
 
 .total {

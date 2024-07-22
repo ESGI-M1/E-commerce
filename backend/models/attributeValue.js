@@ -5,7 +5,11 @@ module.exports = function(connection) {
 
         static associate(models) {
             AttributeValue.belongsTo(models.Attribute, { as: 'attribute', foreignKey: 'attributeId', onDelete: 'CASCADE' });
-            AttributeValue.hasMany(models.ProductVariant, { as: 'productVariants', foreignKey: 'attributeValueId' });
+            AttributeValue.belongsToMany(models.ProductVariant, {
+                through: 'ProductVariantAttributeValue',
+                as: 'productVariants',
+                foreignKey: 'attributeValueId'
+            });
         }
 
      }

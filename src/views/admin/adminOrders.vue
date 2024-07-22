@@ -17,6 +17,7 @@
         <thead>
           <tr>
             <th>Date</th>
+            <th>Date de livraison estimée</th>
             <th>Commande</th>
             <th>Client</th>
             <th>Statut</th>
@@ -27,6 +28,7 @@
         </thead>
         <tbody>
           <tr v-for="order in filteredOrders" :key="order.id">
+            <td>{{ formatDate(order.createdAt) }}</td>
             <td>{{ formatDate(order.deliveryDate) }}</td>
             <td>n°{{ order.id }}</td>
             <td>#{{ order.user.id }} {{ order.user.lastname }} {{ order.user.firstname }}</td>

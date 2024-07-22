@@ -13,7 +13,7 @@
         >
           <img
             v-if="variant.images.length"
-            :src="variant.images[0].url"
+            :src="variant.images[0].fileName"
             :alt="variant.images[0].description"
             class="product-image"
           />

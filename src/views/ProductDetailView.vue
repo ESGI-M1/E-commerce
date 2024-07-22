@@ -3,14 +3,14 @@
   <BreadCrumb v-if="false" :category="product.Categories[0]" />
 
   <div v-if="product" class="product-page">
-    <div class="selected-variant" v-if="selectedVariant.images">
-      <template v-for="image in selectedVariant.images" :key="image.id">
-        <img
-          class="product-image"
-          :src="imageUrl + `/images/variant/${image.id}`" 
-          :alt="image.description"
-        />
-      </template>
+    <div v-if="selectedVariant" class="slider-container">
+      <div class="slider" ref="slider">
+        <div class="slide" v-for="image in selectedVariant.images" :key="image.id">
+          <img class="product-image" :src="imageUrl + image.id" :alt="image.description"/>
+        </div>
+      </div>
+      <button @click="prevSlide" class="slider-button prev-button"><</button>
+      <button @click="nextSlide" class="slider-button next-button">></button>
     </div>
 
     <div class="product-infos">
@@ -19,21 +19,11 @@
       <p>Prix : {{ selectedVariant?.price }} €</p>
 
       <div class="variant-attributes">
-        <h3>Options:</h3>
         <div class="product-variants">
-          <div v-for="attribute in attributes" :key="attribute.name" class="variant-options">
-            <h4>{{ attribute.name }}</h4>
-            <div v-for="value in attribute.values" :key="value" class="variant-option">
-              <input
-                type="radio"
-                :id="value"
-                :value="value"
-                :name="attribute.name"
-                v-model="selectedVariant"
-              />
-              <label :for="value">{{ value }}</label>
-            </div>
-          </div>
+          <select v-for="attribute in attributes">
+            <option disabled selected>{{ attribute.name }}</option>
+            <option v-for="value in attribute.values" :key="value" :value="value">{{ value }}</option>
+          </select>
         </div>
       </div>
 
@@ -65,7 +55,10 @@ const productId = route.params.id
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const showNotification = inject('showNotification');
 
-const imageUrl = import.meta.env.VITE_API_BASE_URL;
+const slider = ref(null)
+const currentSlide = ref(0)
+
+const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
 const categorySchema = z.object({
   id: z.number(),
@@ -236,19 +229,55 @@ const addToCart = async (quantity: number) => {
   }
 };
 
+const nextSlide = () => {
+  if (slider.value) {
+    currentSlide.value = (currentSlide.value + 1) % selectedVariant.value.images.length;
+    slider.value.style.transform = `translateX(-${currentSlide.value * 100}%)`;
+  }
+};
+
+const prevSlide = () => {
+  if (slider.value) {
+    currentSlide.value = (currentSlide.value - 1 + selectedVariant.value.images.length) % selectedVariant.value.images.length;
+    slider.value.style.transform = `translateX(-${currentSlide.value * 100}%)`;
+  }
+};
+
 onMounted(() => {
   fetchProduct();
 });
 </script>
 
 <style scoped>
+
 .product-page {
   display: flex;
   flex-wrap: wrap;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 15px;
 }
 
 .product-page > * {
   flex: 1 1 50%;
+}
+
+@media (max-width: 768px) {
+  .product-page {
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-page {
+    padding: 0 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-page > * {
+    flex: 1 1 100%;
+  }
 }
 
 .product-image {
@@ -301,50 +330,51 @@ onMounted(() => {
 
 .product-variants {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.variant-option {
+.product-variants select {
+  flex: 1 1 33%;
+  padding: 4px 6px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.slider-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.slider {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.slide {
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.slider-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
   cursor: pointer;
-  text-align: center;
 }
 
-.variant-option img {
-  width: 100px;
-  height: auto;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+.prev-button {
+  left: 10px;
 }
 
-.variant-options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.next-button {
+  right: 10px;
 }
 
-.size-select,
-.color-select {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.size-select label,
-.color-select label {
-  font-weight: bold;
-}
-
-.size-select select,
-.color-select select {
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-
-@media (max-width: 768px) {
-  .product-page > * {
-    flex: 1 1 100%;
-  }
-}
 </style>

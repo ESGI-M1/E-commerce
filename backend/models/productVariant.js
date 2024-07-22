@@ -4,7 +4,11 @@ module.exports = function(connection) {
     class ProductVariant extends Model {
         static associate(models) {
             ProductVariant.belongsTo(models.Product, { foreignKey: 'productId' });
-            ProductVariant.hasMany(models.AttributeValue, { as: 'attributeValues', foreignKey: 'productVariantId' });
+            ProductVariant.belongsToMany(models.AttributeValue, {
+                through: 'ProductVariantAttributeValue',
+                as: 'attributeValues',
+                foreignKey: 'productVariantId'
+            });
         }
     }
 

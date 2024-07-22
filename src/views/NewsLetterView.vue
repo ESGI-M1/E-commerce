@@ -46,7 +46,7 @@ import Cookies from 'js-cookie'
   const addNewsLetter = async () => {
     try {
       const parsedNewsLetter = newsletterSchema.parse({ ...actualNewsLetter.value });
-      const response = await axios.post('http://localhost:3000/newsletters', parsedNewsLetter);
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/newsletters`, parsedNewsLetter, { withCredentials: true });
       newsletters.value.push(response.data);
       closeModal();
     } catch (error) {
@@ -57,7 +57,7 @@ import Cookies from 'js-cookie'
   const updateNewsLetter = async () => {
     try {
       const parsedNewsLetter = newsletterSchema.parse({ ...actualNewsLetter.value });
-      await axios.patch(`http://localhost:3000/newsletters/${actualNewsLetter.value.id}`, parsedNewsLetter);
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/newsletters/${actualNewsLetter.value.id}`, parsedNewsLetter, { withCredentials: true });
       const index = newsletters.value.findIndex((p) => p.id === actualNewsLetter.value.id);
       if (index !== -1) {
         newsletters.value[index] = actualNewsLetter.value;
@@ -74,7 +74,7 @@ import Cookies from 'js-cookie'
 
   const deleteNewsLetter = async (newsletter) => {
     try {
-      await axios.delete(`http://localhost:3000/newsletters/${newsletter.id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/newsletters/${newsletter.id}`, { withCredentials: true });
       newsletters.value = newsletters.value.filter((p) => p.id !== newsletter.id);
     } catch (error) {
       console.error('Erreur lors de la suppression de la newsletter :', error);
@@ -83,7 +83,7 @@ import Cookies from 'js-cookie'
 
   const fetchNewsLetters = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/newsletters');
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/newsletters`);
       newsletters.value = response.data;
     } catch (e) {
       console.error('Erreur lors de la récupération des newsletters :', e);

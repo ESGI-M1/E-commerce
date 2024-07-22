@@ -1,7 +1,6 @@
 const { Router } = require("express");
 const { Op, QueryTypes } = require("sequelize");
-const { connection, Category, Image, Product, ProductOption, ProductVariant, ProductVariantDetail, User, AlertUserProduct, AlertUser, Alert } = require("../models");
-const mailer = require('../services/mailer');
+const { connection, Category, Image, Product, ProductOption, ProductVariant, ProductVariantDetail } = require("../models");
 const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
@@ -53,25 +52,6 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 
         // Product
         const product = await Product.create(productData);
-        const idAlert = await Alert.findOne({
-            where: {
-                name: 'new_product'
-            }
-        });
-        if (idAlert) {
-            const userToPrevent = await AlertUser.findAll({
-                where: {
-                    alert_id: idAlert.id
-                }
-            });
-            if (userToPrevent) {
-                for (let i=0; i < userToPrevent.length; i++) {
-                    const user = await User.findByPk(userToPrevent[i].user_id);
-                    mailer.sendNewProductNotification(user, product);
-                }
-            }
-
-        }
 
         // Product Variant
         const productVariant = await ProductVariant.create({
@@ -149,37 +129,8 @@ router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
                 const categories = await Category.findAll({ where: { id: Categories } });
                 await product.setCategories(categories);
             }
-            if (parseInt(product.price) !== productData.price) {
-                await product.update(productData);
-                const idAlertChangePrice = await Alert.findOne({
-                    where: {
-                        name: 'change_product_price'
-                    }
-                });
 
-                if (idAlertChangePrice) {
-                    const userAlerts = await AlertUser.findAll({
-                        where: {
-                            alert_id: idAlertChangePrice.id
-                        }
-                    });
-                    const userAlertProducts = await AlertUserProduct.findAll({
-                        where: {
-                            productId: product.id
-                        }
-                    });
-                    for (let i= 0; i < userAlertProducts.length; i++) {
-                        for (let j = 0; j < userAlerts.length; j++) {
-                            if (userAlertProducts[i].alertUserId === userAlerts[j].id) {
-                                const user = await User.findByPk(userAlerts[j].user_id);
-                                mailer.sendPriceChangeNotification(user, product);
-                            }
-                        }
-                    }
-                }
-            } else {
-                await product.update(productData);
-            }
+            await product.update(productData);
 
             res.json(product);
         } else {

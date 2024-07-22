@@ -1,5 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
-const denormalizeProduct = require("../dtos/denormalization/product");
+const { denormalizeProduct } = require("../dtos/denormalization/product");
 
 module.exports = function(connection) {
     class Product extends Model {
@@ -18,11 +18,11 @@ module.exports = function(connection) {
         static addHooks(models) {
             Product.addHook("afterCreate", async (product) => {
                 await denormalizeProduct(product, models);
-                await Product.verifyDefaultCategory(product, models);
             });
 
             Product.addHook("afterUpdate", async (product, { fields }) => {
-                if (fields.includes("active") || fields.includes("price") || fields.includes("name") || fields.includes("description") || fields.includes("reference")) {
+                console.log("fieldsdazd", fields);
+                if (fields.includes("active") || fields.includes("price") || fields.includes("name") || fields.includes("description") || fields.includes("reference") || fields.includes("defaultCategoryId")) {
                     await denormalizeProduct(product, models);
                 }
             });
@@ -89,6 +89,10 @@ module.exports = function(connection) {
             active: {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
+            },
+            defaultCategoryId: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
             },
         },
         {

@@ -1,4 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
+const { denormalizeRelatedProducts } = require("../dtos/denormalization/product");
 
 module.exports = function(connection) {
     class ProductVariant extends Model {
@@ -8,6 +9,22 @@ module.exports = function(connection) {
                 through: 'ProductVariantAttributeValue',
                 as: 'attributeValues',
                 foreignKey: 'productVariantId'
+            });
+        }
+
+        static addHooks(models) {
+            ProductVariant.addHook("afterCreate", async (productVariant) => {
+                await denormalizeRelatedProducts(productVariant, models);
+            });
+
+            ProductVariant.addHook("afterUpdate", async (productVariant, { fields }) => {
+                if (fields.includes("price") || fields.includes("name") || fields.includes("active") || fields.includes("stock")) {
+                    await denormalizeRelatedProducts(productVariant, models);
+                }
+            });
+
+            ProductVariant.addHook("afterDestroy", async (productVariant) => {
+                await denormalizeRelatedProducts(productVariant, models);
             });
         }
     }

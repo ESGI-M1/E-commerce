@@ -51,13 +51,12 @@ router.post("/", upload.single('image'), async (req, res, next) => {
         if (!file) return res.status(400).send('No file uploaded.');
 
         const productVariant = await ProductVariant.findByPk(productVariantId);
-        if (!productVariant) return res.status(404).send('Product variant not found.');
 
-        console.log(file);
+        if (!productVariant) return res.status(404).send('Product variant not found.');
 
         const image = await Image.create({
             description,
-            fileName: file.filename,
+            fileName: productVariant.id + req.file.fileName,
             productVariantId: productVariant.id
         });
 
@@ -117,7 +116,6 @@ router.put("/:id", upload.single('image'), async (req, res, next) => {
 
         const [nbUpdated, images] = await Image.update({
             description,
-            fileName: file.filename,
             productVariantId: productVariant.id
         }, {
             where: {

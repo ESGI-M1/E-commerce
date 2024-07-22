@@ -247,4 +247,70 @@ router.post('/remove-promo', async (req, res, next) => {
   }
 });
 
+router.post("/hold", async (req, res, next) => {
+  try {
+    const { cartId } = req.body;
+
+    const cart = await Cart.findByPk(cartId, {
+      include: [{
+        model: CartProduct,
+        as: 'CartProducts',
+        include: [{
+          model: ProductVariant,
+          as: 'productVariant'
+        }]
+      }]
+    });
+
+    if (!cart) return res.status(404).json({ error: 'Cart not found' });
+
+    cart.heldUntil = new Date(Date.now() + 15 * 60 * 1000);
+    await cart.save();
+
+    for (const cartProduct of cart.CartProducts) {
+      const productVariant = cartProduct.productVariant;
+      if (productVariant.stock < 1) return res.status(400).json({ error: 'Not enough stock' });
+
+      productVariant.stock -= 1;
+      await productVariant.save();
+    }
+
+    res.status(200).json({ message: 'Cart reserved for 15 minutes' });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/unhold", async (req, res, next) => {
+  try {
+    const { cartId } = req.body;
+
+    const cart = await Cart.findByPk(cartId, {
+      include: [{
+        model: CartProduct,
+        as: 'CartProducts',
+        include: [{
+          model: ProductVariant,
+          as: 'productVariant'
+        }]
+      }]
+    });
+
+    if (!cart) return res.status(404).json({ error: 'Cart not found' });
+
+    cart.heldUntil = null;
+    await cart.save();
+
+    for (const cartProduct of cart.CartProducts) {
+      const productVariant = cartProduct.productVariant;
+      productVariant.stock += 1;
+      await productVariant.save();
+    }
+
+    res.status(200).json({ message: 'Cart unheld' });
+  } catch (e) {
+    next(e);
+  }
+});
+
 module.exports = router;

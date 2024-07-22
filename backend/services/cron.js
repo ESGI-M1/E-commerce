@@ -1,5 +1,6 @@
 var cron = require('node-cron');
 const mailer = require('./mailer');
+const { Op } = require("sequelize");
 const { User, Cart, CartProduct, ProductVariant } = require('../models');
 
 // every 1st day of month, check if users last password modification are later than 60 days

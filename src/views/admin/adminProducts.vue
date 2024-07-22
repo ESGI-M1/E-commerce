@@ -202,7 +202,7 @@ const isEditing = ref(false)
 const fetchProducts = async () => {
 
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`) // TODO PARSE ZOD
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`)
     products.value = productsSchema.parse(response.data)
   } catch(error) {
 

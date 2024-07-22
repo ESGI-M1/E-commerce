@@ -37,6 +37,9 @@
               <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
             </div>
           </div>
+
+          <button class="cart-button hold-cart" @click="updateCartHoldStatus(cart.id, 'hold')" v-if="!cart.heldUntil">Réserver le panier</button>
+          <button class="cart-button unhold-cart" @click="updateCartHoldStatus(cart.id, 'unhold')" v-else>Annuler la réservation</button>
         </div>
       </div>
       <div v-else>
@@ -91,8 +94,7 @@
             </p>
           </div>
         </div>
-        <button @click="checkout" class="checkout-button">Accéder au paiement</button>
-        <button @click="holdCart" class="hold-cart-button">Réserver le panier</button>
+        <button @click="checkout" class="cart-button checkout">Accéder au paiement</button>
       </div>
     </div>
   </div>
@@ -230,13 +232,16 @@ const checkout = () => {
   }
 };
 
-const holdCart = async () => {
+const updateCartHoldStatus = async (id, action) => {
   try {
     startLoading();
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts/hold`, { userId: authToken });
-    showNotification('Le panier a été réservé avec succès pendant 15 minutes', 'success');
-    fetchCartItems();
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts/${action}`, { cartId: id });
+
+    showNotification(action === 'hold'
+      ? 'Le panier a été réservé avec succès pendant 15 minutes' 
+      : 'La réservation du panier a été annulée', 'success');
   } finally {
+    fetchCartItems();
     stopLoading();
   }
 };
@@ -361,31 +366,40 @@ input[type='text'] {
   font-weight: bold;
 }
 
-.checkout-button,
-.hold-cart-button {
+.cart-button {
+  width: 100%;
   padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
+  margin-bottom: 10px;
+
   color: white;
   cursor: pointer;
-  width: 100%;
-  margin-bottom: 10px;
+  border: none;
+  border-radius: 4px;
+  transition: all 0.3s;
 }
 
-.checkout-button {
-  background-color: #000;
+.checkout {
+  background-color: #000000;
 }
 
-.checkout-button:hover {
-  background-color: #333;
+.checkout:hover {
+  background-color: #333333;
 }
 
-.hold-cart-button {
+.hold-cart {
   background-color: #2F855A;
 }
 
-.hold-cart-button:hover {
-  background-color: #2a704f;
+.hold-cart:hover {
+  background-color: #2A704F;
+}
+
+.unhold-cart {
+  background-color: #A9A9A9;
+}
+
+.unhold-cart:hover {
+  background-color: #8C8C8C;
 }
 
 .total {

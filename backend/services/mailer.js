@@ -1,5 +1,4 @@
 const nodemailer = require('nodemailer');
-//import { config } from '@vue-email/compiler';
 const compiler = require('@vue-email/compiler');
 const jwt = require('jsonwebtoken')
 
@@ -107,6 +106,20 @@ async function sendRestockNotification(user, product) {
     "Template.vue",
     user.email,
     "Restock de produit");
+}
+
+async function sendEmptyStockNotification(user, product) {
+  const content = [
+    'Bonjour ' + user.firstname + ',',
+    'Le stock du produit suivant "' + product.name + '" est vide, veillez à refaire un stock au plus vite.'
+  ];
+
+  await sendEmail(
+    "Stock vide",
+    content,
+    "Template.vue",
+    user.email,
+    "Stock vide");
 }
 
 async function sendPriceChangeNotification(user, product) {
@@ -269,6 +282,7 @@ module.exports = {
   sendNewsLetterInscription,
   sendNewProductNotification,
   sendRestockNotification,
+  sendEmptyStockNotification,
   sendNewsLetterArticle,
   sendPriceChangeNotification
 }

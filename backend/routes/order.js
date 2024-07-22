@@ -43,7 +43,13 @@ router.get('/own', checkAuth, async (req, res, next) => {
 
           if (!orderMap[orderId]) {
               const order = await Order.findByPk(orderId);
-              if (order) {
+              const payment = await PaymentMethod.findOne({
+                where: {
+                  orderId: orderId,
+                  userId: userId,
+                },
+              });
+              if (order && payment) {
                   orderMap[orderId] = {
                       id: order.id,
                       userId: order.userId,
@@ -53,6 +59,8 @@ router.get('/own', checkAuth, async (req, res, next) => {
                       updatedAt: order.updatedAt,
                       carts: []
                   };
+              } else {
+                res.sendStatus(404);
               }
           }
       }

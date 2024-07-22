@@ -3,14 +3,14 @@
   <BreadCrumb v-if="false" :category="product.Categories[0]" />
 
   <div v-if="product" class="product-page">
-    <div class="selected-variant" v-if="selectedVariant.images">
-      <template v-for="image in selectedVariant.images" :key="image.id">
-        <img
-          class="product-image"
-          :src="imageUrl + image.id" 
-          :alt="image.description"
-        />
-      </template>
+    <div v-if="selectedVariant" class="slider-container">
+      <div class="slider" ref="slider">
+        <div class="slide" v-for="image in selectedVariant.images" :key="image.id">
+          <img class="product-image" :src="imageUrl + image.id" :alt="image.description"/>
+        </div>
+      </div>
+      <button @click="prevSlide" class="slider-button prev-button"><</button>
+      <button @click="nextSlide" class="slider-button next-button">></button>
     </div>
 
     <div class="product-infos">
@@ -64,6 +64,9 @@ const isFavorite = ref(false)
 const productId = route.params.id
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const showNotification = inject('showNotification');
+
+const slider = ref(null)
+const currentSlide = ref(0)
 
 const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
@@ -236,6 +239,20 @@ const addToCart = async (quantity: number) => {
   }
 };
 
+const nextSlide = () => {
+  if (slider.value) {
+    currentSlide.value = (currentSlide.value + 1) % selectedVariant.value.images.length;
+    slider.value.style.transform = `translateX(-${currentSlide.value * 100}%)`;
+  }
+};
+
+const prevSlide = () => {
+  if (slider.value) {
+    currentSlide.value = (currentSlide.value - 1 + selectedVariant.value.images.length) % selectedVariant.value.images.length;
+    slider.value.style.transform = `translateX(-${currentSlide.value * 100}%)`;
+  }
+};
+
 onMounted(() => {
   fetchProduct();
 });
@@ -340,6 +357,41 @@ onMounted(() => {
   padding: 5px;
   border: 1px solid #ddd;
   border-radius: 5px;
+}
+
+.slider-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.slider {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.slide {
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.slider-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.prev-button {
+  left: 10px;
+}
+
+.next-button {
+  right: 10px;
 }
 
 @media (max-width: 768px) {

@@ -129,7 +129,7 @@ const downloadInvoice = async (orderId) => {
     link.click();
     document.body.removeChild(link);
   } catch (error) {
-    console.error('Error downloading invoice:', error);
+    console.error('Erreur lors du téléchargement de la facture :', error);
     showNotification('Échec du téléchargement de la facture', 'error');
   }
 };

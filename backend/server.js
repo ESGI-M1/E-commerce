@@ -1,5 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const path = require('path');
+require('dotenv').config();
 
 const checkAuth = require("./middlewares/checkAuth");
 const bodyParser = require('body-parser');
@@ -26,6 +28,7 @@ const AddressUserRouter = require("./routes/addressUser");
 const StatsRouter = require("./routes/stats");
 const ShopRouter = require("./routes/shop");
 const handleStripeWebhook = require('./stripe/stripeWebhook');
+const handleStripeInvoice = require('./stripe/stripeInvoice');
 const AttributeRouter = require("./routes/attribute");
 
 const app = express();
@@ -56,7 +59,8 @@ app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
 app.post("/webhook", bodyParser.raw({ type: "application/json" }), handleStripeWebhook);
-app.use('/stripe', StripeRouter);
+app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
+app.use('/stripe', StripeRouter, handleStripeInvoice);
 app.use('/alerts', AlertsRouter);
 app.use('/newsletters', NewsLetterRouter);
 app.use('/paypal', PaypalRouter);

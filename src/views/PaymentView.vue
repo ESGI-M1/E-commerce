@@ -276,7 +276,7 @@ const handlePayment = async (payment: string) => {
 
       if (payment == 'stripe') {
         const stripePromise = loadStripe(
-          'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
+          `${import.meta.env.VITE_PUBLIC_KEY_STRIPE}`
         )
       const stripe = await stripePromise;
       console.log(carts.value[0].CartProducts)

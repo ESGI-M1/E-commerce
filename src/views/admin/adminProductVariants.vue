@@ -188,7 +188,7 @@ const productVariantSchema = z.object({
   active: z.boolean(),
   default: z.boolean(),
   attributeValues: z.array(attributeValueSchema).optional(),
-  images: imagesSchema
+  images: imagesSchema.optional()
 })
 
 const productVariantsSchema = z.array(

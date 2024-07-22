@@ -29,7 +29,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="returnProduct in filteredReturnProducts" :key="returnProduct.id">
+          <tr v-if="filteredReturnProducts.length > 0" v-for="returnProduct in filteredReturnProducts" :key="returnProduct.id">
             <td>{{ returnProduct.id }}</td>
             <td>{{ formatReturnDate(returnProduct.createdAt) }}</td>
             <td>n°{{ returnProduct.orderId }}</td>
@@ -67,6 +67,9 @@
               </fancy-confirm>
             </td>
           </tr>
+          <tr v-else>
+          <td class="empty" colspan="8">Aucun retour de produit trouvé</td>
+        </tr>
         </tbody>
       </table>
     </div>

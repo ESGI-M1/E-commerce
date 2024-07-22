@@ -32,7 +32,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in filteredProducts" :key="product.id">
+        <tr v-if="filteredProducts.length > 0"v-for="product in filteredProducts" :key="product.id">
           <td>
             <label class="image-upload">
               <input
@@ -80,6 +80,9 @@
           </fancy-confirm>
           </div>
           </td>
+        </tr>
+        <tr v-else>
+          <td class="empty" colspan="9">Aucun produit trouvé</td>
         </tr>
       </tbody>
     </table>

@@ -56,7 +56,7 @@
               <li v-for="category in product.Categories" :key="category.id">{{ category.name }}</li>
             </ul>
           </td>
-          <td>{{ product.defaultCategoryId ? categories.find((c) => c.id === product.defaultCategoryId).name : '' }}</td>
+          <td>{{ product.defaultCategoryId ? categories.find((c) => c.id === product.defaultCategoryId)?.name : '' }}</td>
           <td>
             <i :class="product.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
           </td>

@@ -81,7 +81,6 @@
           <div class="form-group">
             <label for="parentCategoryId">Catégorie Parent</label>
             <select v-model="currentCategory.parentCategoryId" id="parentCategoryId">
-              <option value="">Aucune</option>
               <option v-for="category in categories" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
@@ -131,7 +130,10 @@ const categorySchema = z.object({
   active: z.boolean().optional(),
   description: z.string().optional(),
   parentCategoryId: z.number().nullable(),
-  Products: z.array(z.number())
+  Products: z.array(z.object({
+    id: z.number(),
+    name: z.string()
+  })).optional()
 })
 
 const categoriesSchema = z.array(categorySchema)
@@ -169,7 +171,6 @@ const filteredCategories = computed(() => {
 })
 
 const fetchCategories = async () => {
-
   try{
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
     const parsedCategory = categoriesSchema.parse(response.data)

@@ -76,7 +76,6 @@ async function denormalizeRelatedProducts(entity, models) {
         products = await Product.findAll({
             include: [
                 { model: Category, where: { id: entity.id } },
-                { model: ProductVariant },
             ]
         });
     } else if (entity instanceof models.Image) {

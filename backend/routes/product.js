@@ -1,6 +1,6 @@
 const { Router } = require("express");
-const { Op} = require("sequelize");
 const { Category, Image, Product, ProductVariant, User, AlertUser, Alert, AttributeValue, Attribute } = require("../models");
+const ProductMongo = require("../mongo/product");
 const mailer = require('../services/mailer');
 const checkRole = require("../middlewares/checkRole");
 
@@ -66,7 +66,7 @@ router.get("/admin", checkRole({ roles: "admin" }), async (req, res, next) => {
 
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id(\\d+)", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);
         
@@ -105,24 +105,49 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
-router.get("/search", async (req, res) => {
-    try{
-        const { q } = req.query;
-        const products = await Product.findAll({
-            where: {
-                name: {
-                    [Op.iLike]: `%${q}%`,
-                },
-                active: true,
-            },
-        });
-        res.json(products);
-        
-    } catch (e) {
-        next(e);
-    }
+router.get('/search', async (req, res, next) => {
+    try {
+        const { q, minPrice, maxPrice, category, inStock } = req.query;
 
+        const filter = { active: true };
+
+        if (q) {
+            filter.$or = [
+                { name: new RegExp(q, 'i') },
+                { description: new RegExp(q, 'i') }
+            ];
+        }
+
+        if (category) {
+            filter['Categories.id'] = Number(category);
+        }
+
+        const variantFilter = {
+            $elemMatch: {
+                active: true,
+            }
+        };
+
+        if (minPrice || maxPrice) {
+            variantFilter.$elemMatch.price = {};
+            if (minPrice) variantFilter.$elemMatch.price.$gte = Number(minPrice);
+            if (maxPrice) variantFilter.$elemMatch.price.$lte = Number(maxPrice);
+        }
+
+        if (inStock) {
+            variantFilter.$elemMatch.stock = { $gt: 0 };
+        }
+
+        filter['variants'] = variantFilter;
+
+        const products = await ProductMongo.find(filter).lean().exec();
+        res.json(products);
+    } catch (error) {
+        console.error('Error:', error);
+        next(error);
+    }
 });
+
 
 router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {

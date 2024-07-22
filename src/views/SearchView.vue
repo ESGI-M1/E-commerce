@@ -13,16 +13,5 @@ const productsStore = useProductsStore()
       <span v-if="productsStore.filter.name">{{ productsStore.filter.name }}</span>
     </h1>
   </div>
-
-  <div class="product-grid">
-    <ProductList />
-  </div>
+  <ProductList />
 </template>
-
-<style>
-.product-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-</style>

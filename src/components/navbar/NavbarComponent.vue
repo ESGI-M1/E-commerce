@@ -26,8 +26,8 @@
       <!-- Search Bar -->
       <input
         type="text"
-        v-model="search"
-        @input="searchProducts"
+        v-model="productsStore.filter.q"
+        @input="applyFilters"
         placeholder="Rechercher"
         class="search-bar"
       />
@@ -64,19 +64,15 @@ const shopStore = useShopStore()
 const search = ref('')
 const cartsNumber = ref(null)
 
-const searchProducts = async () => {
-  // route search
-  try {
-    axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/search?q=${search.value}`)
-    .then(response => {
-      router.push('/search?q=' + search.value)
-      productsStore.setProducts(response.data)
-      productsStore.setFilter({ name: search.value })
-    })
-  } catch (error) {
-    console.error('Error fetching products:', error)
+const applyFilters = () => {
+
+productsStore.fetchProducts();
+router.push({
+  query: {
+    q: productsStore.filter.q,
   }
-}
+});
+};
 
 const fetchCartItems = async () => {
   const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')

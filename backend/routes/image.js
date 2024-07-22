@@ -15,14 +15,14 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        const filename = `${req.body.productName}${ext}`;
+        const filename = `${req.body.productVariantId}-${file.originalname}`;
         cb(null, filename);
     }
 });
 
 const upload = multer({ storage });
 
+// Route pour obtenir toutes les images
 router.get("/", async (req, res, next) => {
     try {
         const images = await Image.findAll({
@@ -34,6 +34,7 @@ router.get("/", async (req, res, next) => {
     }
 });
 
+// Route pour obtenir une image par ID
 router.get("/:id", async (req, res, next) => {
     try {
         const image = await Image.findByPk(req.params.id);
@@ -43,6 +44,7 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
+// Route pour uploader une nouvelle image
 router.post("/", upload.single('image'), async (req, res, next) => {
     try {
         const { description, productVariantId } = req.body;
@@ -56,7 +58,7 @@ router.post("/", upload.single('image'), async (req, res, next) => {
 
         const image = await Image.create({
             description,
-            fileName: productVariant.id + req.file.fileName,
+            fileName: `${productVariant.id}-${file.originalname}`,
             productVariantId: productVariant.id
         });
 
@@ -66,31 +68,59 @@ router.post("/", upload.single('image'), async (req, res, next) => {
     }
 });
 
-router.patch("/:id", async (req, res, next) => {
+// Route pour mettre à jour une image
+router.patch("/:id", upload.single('image'), async (req, res, next) => {
     try {
-        const [nbUpdated, images] = await Image.update(req.body, {
-            where: {
-                id: parseInt(req.params.id),
-            },
-            returning: true,
-        });
-        nbUpdated === 1 ? res.json(images[0]) : res.sendStatus(404);
+        const image = await Image.findByPk(req.params.id);
+        if (!image) return res.status(404).send('Image not found.');
+
+        // Supprimer le fichier précédent
+        fs.unlinkSync(path.join(__dirname, '../uploads/images', image.fileName));
+
+        const { description, productVariantId } = req.body;
+        const file = req.file;
+
+        if (file) {
+            const productVariant = await ProductVariant.findByPk(productVariantId);
+            if (!productVariant) return res.status(404).send('Product variant not found.');
+
+            const [nbUpdated, images] = await Image.update({
+                description,
+                fileName: `${productVariant.id}-${file.originalname}`,
+                productVariantId: productVariant.id
+            }, {
+                where: { id: parseInt(req.params.id) },
+                returning: true,
+            });
+
+            nbUpdated === 1 ? res.json(images[0]) : res.sendStatus(404);
+        } else {
+            const [nbUpdated, images] = await Image.update({
+                description,
+                productVariantId
+            }, {
+                where: { id: parseInt(req.params.id) },
+                returning: true,
+            });
+
+            nbUpdated === 1 ? res.json(images[0]) : res.sendStatus(404);
+        }
     } catch (e) {
         next(e);
     }
 });
 
+// Route pour supprimer une image
 router.delete("/:id", async (req, res, next) => {
     try {
         const image = await Image.findByPk(req.params.id);
         if (!image) return res.sendStatus(404);
 
+        // Supprimer le fichier associé
         fs.unlinkSync(path.join(__dirname, '../uploads/images', image.fileName));
 
         const nbDeleted = await Image.destroy({
-            where: {
-                id: parseInt(req.params.id),
-            },
+            where: { id: parseInt(req.params.id) },
         });
 
         nbDeleted === 1 ? res.sendStatus(204) : res.sendStatus(404);
@@ -99,6 +129,7 @@ router.delete("/:id", async (req, res, next) => {
     }
 });
 
+// Route pour mettre à jour une image (avec nouvelle image)
 router.put("/:id", upload.single('image'), async (req, res, next) => {
     try {
         const image = await Image.findByPk(req.params.id);
@@ -107,24 +138,24 @@ router.put("/:id", upload.single('image'), async (req, res, next) => {
         // Supprimer le fichier précédent
         fs.unlinkSync(path.join(__dirname, '../uploads/images', image.fileName));
 
-        const { description, productId } = req.body;
+        const { description, productVariantId } = req.body;
         const file = req.file;
+
         if (!file) return res.status(400).send('No file uploaded.');
 
-        const productVariant = await ProductVariant.findByPk(productId);
+        const productVariant = await ProductVariant.findByPk(productVariantId);
         if (!productVariant) return res.status(404).send('Product variant not found.');
 
         const [nbUpdated, images] = await Image.update({
             description,
+            fileName: `${productVariant.id}-${file.originalname}`,
             productVariantId: productVariant.id
         }, {
-            where: {
-                id: parseInt(req.params.id),
-            },
+            where: { id: parseInt(req.params.id) },
             returning: true,
         });
 
-        nbUpdated === 1 ? res.status(200).json(images[0]) : res.status(201).json(images[0]);
+        nbUpdated === 1 ? res.json(images[0]) : res.sendStatus(404);
     } catch (e) {
         next(e);
     }
@@ -142,7 +173,7 @@ router.get("/variant/:id", async (req, res, next) => {
 
         if (!productVariant) return res.sendStatus(404);
 
-        if(!productVariant.active) return res.sendStatus(403);
+        if (!productVariant.active) return res.sendStatus(403);
 
         const filePath = path.join(__dirname, '../uploads/images', image.fileName);
         fs.existsSync(filePath) ? res.sendFile(filePath) : res.sendStatus(404);

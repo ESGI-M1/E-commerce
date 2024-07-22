@@ -53,7 +53,7 @@ router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
                 },
                 {
                     model: Category,
-                    as: 'parentCategory',
+                    as: 'subCategories',
                 }
             ],
         });

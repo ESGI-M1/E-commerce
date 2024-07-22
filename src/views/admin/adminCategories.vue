@@ -124,16 +124,6 @@ import { load } from '../../components/loading/loading';
 const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
 
-interface Category {
-  id?: number
-  name: string
-  slug: string
-  active?: boolean
-  description?: string
-  parentCategoryId?: number | null
-  Products: number[]
-}
-
 const categorySchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Le nom est requis'),
@@ -143,6 +133,10 @@ const categorySchema = z.object({
   parentCategoryId: z.number().nullable(),
   Products: z.array(z.number())
 })
+
+const categoriesSchema = z.array(categorySchema)
+
+type Category = z.infer<typeof categorySchema>
 
 const categories = ref<Category[]>([])
 const currentCategory = ref<Category>({
@@ -175,8 +169,17 @@ const filteredCategories = computed(() => {
 })
 
 const fetchCategories = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
-  categories.value = response.data
+
+  try{
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
+    const parsedCategory = categoriesSchema.parse(response.data)
+    categories.value = parsedCategory
+  } catch (error) {
+    if (error instanceof ZodError) {
+        console.error(error.errors)
+    }
+    console.error(error)
+  }
 }
 
 const fetchProducts = async () => {
@@ -187,8 +190,7 @@ const fetchProducts = async () => {
 const addCategory = async () => {
 
   try{
-
-    categorySchema.parse(currentCategory.value)
+    const parsedCategory = categorySchema.parse(currentCategory.value);
     axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
       .then(response => {
         categories.value.push(response.data)
@@ -211,7 +213,7 @@ const updateCategory = async () => {
       
     const parsedCategory = categorySchema.parse(currentCategory.value)
     axios.patch(`${import.meta.env.VITE_API_BASE_URL}/categories/${currentCategory.value.id}`, parsedCategory)
-      .then(response => {
+      .then(() => {
         const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
         if (index !== -1) {
           categories.value[index] = currentCategory.value
@@ -231,9 +233,9 @@ const updateCategory = async () => {
 const deleteCategory = async (category: Category) => {
   try {
     startLoading();
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
-  categories.value = categories.value.filter((cat) => cat.id !== category.id)
-  showNotification('Catégorie supprimée avec succès', 'success');
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
+    categories.value = categories.value.filter((cat) => cat.id !== category.id)
+    showNotification('Catégorie supprimée avec succès', 'success');
   } finally {
     stopLoading();
   }

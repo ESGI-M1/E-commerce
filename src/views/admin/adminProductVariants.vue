@@ -1,4 +1,10 @@
 <template>
+  <div class="return">
+    <RouterLink :to="{ name: 'Produits' }">
+      <i class="fa fa-arrow-left"></i> Retour
+    </RouterLink>
+  </div>
+
   <div class="products">
     <div class="div-header">
       <h1>Déclinaisons : {{ productVariants.length }}</h1>
@@ -26,6 +32,7 @@
           <td>{{ variant.stock }}</td>
           <td>
             <span v-for="(attributeValue, index) in variant.attributeValues" :key="index">
+              {{ attributeValue.value }}
               <span v-if="index < variant.attributeValues.length - 1">, </span>
             </span>
           </td>
@@ -33,13 +40,16 @@
             <i :class="variant.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
           </td>
           <td>
-            <span @click="changeDefaultVariant(variant.id)">
+            <span @click="changeDefaultVariant(variant.id)" class="default-variant-button">
               <i :class="variant.default ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
             </span>
           </td>
           <td>
             <button @click="isEditing = true; currentVariant = variant; showVariantModal('variant');" class="btn btn-primary">
               <i class="fa fa-edit"></i>
+            </button>
+            <button @click="currentVariant = variant; showModalImage = true;" class="btn btn-info">
+              <i class="fa fa-image"></i>
             </button>
             <fancy-confirm
               :class="'a-danger'"
@@ -83,6 +93,21 @@
           </select>
         </div>
         <div class="form-group">
+          <label for="active">Actif</label>
+          <input type="checkbox" v-model="currentVariant.active" id="active" />
+        </div>
+      </form>
+    </Modal>
+
+    <Modal v-if="showModalImage" @close="showModalImage = false" title="Ajouter une image" :onSave="() => uploadImage(currentVariant.id)" :noShowFooter="true">
+      <div class="images">
+        <div v-for="(image, index) in currentVariant.images" :key="index">
+          <p>{{ image.description }}</p>
+          <img :src="imageUrl + image.id" :alt="image.description" />
+        </div>
+      </div>
+      <form @submit.prevent="uploadImage(currentVariant.id)">
+        <div class="form-group images">
           <label for="imageFile">Image</label>
           <input type="file" @change="handleFileUpload" id="imageFile" accept="image/*" />
           <div v-if="imagePreview" class="image-preview">
@@ -93,12 +118,10 @@
           <label for="imageDescription">Description de l'image</label>
           <input type="text" v-model="imageDescription" id="imageDescription" />
         </div>
-        <div class="form-group">
-          <label for="active">Actif</label>
-          <input type="checkbox" v-model="currentVariant.active" id="active" />
-        </div>
+        <button type="submit" class="btn btn-success">Ajouter</button>
       </form>
     </Modal>
+
   </div>
 
 
@@ -118,8 +141,10 @@ const route = useRoute();
 const productId = parseInt(route.params.productId)
 
 const showModal = ref(false)
+const showModalImage = ref(false)
 const isEditing = ref(false)
 const modalName = ref('')
+const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
 const productSchema = z.object({
   id: z.number().optional(),
@@ -145,6 +170,15 @@ const attributesSchema = z.array(
   attributeSchema
 )
 
+const imageSchema = z.object({
+  id: z.number(),
+  description: z.string().min(1, 'La description est requise'),
+})
+
+const imagesSchema = z.array(
+  imageSchema
+)
+
 const productVariantSchema = z.object({
   id: z.number().optional(),
   productId: z.number(),
@@ -153,7 +187,8 @@ const productVariantSchema = z.object({
   stock: z.number().min(0, 'Le stock doit être supérieur ou égal à 0').optional(),
   active: z.boolean(),
   default: z.boolean(),
-  attributeValues: z.array(attributeValueSchema).optional()
+  attributeValues: z.array(attributeValueSchema).optional(),
+  images: imagesSchema
 })
 
 const productVariantsSchema = z.array(
@@ -198,6 +233,10 @@ const showVariantModal = (modal: string) => {
       attributeValues: []
     }
   }
+}
+
+const showImageModal = () => {
+  showModalImage.value = true
 }
 
 const fetchAttributes = async () => {
@@ -267,9 +306,11 @@ const uploadImage = async (productVariantId: number) => {
       formData.append('image', selectedImage.value);
       formData.append('description', imageDescription.value);
       
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/images`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/images`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      currentVariant.value.images.push(imageSchema.parse(response.data));
+
       showNotification('Image ajoutée avec succès', 'success');
     }
   } catch (error) {
@@ -446,4 +487,19 @@ img {
 .text-danger {
   color: red;
 }
+
+.default-variant-button:hover{
+  cursor: pointer;
+}
+
+.images {
+  display: flex;
+  gap: 10px;
+}
+
+.images img {
+  width: 100px;
+  height: 100px;
+}
+
 </style>

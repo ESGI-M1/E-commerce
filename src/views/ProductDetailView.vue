@@ -7,7 +7,7 @@
       <template v-for="image in selectedVariant.images" :key="image.id">
         <img
           class="product-image"
-          :src="imageUrl + `/images/variant/${image.id}`" 
+          :src="imageUrl + image.id" 
           :alt="image.description"
         />
       </template>
@@ -65,7 +65,7 @@ const productId = route.params.id
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const showNotification = inject('showNotification');
 
-const imageUrl = import.meta.env.VITE_API_BASE_URL;
+const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
 const categorySchema = z.object({
   id: z.number(),

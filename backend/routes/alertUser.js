@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { User, AlertUser, Alert, AlertUserProduct, Product } = require("../models");
+const { User, AlertUser, Alert, AlertUserProduct } = require("../models");
 const mailer = require('../services/mailer');
 const router = new Router();
 
@@ -115,7 +115,6 @@ router.post("/:id/user/:userId", async (req, res, next) => {
   }
 });
 
-// /:userId/:id/:productId
 router.post("/:id/user/:userId/product/:productId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
@@ -166,7 +165,6 @@ router.delete("/:id/user/:userId", async (req, res, next) => {
   }
 });
 
-// /:userId/:id/:productId
 router.delete("/:id/user/:userId/product/:productId", async (req, res, next) => {
   try {
     const userId = req.params.userId;

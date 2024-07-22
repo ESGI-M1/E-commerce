@@ -38,6 +38,7 @@ import Returns from '../views/admin/adminReturns.vue'
 import Alerts from '../views/AlertsView.vue'
 import NewsLetter from '../views/NewsLetterView.vue'
 import Shop from '../views/admin/adminShop.vue'
+import LegalNotice from '@/views/LegalNoticeView.vue'
 
 const routes = [
   {
@@ -225,6 +226,11 @@ const routes = [
     path: '/page/:slug',
     name: 'Page',
     component: Page
+  },
+  {
+    path: '/legalnotice',
+    name: 'LegalNotice',
+    component: LegalNotice
   }
 ]
 

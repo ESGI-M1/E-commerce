@@ -7,8 +7,8 @@
           {{ shopStore.name }}
           <li><RouterLink :to="{ name: 'Page', params: { slug: 'cgu' } }">Conditions générales d'utilisation</RouterLink></li>
           <li><RouterLink :to="{ name: 'Page', params: { slug: 'cgv' } }">Conditions générales de vente</RouterLink></li>
-          <li><RouterLink :to="{ name: 'Page', params: { slug: 'legalNotice' } }">Mentions légales</RouterLink></li>
           <li><RouterLink :to="{ name: 'Page', params: { slug: 'rgpd' } }">Politique de confidentialité</RouterLink></li>
+          <li><RouterLink :to="{ name: 'LegalNotice'}">MentionsLegales</RouterLink></li>
         </ul>
       </div>
 

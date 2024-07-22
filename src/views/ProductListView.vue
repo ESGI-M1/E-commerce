@@ -6,31 +6,30 @@
         v-for="product in filteredProducts"
         :key="product.id"
         class="product-card"
-        @click="showProductDetails(product.id)"
       >
-        <div v-if="product.variants && product.variants.length">
-          <!-- Obtenez la variante filtrée -->
-          <template v-if="getDefaultVariantToDisplay(product)">
-            <div>
-              <img
-                v-if="getDefaultVariantToDisplay(product).images.length"
-                :src="`${imageUrl}${getDefaultVariantToDisplay(product).images[0].id}`"
-                :alt="getDefaultVariantToDisplay(product).images[0].description"
-                class="product-image"
-              />
-              <div class="product-info">
-                <h2 class="product-name">{{ product.name }}</h2>
-                <p class="product-description">{{ product.description }}</p>
-                <p class="product-variant-name">{{ getDefaultVariantToDisplay(product).name }}</p>
-                <p class="product-price">{{ getDefaultVariantToDisplay(product).price }}€</p>
-                <!-- Affichez le nombre de variantes filtrées -->
-                <p class="product-variants-count">
-                  Nombre de déclinaisons possibles : {{ countFilteredVariants(product) }}
-                </p>
+        <RouterLink :to="{ name: 'ProductDetail', params: { id: product._id } }">
+          <div v-if="product.variants && product.variants.length">
+            <template v-if="getDefaultVariantToDisplay(product)">
+              <div>
+                <img
+                  v-if="getDefaultVariantToDisplay(product).images.length"
+                  :src="`${imageUrl}${getDefaultVariantToDisplay(product).images[0].id}`"
+                  :alt="getDefaultVariantToDisplay(product).images[0].description"
+                  class="product-image"
+                />
+                <div class="product-info">
+                  <h2 class="product-name">{{ product.name }}</h2>
+                  <p class="product-description">{{ product.description }}</p>
+                  <p class="product-variant-name">{{ getDefaultVariantToDisplay(product).name }}</p>
+                  <p class="product-price">{{ getDefaultVariantToDisplay(product).price }}€</p>
+                  <p class="product-variants-count">
+                    Nombre de déclinaisons possibles : {{ countFilteredVariants(product) }}
+                  </p>
+                </div>
               </div>
-            </div>
-          </template>
-        </div>
+            </template>
+          </div>
+        </RouterLink>
       </div>
     </div>
   </div>

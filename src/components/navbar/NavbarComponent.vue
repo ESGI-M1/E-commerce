@@ -39,7 +39,7 @@
           <RouterLink :to="{ name: 'Profile' }" class="dropdown-item">Mon profil</RouterLink>
           <RouterLink :to="{ name: 'Favoris' }" class="dropdown-item">Mes favoris</RouterLink>
           <RouterLink :to="{ name: 'Ressources' }" class="dropdown-item">Gestion des ressources</RouterLink>
-          <RouterLink :to="{ name: 'Commandes' }" class="dropdown-item">Historique des commandes</RouterLink>
+          <RouterLink :to="{ name: 'Historique des commandes' }" class="dropdown-item">Historique des commandes</RouterLink>
           <RouterLink :to="{ name: 'Alertes' }" class="dropdown-item">Mes alertes</RouterLink>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>

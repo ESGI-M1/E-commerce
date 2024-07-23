@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, ProductVariant } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, ProductVariant, AttributeValue } = require("../models");
 const router = new Router();
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
@@ -84,6 +84,10 @@ router.get('/:id', checkAuth, async (req, res, next) => {
                 {
                   model: Image,
                   as: 'images',
+                },
+                {
+                  model: AttributeValue,
+                  as: 'attributeValues',
                 },
                 {
                   model: Product,

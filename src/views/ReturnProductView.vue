@@ -7,8 +7,13 @@
         <p>
           <strong>Commande n°{{ orderId }}</strong>
         </p>
-        <p v-if="variantOption && productVariant">
-          Produit retourné : <span>{{ productVariant.product.name }} | {{ productVariant.name }} | {{ variantOption.color }} | {{ variantOption.size }}</span>
+        <p v-if="productVariant">
+          Produit retourné : <span>{{ productVariant.Product.name }} | {{ productVariant.reference }} |           
+            <span v-for="(attributeValue, index) in productVariant.attributeValues" :key="index">
+              {{ attributeValue.value }}
+              <span v-if="index < productVariant.attributeValue - 1">, </span>
+            </span>
+          </span>
         </p>
         <p v-if="statut">
           Statut : <span>{{ statut }}</span>

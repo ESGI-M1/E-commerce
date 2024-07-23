@@ -220,13 +220,15 @@ const titleModal = {
 };
 
 const showVariantModal = (modal: string) => {
-  showModal.value = true
-  modalName.value = modal
+  showModal.value = true;
+  modalName.value = modal;
 
-  if(isEditing.value) {
-    console.log(currentVariant.value)
+  if (isEditing.value) {
+    currentAttributes.value = currentVariant.value.attributeValues.map((attrValue) => {
+      return attributes.value.find((attr) => attr.values.some((val) => val.id === attrValue.id));
+    }).filter(attr => attr !== undefined);
   } else {
-    currentAttributes.value = []
+    currentAttributes.value = [];
     currentVariant.value = {
       productId: productId,
       reference: '',
@@ -235,9 +237,11 @@ const showVariantModal = (modal: string) => {
       active: true,
       default: false,
       attributeValues: []
-    }
+    };
   }
-}
+};
+
+
 const fetchAttributes = async () => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/attributes`)

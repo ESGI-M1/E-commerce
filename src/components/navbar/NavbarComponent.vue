@@ -120,6 +120,8 @@ onMounted(() => {
   width: 100%;
   box-sizing: border-box;
   border-bottom: 1px solid #ddd;
+  position: fixed;
+  top: 0;
 }
 
 .navbar-section {

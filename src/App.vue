@@ -14,15 +14,10 @@ const notificationType = inject('notificationType', ref(''));
 </script>
 
 <template>
-  <div>
+  <div :class="{ mobile: isMobile }">
     <Sidebar v-if="$route.meta.requiresAdmin || isMobile" />
     <Navbar />
-    <div
-      :style="{
-        marginLeft: $route.meta.requiresAdmin && !isMobile ? sidebarWidth : '0',
-        transition: 'margin-left 0.3s ease'
-      }"
-    >
+    <div id="page-content" :style="{ marginLeft: $route.meta.requiresAdmin && !isMobile ? sidebarWidth : '0' }">
       <router-view />
     </div>
   </div>
@@ -37,6 +32,7 @@ const notificationType = inject('notificationType', ref(''));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+  overflow-x: auto;
 }
 
 #nav {
@@ -50,6 +46,11 @@ const notificationType = inject('notificationType', ref(''));
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+#page-content {
+  margin-top: 48px;
+  transition: margin-left 0.3s ease;
 }
 
 .background {

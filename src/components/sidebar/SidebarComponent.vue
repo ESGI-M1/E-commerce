@@ -22,7 +22,7 @@ import { collapsed, toggleSidebar, sidebarWidth, isMobile } from './state'
     <hr>
     <SidebarLink to="/admin/shop" icon="fas fa-store">Boutique</SidebarLink>
   </div>
-  <span class="collapse-icon" :class="{ 'rotate-180': collapsed }" @click="toggleSidebar">
+  <span v-if="!isMobile" class="collapse-icon" :class="{ 'rotate-180': collapsed }" @click="toggleSidebar">
       <i class="fas fa-angle-double-left" />
     </span>
 </template>
@@ -42,7 +42,7 @@ import { collapsed, toggleSidebar, sidebarWidth, isMobile } from './state'
   float: left;
   position: fixed;
   z-index: 1;
-  top: 58px;
+  top: 48px;
   left: 0;
   bottom: 0;
   padding: 0.5em;

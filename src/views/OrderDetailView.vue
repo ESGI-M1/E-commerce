@@ -96,7 +96,7 @@ const fetchOrder = async () => {
           })
 
           if (returnProduct.data && typeof returnProduct.data === 'object') {
-            cart.variantOption.returned = returnProduct.data
+            cart.productVariant.returned = returnProduct.data
           }
         }
       }
@@ -138,8 +138,8 @@ const downloadInvoice = async () => {
   }
 };
 
-const returnItem = (orderId: number, variantOptionId: number) => {
-  router.push({ name: 'ReturnProducts', params: { orderId: orderId, variantOptionId: variantOptionId } })
+const returnItem = (orderId: number, productVariantId: number) => {
+  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productVariantId: productVariantId } })
 }
 
 const formatDate = (dateStr: string) => {
@@ -153,7 +153,6 @@ const formatHeure = (dateStr: string) => {
 }
 
 const addToCart = async (id: number, quantity: number) => {
-  console.log(id)
   await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
     userId: authToken,
     variantOptionId: id,

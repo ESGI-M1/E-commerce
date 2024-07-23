@@ -86,14 +86,14 @@ router.get("/:productVariantId", checkAuth, async (req, res, next) => {
       }
     });
 
-    returnProduct ? res.json(returnProduct) : res.sendStatus(404);
+    returnProduct ? res.json(returnProduct) : res.sendStatus(200);
   } catch (e) {
     next(e);
   }
 });
 
 router.delete("/", checkAuth, async (req, res) => {
-  const { variantOptionId, orderId } = req.query;
+  const { productVariantId, orderId } = req.query;
   const userId = req.user.id;
 
   if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
@@ -102,7 +102,7 @@ router.delete("/", checkAuth, async (req, res) => {
      where: {
        userId: userId,
        orderId: parseInt(orderId),
-       variantOptionId: parseInt(variantOptionId),
+       productVariantId: parseInt(productVariantId),
      }
   });
 

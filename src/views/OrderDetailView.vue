@@ -29,9 +29,9 @@
       </div>
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
       <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
-        <div v-if="false && cartProduct.variantOption.productVariant.images && cartProduct.variantOption.productVariant.images.length > 0" class="product-image-container">
-          <img :src="cartProduct.variantOption.productVariant.images[0].url ? cartProduct.variantOption.productVariant.images[0].url : '../../produit_avatar.jpg'"
-               :alt="cartProduct.variantOption.productVariant.images[0].description ? cartProduct.variantOption.productVariant.images[0].description : cartProduct.variantOption.productVariant.name"
+        <div v-if="cartProduct.productVariant.images && cartProduct.productVariant.images.length > 0" class="product-image-container">
+          <img :src="imageUrl + cartProduct.productVariant.images[0].id"
+               :alt="cartProduct.productVariant.images[0].description"
                class="product-image" />
         </div>
         <div class="item-details" @click="showProductDetails(cartProduct.productVariant.Product.id)">
@@ -77,6 +77,7 @@ const route = useRoute()
 const router = useRouter()
 const orderId = route.params.id
 const order = ref<any>(null)
+const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 

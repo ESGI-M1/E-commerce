@@ -231,22 +231,4 @@ form {
 .buttons button {
   margin-right: 10px;
 }
-
-.filters {
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.filters div {
-  display: flex;
-  flex-direction: column;
-}
-
-.filters input {
-  margin-right: 10px;
-  padding: 8px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
 </style>

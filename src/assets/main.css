@@ -2,7 +2,6 @@
 @import './components/button.css';
 @import './components/a.css';
 @import './layout/modal.css';
-@import './layout/table.css';
 @import 'animation.css';
 
 #app {
@@ -22,8 +21,28 @@
   font-size: 20px;
 }
 
+table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
 th {
   font-weight: bold;
+  background-color: #f2f2f2;
+}
+
+.empty {
+  background-color: #f0f0f0;
+  text-align: center;
 }
 
 a.icon {
@@ -75,7 +94,33 @@ a.icon:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.mobile .div-header {
+  flex-direction: column;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.mobile .filters {
+  flex-direction: column;
+}
+
+.filters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters input {
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .error {

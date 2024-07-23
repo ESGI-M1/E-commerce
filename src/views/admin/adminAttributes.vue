@@ -7,7 +7,7 @@
             </button>
         </div>
 
-        <table class="table">
+        <table>
             <thead>
                 <tr>
                     <th>Nom</th>

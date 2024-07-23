@@ -55,7 +55,7 @@
             </div>
             <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.productVariant.price, order.Cart.promoCode.discountPercentage) }} €</p>
           </div>
-          <p v-else class="new-price">{{ cartProduct.variantOption.price }} €</p>
+          <p v-else class="new-price">{{ cartProduct.productVariant.price }} €</p>
           <button @click="addToCart(cartProduct.productVariant.id, 1)" class="btn-details">Commander à nouveau</button>
           <button v-if="!cartProduct.productVariant.returned && order.status == 'completed'" @click="returnItem(order.id, cartProduct.productVariant.id, cartProduct.quantity)" class="btn-details">Retourner l'article</button>
           <button v-else-if="cartProduct.productVariant.returned" @click="returnItem(order.id, cartProduct.productVariant.id, cartProduct.quantity)" class="btn-details">Voir les détails ({{ cartProduct.productVariant.returned.status }})</button>
@@ -67,11 +67,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, inject } from 'vue'
+import { z } from 'zod'
 import { useRoute, useRouter } from 'vue-router'
+import { useCartStore } from '@/store/cart'
 import axios from '../tools/axios';
 import { format, parseISO } from 'date-fns'
 import Cookies from 'js-cookie'
 
+const cartStore = useCartStore()
 const showNotification = inject('showNotification');
 const route = useRoute()
 const router = useRouter()
@@ -80,6 +83,12 @@ const order = ref<any>(null)
 const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+
+const cartSchema = z.object({
+  userId: z.number(),
+  productVariantId: z.number().positive('L\'identifiant de la variante du produit doit être supérieur à 0'),
+  quantity: z.number().positive('La quantité doit être supérieure à 0')
+})
 
 const fetchOrder = async () => {
   if (authToken) {
@@ -153,11 +162,13 @@ const formatHeure = (dateStr: string) => {
 }
 
 const addToCart = async (id: number, quantity: number) => {
-  await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
+
+  const cart = cartSchema.parse({
     userId: authToken,
-    variantOptionId: id,
+    productVariantId: id,
     quantity: quantity
-  })
+  });
+  await cartStore.addProductToCart(cart);
   showNotification('Produit ajouté au panier avec succès', 'success')
 }
 

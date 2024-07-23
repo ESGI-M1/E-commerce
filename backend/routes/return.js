@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const router = new Router();
-const { ReturnProduct, User, Product, ProductVariant } = require('../models');
+const { ReturnProduct, User, Product, ProductVariant, AttributeValue } = require('../models');
 const checkAuth = require("../middlewares/checkAuth");
 
 router.get('/', checkAuth, async (req, res, next) => {
@@ -13,18 +13,15 @@ router.get('/', checkAuth, async (req, res, next) => {
           as: 'user',
         },
         {
-          model: VariantOption,
-          as: 'variantOption',
+          model: ProductVariant,
+          as: 'ProductVariants',
           include: [
             {
-              model: ProductVariant,
-              as: 'productVariant',
-              include: [
-                {
-                  model: Product,
-                  as: 'product',
-                }
-              ]
+              model: AttributeValue,
+              as: 'attributeValues',
+            },
+            {
+              model: Product,
             }
           ]
         }

@@ -1,6 +1,6 @@
 const { Router } = require("express");
-const { Op, QueryTypes } = require("sequelize");
-const { connection, Category, Image, Product, ProductOption, ProductVariant, ProductVariantDetail, User, AlerteUser, Alerte } = require("../models");
+const { Category, Image, Product, ProductVariant, User, AlertUser, Alert, AttributeValue, Attribute } = require("../models");
+const ProductMongo = require("../mongo/product");
 const mailer = require('../services/mailer');
 const checkRole = require("../middlewares/checkRole");
 
@@ -8,44 +8,146 @@ const router = new Router();
 
 router.get("/", async (req, res) => {
 
-    req.query.active = true;
-
-    const products = await Product.findAll({
-        where: req.query,
-        include: [Category, Image],
-    });
-
-    res.json(products);
-});
-
-router.get("/admin", checkRole({ roles: "admin" }), async (req, res) => {
-
-    const products = await Product.findAll({
-        where: req.query,
-        include: [Category, Image],
-    });
-
-    res.json(products);
-});
-
-router.get("/search", async (req, res) => {
-    try{
-        const { q } = req.query;
+    try {
         const products = await Product.findAll({
             where: {
-                name: {
-                    [Op.iLike]: `%${q}%`,
-                },
                 active: true,
+                ...req.query,
+            },
+            include: [
+                Category,
+                {
+                    model: ProductVariant,
+                    as: 'variants',
+                    required: false,
+                    where: {
+                        active: true,
+                        default: true,
+                    },
+                    include: [
+                        {
+                            model: Image,
+                            as: 'images',
+                        },
+                        {
+                            model: AttributeValue,
+                            as: 'attributeValues',
+                            include: {
+                                model: Attribute,
+                                as: 'attribute',
+                            },
+                        },
+                    ],
+                },
+            ],
+        });
+
+        res.json(products);
+    } catch (error) {
+        console.error("Error fetching products: ", error);
+        res.status(500).json({ error: "An error occurred while fetching products." });
+    }
+});
+
+router.get("/admin", checkRole({ roles: "admin" }), async (req, res, next) => {
+
+    try {
+        const products = await Product.findAll({
+            where: req.query,
+            include: {
+                model: Category,
+                required: false,
             },
         });
         res.json(products);
-        
     } catch (e) {
         next(e);
     }
 
 });
+
+router.get("/:id(\\d+)", async (req, res, next) => {
+    try {
+        const productId = parseInt(req.params.id);
+        
+        const product = await Product.findByPk(productId, {
+            include: [
+                Category,
+                {
+                    model: ProductVariant,
+                    as: 'variants',
+                    required: false,
+                    include: [
+                        {
+                            model: Image,
+                            as: "images",
+                        },
+                        {
+                            model: AttributeValue,
+                            as: "attributeValues",
+                            include: {
+                                model: Attribute,
+                                as: "attribute",
+                            },
+                        },
+                    ],
+                },
+            ],
+        });
+
+        if (product) {
+            res.json(product);
+        } else {
+            res.sendStatus(404);
+        }
+    } catch (e) {
+        next(e);
+    }
+});
+
+router.get('/search', async (req, res, next) => {
+    try {
+        const { q, minPrice, maxPrice, category, inStock } = req.query;
+
+        const filter = { active: true };
+
+        if (q) {
+            filter.$or = [
+                { name: new RegExp(q, 'i') },
+                { description: new RegExp(q, 'i') }
+            ];
+        }
+
+        if (category) {
+            filter['Categories.id'] = Number(category);
+        }
+
+        const variantFilter = {
+            $elemMatch: {
+                active: true,
+            }
+        };
+
+        if (minPrice || maxPrice) {
+            variantFilter.$elemMatch.price = {};
+            if (minPrice) variantFilter.$elemMatch.price.$gte = Number(minPrice);
+            if (maxPrice) variantFilter.$elemMatch.price.$lte = Number(maxPrice);
+        }
+
+        if (inStock) {
+            variantFilter.$elemMatch.stock = { $gt: 0 };
+        }
+
+        filter['variants'] = variantFilter;
+
+        const products = await ProductMongo.find(filter).lean().exec();
+        res.json(products);
+    } catch (error) {
+        console.error('Error:', error);
+        next(error);
+    }
+});
+
 
 router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
@@ -53,15 +155,16 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
 
         // Product
         const product = await Product.create(productData);
-        const idAlert = await Alerte.findOne({
+
+        /*const idAlert = await Alert.findOne({
             where: {
                 name: 'new_product'
             }
         });
         if (idAlert) {
-            const userToPrevent = await AlerteUser.findAll({
+            const userToPrevent = await AlertUser.findAll({
                 where: {
-                    alerte_id: idAlert.id
+                    alert_id: idAlert.id
                 }
             });
             if (userToPrevent) {
@@ -72,68 +175,9 @@ router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
             }
 
         }
-
-        // Product Variant
-        const productVariant = await ProductVariant.create({
-            productId: product.id,
-            stockQuantity: 0,
-            active: true,
-        });
-
-        // Product Variant Detail
-        const productVariantDetail = await ProductVariantDetail.create({
-            productVariantId: productVariant.id,
-        });
+            */
 
         res.status(201).json(product);
-    } catch (e) {
-        next(e);
-    }
-});
-
-router.post("/:id/options", checkRole({ roles: "admin" }), async (req, res, next) => {
-    try {
-        const { options } = req.body;
-        const productId = parseInt(req.params.id);
-
-        await connection.query(
-            `INSERT INTO "ProductOptions" ("ProductId", "VariantOptionId", "createdAt", "updatedAt") VALUES ${options.map(option => `(${productId}, ${option}, NOW(), NOW())`).join(",")}`,
-            { type: QueryTypes.INSERT }
-        );
-
-        res.sendStatus(201);
-    } catch (e) {
-        next(e);
-    }
-});
-
-router.get("/:id", async (req, res, next) => {
-    try {
-        const productId = parseInt(req.params.id);
-        
-        const product = await Product.findByPk(productId, {
-            include: [
-                { model: Category },
-                { model: Image }
-            ]
-        });
-
-        if (product ? res.json(product) : res.sendStatus(404));
-    } catch (e) {
-        next(e);
-    }
-});
-
-router.get("/:id/options", async (req, res, next) => {
-    try {
-        const productId = parseInt(req.params.id);
-
-        const result = await ProductOption.findAll({
-            where: { ProductId: productId },
-            attributes: ['ProductId', 'VariantOptionId'],
-        });
-
-        if (result ? res.json(result) : res.sendStatus(404));
     } catch (e) {
         next(e);
     }
@@ -146,20 +190,20 @@ router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
         if (product) {
 
             if (Categories && Categories.length) {
-                const categories = await Category.findAll({ where: { id: Categories } });
-                await product.setCategories(categories);
+                const categoriesIds = Categories.map((category) => category.id);
+                await product.setCategories(categoriesIds);
             }
             if (parseInt(product.price) !== productData.price) {
                 await product.update(productData);
-                const idAlert = await Alerte.findOne({
+                const idAlert = await Alert.findOne({
                     where: {
                         name: 'change_product_price'
                     }
                 });
                 if (idAlert) {
-                    const userToPrevent = await AlerteUser.findAll({
+                    const userToPrevent = await AlertUser.findAll({
                         where: {
-                            alerte_id: idAlert.id
+                            alert_id: idAlert.id
                         }
                     });
                     if (userToPrevent) {
@@ -207,8 +251,8 @@ router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
         const product = await Product.create(productData);
 
         if (Categories && Categories.length) {
-            const categories = await Category.findAll({ where: { id: Categories } });
-            await product.setCategories(categories);
+            const categoriesIds = Categories.map((category) => category.id);
+            await product.setCategories(categoriesIds);
         }
 
         res.status(200).json(product);

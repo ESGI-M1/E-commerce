@@ -23,18 +23,6 @@
         <p>Vous n'avez encore aucune commande.</p>
       </div>
     </div>
-    <div v-if="selectedOrder" class="order-details">
-      <h2>Détails de la commande n°{{ selectedOrder.id }}</h2>
-      <div class="order-status">Statut: {{ selectedOrder.status }}</div>
-      <div class="order-total">Total: {{ calculateOrderTotal(selectedOrder) }} €</div>
-      <div v-for="cart in selectedOrder.carts.CartProducts" :key="cart.id" class="cart-item">
-        <div class="item-details">
-          <h3>{{ cart.product.name }}</h3>
-          <p>Quantité: {{ cart.quantity }}</p>
-          <p>Prix: {{ cart.product.price }} €</p>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 

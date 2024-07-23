@@ -89,11 +89,11 @@
             <div v-for="(cart, index) in carts" :key="index">
               <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
                 <div class="item-details" @click="showProductDetails(item.product.id)">
-                  <h3>{{ item.product.name }}</h3>
-                  <img :src="item.product.Images && item.product.Images.length > 0 ? item.product.Images[0].url : 
-                  '../../produit_avatar.jpg'" 
-                  :alt="item.product.Images && item.product.Images.length > 0? item.product.Images[0].description : 
-                  item.product.name" class="product-image" 
+                  <h3 v-if="item.product">{{ item.product.name }}</h3>
+                  <img
+                    class="product-image"
+                    :src="imageUrl + `/images/variant/${item.productVariant.images[0].id}`"
+                    :alt="item.productVariant.images[0].description"
                   />
                 </div>
                 <div class="item-quantity">
@@ -101,7 +101,7 @@
                   <p>{{ item.quantity }}</p>
                 </div>
                 <div class="item-price">
-                  <p>{{ item.product.price }} €</p>
+                  <p>{{ item.productVariant.price}} €</p>
                 </div>
               </div>
             </div>
@@ -156,6 +156,7 @@ const promo = ref(null)
 const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
 const carts = ref(null)
+const imageUrl = import.meta.env.VITE_API_BASE_URL;
 
 interface Address {
   street: string;
@@ -198,7 +199,9 @@ const fetchCartItems = async () => {
     newLivraisonDomicileAddress.value.postalCode = carts.value[0].user.deliveryAddress[0].postalCode
     newLivraisonDomicileAddress.value.city = carts.value[0].user.deliveryAddress[0].city
     newLivraisonDomicileAddress.value.country = carts.value[0].user.deliveryAddress[0].country
-  }}
+  }
+  console.log(carts.value)
+}
 
 const updateLivraisonDomicileAddress = (address) => {
   newLivraisonDomicileAddress.value.street = address.street
@@ -213,13 +216,13 @@ const updateLivraisonDomicileAddress = (address) => {
 }
 
 const subtotal = computed(() => {
-  return carts.value
-    ? carts.value.reduce(
-        (acc, cart) => acc + cart.CartProducts.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
-        0
-      ).toFixed(2)
-    : 0
-})
+  if (carts.value && carts.value[0]) {
+    return carts.value[0].CartProducts
+      .reduce((acc, item) => acc + item.productVariant.price * item.quantity, 0)
+      .toFixed(2);
+  }
+  return '0.00';
+});
 
 const total = computed(() => {
   return parseFloat(subtotal.value).toFixed(2)
@@ -237,7 +240,6 @@ const showProductDetails = (id: string) => {
 
 const handlePayment = async (payment: string) => {
   let newAddress = null;
-  let addressorders = null;
   let response = null;
   
   if (deliveryOption.value === 'pointRelais') {
@@ -274,9 +276,10 @@ const handlePayment = async (payment: string) => {
 
       if (payment == 'stripe') {
         const stripePromise = loadStripe(
-          'pk_test_51PSJfGRvgxYLdiJ7kEswzMAna653YFlB2u0RycEjMOO8GPwyQyLkoPv3jRtg4heNUzzuZgsVDoI1DkaLilHC6K8V00mf5YOLyz'
+          `${import.meta.env.VITE_PUBLIC_KEY_STRIPE}`
         )
       const stripe = await stripePromise;
+      console.log(carts.value[0].CartProducts)
       const stripeSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe`, {
         cartId: carts.value[0].id,
         orderId: order.data.id,

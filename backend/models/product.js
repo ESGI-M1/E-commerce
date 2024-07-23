@@ -1,5 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
-const denormalizeProduct = require("../dtos/denormalization/product");
+const { denormalizeProduct } = require("../dtos/denormalization/product");
 
 module.exports = function(connection) {
     class Product extends Model {
@@ -7,29 +7,50 @@ module.exports = function(connection) {
             Product.belongsToMany(models.Category, { through: 'ProductCategories' });
             models.Category.belongsToMany(Product, { through: 'ProductCategories' });
 
-            Product.belongsToMany(models.VariantOption, { through: 'ProductOptions' });
-            models.VariantOption.belongsToMany(Product, { through: 'ProductOptions' });
+            Product.belongsTo(models.Category, { as: 'defaultCategory', foreignKey: 'defaultCategoryId' });
 
             Product.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
-            Product.hasMany(models.CartProduct, { foreignKey: 'productId', as: 'CartProducts' });
+
+            Product.hasMany(models.ProductVariant, { foreignKey: 'productId', as: 'variants' });
+
         }
 
         static addHooks(models) {
-            
-            Product.addHook("afterCreate", (product) =>
-                denormalizeProduct(product, models)
-            );
+            Product.addHook("afterCreate", async (product) => {
+                await denormalizeProduct(product, models);
+            });
 
-            Product.addHook("afterUpdate", (product, { fields }) => {
-                if (fields.includes("active") || fields.includes("price") || fields.includes("name") || fields.includes("description") || fields.includes("reference")) {
-                    denormalizeProduct(product, models);
+            Product.addHook("afterUpdate", async (product, { fields }) => {
+                console.log("fieldsdazd", fields);
+                if (fields.includes("active") || fields.includes("price") || fields.includes("name") || fields.includes("description") || fields.includes("reference") || fields.includes("defaultCategoryId")) {
+                    await denormalizeProduct(product, models);
                 }
             });
 
-            Product.addHook("afterDestroy", (product) =>
-                denormalizeProduct(product, models)
-            );
+            Product.addHook("afterDestroy", async (product) => {
+                await denormalizeProduct(product, models)
+            });
             
+
+            Product.addHook("beforeCreate", async (product) => {
+                await Product.verifyDefaultCategory(product);
+            });
+
+            Product.addHook("beforeUpdate", async (product) => {
+                await Product.verifyDefaultCategory(product);
+            });
+        }
+
+        static async verifyDefaultCategory(product) {
+            // TO DO FIX
+
+            /*const categories = await product.getCategories();
+            if (categories.length === 1) {
+                product.defaultCategoryId = categories[0].id;
+            } else if (!categories.map(cat => cat.id).includes(product.defaultCategoryId)) {
+                throw new Error('La catégorie par défaut doit correspondre à une des catégories sélectionnées.');
+            }
+                */
         }
     }
 
@@ -42,10 +63,13 @@ module.exports = function(connection) {
             },
             name: {
                 type: DataTypes.STRING,
-                allowNull: false,
+                allowNull: true,
                 validate: {
                     notEmpty: true,
                 },
+            },
+            description: {
+                type: DataTypes.TEXT,
             },
             reference: {
                 type: DataTypes.STRING,
@@ -66,19 +90,10 @@ module.exports = function(connection) {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
-            description: {
-                type: DataTypes.TEXT,
-            },
-            createdAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
-            },
-            updatedAt: {
-                type: DataTypes.DATE,
+            defaultCategoryId: {
+                type: DataTypes.INTEGER,
                 allowNull: true,
-                defaultValue: DataTypes.NOW,
-            }
+            },
         },
         {
             sequelize: connection,

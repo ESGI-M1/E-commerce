@@ -1,31 +1,55 @@
 <template>
   <div class="returns">
-    <h1>Retours ({{ returnProducts.length }})</h1>
+    <h1>Retours ({{ filteredReturnProducts.length }})</h1>
+
+    <div class="filters">
+      <div>
+        <label for="orderNumber">Identifiant</label>
+        <input v-model="filters.id" type="text" id="orderNumber" />
+      </div>
+      <div>
+        <label for="clientInfo">Client</label>
+        <input v-model="filters.user" type="text" id="clientInfo" />
+      </div>
+    </div>
 
     <div class="return-table">
       <table>
         <thead>
           <tr>
-            <th>Commande</th>
+            <th>Id</th>
             <th>Date</th>
+            <th>Commande</th>
             <th>Client</th>
             <th>Produit</th>
             <th>Statut</th>
             <th>Raison</th>
-            <th>Methode de retour</th>
+            <th>Méthode de retour</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="returnProduct in returnProducts" :key="returnProduct.id">
-            <td>n°{{ returnProduct.orderId }}</td>
+          <tr v-if="filteredReturnProducts.length > 0" v-for="returnProduct in filteredReturnProducts" :key="returnProduct.id">
+            <td>{{ returnProduct.id }}</td>
             <td>{{ formatReturnDate(returnProduct.createdAt) }}</td>
-            <td>
+            <td>n°{{ returnProduct.orderId }}</td>
+            <td v-if="returnProduct.user">
               #{{ returnProduct.user.id }} {{ returnProduct.user.lastname }}
               {{ returnProduct.user.firstname }}
             </td>
-            <td class="product-info">
-              <span class="product-name">#{{ returnProduct.product.id }} {{ returnProduct.product.name }}</span>
+            <td v-else>
+              Utilisateur non trouvé
+            </td>
+            <td class="product-info" v-if="returnProduct.variantOption">
+              <span class="product-name">
+                #{{ returnProduct.variantOption.productVariant.product.id }} {{ returnProduct.variantOption.productVariant.product.name }}
+              </span>
+              <span class="product-variant">
+                | {{ returnProduct.variantOption.productVariant.name }}
+              </span>
+              <span class="product-option">
+                | {{ returnProduct.variantOption.color }} | {{ returnProduct.variantOption.size }}
+              </span>
               <span class="product-quantity">x{{ returnProduct.quantity }}</span>
             </td>
             <td :title="returnProduct.status === 'returned' ? 'Terminé' : 'En attente'">
@@ -43,6 +67,9 @@
               </fancy-confirm>
             </td>
           </tr>
+          <tr v-else>
+          <td class="empty" colspan="9">Aucun retour de produit trouvé</td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -51,11 +78,11 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, computed } from 'vue'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const showNotification = inject('showNotification');
-// Interfaces
+
 interface User {
   id: number
   lastname: string
@@ -67,12 +94,25 @@ interface Product {
   name: string
 }
 
+interface ProductVariant {
+  id: number
+  name: string
+  product: Product
+}
+
+interface VariantOption {
+  id: number
+  color: string
+  size: string
+  productVariant: ProductVariant
+}
+
 interface ReturnProduct {
   id: number
-  orderId: number
+  orderId: number | null
   createdAt: string
-  user: User
-  product: Product
+  user: User | null
+  variantOption: VariantOption
   quantity: number
   status: string
   reason: string
@@ -80,10 +120,39 @@ interface ReturnProduct {
 }
 
 const returnProducts = ref<ReturnProduct[]>([])
+const filters = ref({
+  id: '',
+  user: ''
+})
+
+const filteredReturnProducts = computed(() => {
+  let filtered = [...returnProducts.value]
+
+  if (filters.value.id.trim() !== '') {
+    filtered = filtered.filter(product =>
+      product.id?.toString().includes(filters.value.id.trim())
+    )
+  }
+
+  if (filters.value.user.trim() !== '') {
+    const userFilterLower = filters.value.user.trim().toLowerCase()
+    filtered = filtered.filter(product =>
+      (product.user?.lastname.toLowerCase().includes(userFilterLower)) ||
+      (product.user?.firstname.toLowerCase().includes(userFilterLower)) ||
+      (product.user && product.user.id.toString().toLowerCase().includes(userFilterLower))
+    )
+  }
+
+  return filtered
+})
 
 const fetchReturnProducts = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return`)
-  returnProducts.value = response.data
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return`)
+    returnProducts.value = response.data
+  } catch (error) {
+    console.error('Erreur lors du chargement des retours de produits:', error.message)
+  }
 }
 
 const formatReturnDate = (returnDate: string): string => {
@@ -100,15 +169,20 @@ const formatReturnDate = (returnDate: string): string => {
 }
 
 const validate = async (id: number) => {
-  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/return/${id}`)
-  fetchReturnProducts()
-  showNotification('Retour validé avec succès', 'success');
+  try {
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/return/${id}`)
+    fetchReturnProducts()
+    showNotification('Retour validé avec succès', 'success');
+  } catch (error) {
+    console.error('Erreur lors de la validation du retour:', error.message)
+  }
 }
 
 onMounted(() => {
   fetchReturnProducts()
 })
 </script>
+
 
 <style scoped>
 .returns {
@@ -140,5 +214,23 @@ onMounted(() => {
 
 .status-processing {
   color: orange;
+}
+
+.filters {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.filters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters input {
+  margin-right: 10px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

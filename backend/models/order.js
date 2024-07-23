@@ -24,8 +24,8 @@ module.exports = function (connection) {
       Order.belongsTo(models.AddressOrder, {
         foreignKey: 'deliveryMethod',
         as: 'addressOrder',
-        allowNull: false,
       });
+
       Order.hasOne(models.PaymentMethod, {
         foreignKey: 'orderId',
         as: 'paymentMethod',
@@ -47,9 +47,7 @@ module.exports = function (connection) {
       Order.addHook("afterDestroy", (order) =>
         denormalizeOrder(order, models)
       );
-
     }
-
   }
 
   Order.init(
@@ -77,7 +75,7 @@ module.exports = function (connection) {
       },
       deliveryMethod: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'AddressOrders',
           key: 'id',

@@ -1,10 +1,31 @@
 const { Model, DataTypes } = require("sequelize");
+const { denormalizeRelatedProducts } = require("../dtos/denormalization/product");
 
 module.exports = function(connection) {
     class ProductVariant extends Model {
         static associate(models) {
-            ProductVariant.belongsTo(models.Product, { foreignKey: 'productId', as: 'product', onDelete: 'CASCADE' });
-            ProductVariant.hasMany(models.ProductVariantDetail, { foreignKey: 'productVariantId', as: 'productVariantDetails' });
+            ProductVariant.belongsTo(models.Product, { foreignKey: 'productId' });
+            ProductVariant.belongsToMany(models.AttributeValue, {
+                through: 'ProductVariantAttributeValue',
+                as: 'attributeValues',
+                foreignKey: 'productVariantId'
+            });
+        }
+
+        static addHooks(models) {
+            ProductVariant.addHook("afterCreate", async (productVariant) => {
+                await denormalizeRelatedProducts(productVariant, models);
+            });
+
+            ProductVariant.addHook("afterUpdate", async (productVariant, { fields }) => {
+                if (fields.includes("price") || fields.includes("name") || fields.includes("active") || fields.includes("stock")) {
+                    await denormalizeRelatedProducts(productVariant, models);
+                }
+            });
+
+            ProductVariant.addHook("afterDestroy", async (productVariant) => {
+                await denormalizeRelatedProducts(productVariant, models);
+            });
         }
     }
 
@@ -15,32 +36,16 @@ module.exports = function(connection) {
                 primaryKey: true,
                 autoIncrement: true,
             },
-            name: {
-                type: DataTypes.STRING,
-                allowNull: true,
-                validate: {
-                    notEmpty: true,
-                },
-            },
             reference: {
                 type: DataTypes.STRING,
                 allowNull: true,
-                unique: true,
                 validate: {
                     notEmpty: true,
                 },
             },
             price: {
                 type: DataTypes.DECIMAL,
-                allowNull: true,
-                validate: {
-                    notEmpty: true,
-                },
-            },
-            stockQuantity: {
-                type: DataTypes.INTEGER,
                 allowNull: false,
-                defaultValue: 0,
                 validate: {
                     notEmpty: true,
                 },
@@ -49,28 +54,22 @@ module.exports = function(connection) {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
-            productId: {
+            stock: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
+                defaultValue: 0,
                 validate: {
                     notEmpty: true,
                 },
             },
-            createdAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
+            default: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
             },
-            updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: true,
-                defaultValue: DataTypes.NOW,
-            }
         },
         {
             sequelize: connection,
-            modelName: 'ProductVariant',
-            tableName: 'ProductVariants',
+            timestamps: true,
         }
     );
 

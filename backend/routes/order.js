@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, VariantOption, ProductVariant } = require("../models");
 const router = new Router();
 const { PDFDocument } = require('pdf-lib');
 const { format } = require('date-fns');
@@ -34,25 +34,6 @@ router.get('/own', checkAuth, async (req, res, next) => {
   try {
       const carts = await Cart.findAll({
           where: { userId },
-          include: [
-              {
-                  model: PromoCode,
-                  as: 'promoCode',
-                  attributes: ['discountPercentage']
-              },
-              {
-                  model: CartProduct,
-                  as: 'CartProducts',
-                  include: [
-                      {
-                          model: Product,
-                          as: 'product',
-                          attributes: ['id', 'name', 'price'],
-                          include: [Category, Image],
-                      }
-                  ]
-              }
-          ]
       });
 
       const orderMap = {};
@@ -62,7 +43,13 @@ router.get('/own', checkAuth, async (req, res, next) => {
 
           if (!orderMap[orderId]) {
               const order = await Order.findByPk(orderId);
-              if (order) {
+              const payment = await PaymentMethod.findOne({
+                where: {
+                  orderId: orderId,
+                  userId: userId,
+                },
+              });
+              if (order && payment) {
                   orderMap[orderId] = {
                       id: order.id,
                       userId: order.userId,
@@ -72,20 +59,9 @@ router.get('/own', checkAuth, async (req, res, next) => {
                       updatedAt: order.updatedAt,
                       carts: []
                   };
+              } else {
+                res.sendStatus(404);
               }
-          }
-
-          if (orderMap[orderId]) {
-              orderMap[orderId].carts.push({
-                  id: cart.id,
-                  quantity: cart.quantity,
-                  product: cart.CartProducts.map(cp => ({
-                      id: cp.productId,
-                      quantity: cp.quantity,
-                      product: cp.product,
-                  })),
-                  promo: cart.promoCode,
-              });
           }
       }
 
@@ -109,9 +85,24 @@ router.get('/:id', checkAuth, async (req, res, next) => {
           model: CartProduct,
           as: 'CartProducts',
           include: [{ 
-            model: Product, 
-            as: 'product',
-            include: [Category, Image],
+            model: VariantOption, 
+            as: 'variantOption',
+            include: [
+              {
+                model: ProductVariant,
+                as: 'productVariant',
+                include: [ 
+                  {
+                    model: Image,
+                    as: 'images',
+                  },
+                  {
+                    model: Product,
+                    as: 'product',
+                  }
+                ]
+              }
+            ],
           }]
         },
         {
@@ -200,7 +191,7 @@ router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
                   model: Product,
                   as: 'product',
                   attributes: ['id', 'name', 'price'],
-                  include: [Category, Image],
+                  include: [Category],
               },
               {
                   model: PromoCode,

@@ -1,29 +1,34 @@
 const { Model, DataTypes } = require("sequelize");
 const denormalizeCategory = require("../dtos/denormalization/category");
+const { denormalizeRelatedProducts } = require("../dtos/denormalization/product");
 
 module.exports = function (connection) {
 
     class Category extends Model {
 
         static associate(models) {
-            Category.belongsTo(models.Category, { as: 'parentCategory' });
+            Category.belongsTo(models.Category, { as: 'parentCategory', foreignKey: 'parentCategoryId' });
+            Category.hasMany(models.Category, { as: 'subCategories', foreignKey: 'parentCategoryId' });
         }
 
         static addHooks(models) {
             
-            Category.addHook("afterCreate", (category) =>
+            Category.addHook("afterCreate", async (category) => {
                 denormalizeCategory(category, models)
-            );
+                await denormalizeRelatedProducts(category, models);
+            });
 
-            Category.addHook("afterUpdate", (category, { fields }) => {
+            Category.addHook("afterUpdate", async(category, { fields }) => {
                 if(fields.includes("name") || fields.includes("slug") || fields.includes("description") || fields.includes("active")) {
                     denormalizeCategory(category, models)
+                    await denormalizeRelatedProducts(category, models);
                 }
             });
 
-            Category.addHook("afterDestroy", (category) =>
+            Category.addHook("afterDestroy", async (category) => {
                 denormalizeCategory(category, models)
-            );
+                await denormalizeRelatedProducts(category, models);
+            });
         }
     }
 

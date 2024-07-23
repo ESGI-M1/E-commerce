@@ -3,9 +3,11 @@ const { Model, DataTypes } = require("sequelize");
 module.exports = function (connection) {
 
     class Shop extends Model {
+        static associate(models) {
+            Shop.belongsToMany(models.Category, { through: 'ShopCategories', as: 'mainCategories' });
+        }
 
         static addHooks(models) {
-            
             Shop.addHook("beforeCreate", async (shop) => {
                 const existingShop = await Shop.findOne();
                 if (existingShop) {
@@ -13,7 +15,6 @@ module.exports = function (connection) {
                 }
             });
         }
-
     }
 
     Shop.init(
@@ -21,49 +22,42 @@ module.exports = function (connection) {
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                RegExp: /^[a-zA-Z0-9]{1,255}$/,
+                validate: {
+                    is: /^[a-zA-Z0-9]{1,255}$/,
+                },
             },
-
             description: {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
-
             favicon: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-
             logo: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-
             street: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-
             postalCode: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-
             city: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-
             country: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-
             phone: {
                 type: DataTypes.STRING,
                 allowNull: true,
             },
-
             email: {
                 type: DataTypes.STRING,
                 allowNull: false,
@@ -73,45 +67,38 @@ module.exports = function (connection) {
                     isEmail: true,
                 },
             },
-
             legalNotice: {
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
-
             cgv: {
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
-
             cgu: {
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
-
             rgpd: {
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
-            
             siret: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-
             tva: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-
             active: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
                 defaultValue: false,
             }
         },
-        { sequelize: connection, timestamps: true}
+        { sequelize: connection, timestamps: true }
     );
-  
-    return Shop
-  }
+
+    return Shop;
+}

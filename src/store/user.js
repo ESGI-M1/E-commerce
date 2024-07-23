@@ -9,8 +9,8 @@ export const useUserStore = defineStore('user', {
   getters: {
     getUserId: (state) => {
       if (state.user) return state.user.id
-      const userFromCookie = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)) : null
-      return userFromCookie ? userFromCookie.id : null
+
+      return  Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
     },
     getUserFromCookie: () => {
       return Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)) : null
@@ -18,6 +18,11 @@ export const useUserStore = defineStore('user', {
     isAuthenticated: () => {
       return Cookies.get('USER') !== undefined
     },
+    isAdmin (state) {
+      if(state.user) return state.user.role === 'admin'
+
+      return JSON.parse(Cookies.get('USER').slice(2)).role === 'admin'
+    }
   },
   actions: {
     async fetchUser() {

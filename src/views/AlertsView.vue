@@ -2,15 +2,15 @@
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 
-const alertes = ref<AlerteSubscribe>([] as AlerteSubscribe);
+const alerts = ref<AlertSubscribe>([] as AlertSubscribe);
 
-interface AlerteSubscribe {
+interface AlertSubscribe {
   id: number
   name: string,
   subscribe: boolean
 }
 
-interface Alerte {
+interface Alert {
     id: number
     name: string,
   }
@@ -21,29 +21,29 @@ interface Alerte {
       if (!userId) {
         throw new Error('User is not authenticated')
       }
-      await axios.post(`http://localhost:3000/alertes/${userId}/${id}`);
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/alerts/${userId}/${id}`);
     } catch (e) {
       console.error('Error update alerts:', e);
     }
   }
 
-  async function getAllAlertes() {
+  async function getAllAlerts() {
     try {
-      const response = await axios.get(`http://localhost:3000/alertes/`)
-      const alertes: Alerte[] = response.data
-      return alertes;
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/alerts/`)
+      const alerts: Alert[] = response.data
+      return alerts;
     } catch (e) {
       console.error('Error fetching alerts:', e);
     }
   }
 
-  async function getUserAlertes() {
+  async function getUserAlerts() {
     try {
       const userId = localStorage.getItem('authToken')
       if (!userId) {
         throw new Error('User is not authenticated')
       }
-      const response = await axios.get(`http://localhost:3000/alertes/${userId}`)
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/alerts/${userId}`)
       return response.data;
     } catch (e) {
       console.error('Error fetching alerts:', e);
@@ -51,20 +51,20 @@ interface Alerte {
   }
 
   onMounted(async () => {
-    const allAlertes = await getAllAlertes();
-    const userAlertesIds = await getUserAlertes();
-    if (allAlertes != null) {
-      for (let i = 0; i < allAlertes.length; i++) {
-        if(userAlertesIds != null && userAlertesIds.includes(allAlertes[i].id)) {
-          alertes.value.push({
-            id: allAlertes[i].id,
-            name: allAlertes[i].name,
+    const allAlerts = await getAllAlerts();
+    const userAlertsIds = await getUserAlerts();
+    if (allAlerts != null) {
+      for (let i = 0; i < allAlerts.length; i++) {
+        if(userAlertsIds != null && userAlertsIds.includes(allAlerts[i].id)) {
+          alerts.value.push({
+            id: allAlerts[i].id,
+            name: allAlerts[i].name,
             subscribe: true
           });
         } else {
-          alertes.value.push({
-            id: allAlertes[i].id,
-            name: allAlertes[i].name,
+          alerts.value.push({
+            id: allAlerts[i].id,
+            name: allAlerts[i].name,
             subscribe: false
           });
         }
@@ -81,14 +81,14 @@ interface Alerte {
       </div>
       <div class="container-body">
         <ul>
-          <li class="alertItem" v-for="alerte in alertes">
+          <li class="alertItem" v-for="alert in alerts">
             <div class="alertContainer">
               <div class="alertName">
-                {{ alerte.name }}
+                {{ alert.name }}
               </div>
               <div class="alertStatus">
                 <label class="switch">
-                  <input type="checkbox" :checked="alerte.subscribe" @click="changeStatus(alerte.id)">
+                  <input type="checkbox" :checked="alert.subscribe" @click="changeStatus(alert.id)">
                   <span></span>
                 </label>
               </div>

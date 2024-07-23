@@ -36,8 +36,6 @@ module.exports = function (connection) {
           await denormalizeUser(user, models);
         }
       });
-      
-
     }
   }
 
@@ -61,7 +59,7 @@ module.exports = function (connection) {
       },
       email: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true,
         validate: {
           notEmpty: true,
@@ -72,10 +70,9 @@ module.exports = function (connection) {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
-          isNumeric: true,
-          regex: /^\+33[1-9]\d{8}$/g,
+          is: /^(\+33[1-9]\d{8}|0\d{9})$|/,
         },
-      },
+      }, 
       password: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -89,10 +86,10 @@ module.exports = function (connection) {
       active: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: false
+        defaultValue: true
       },
       role: {
-        type: DataTypes.ENUM("user", "admin", "temp", "store"),
+        type: DataTypes.ENUM("user", "admin", "temp", "store", "anonymous"),
         allowNull: false,
         defaultValue: "user",
       },

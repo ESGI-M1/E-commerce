@@ -7,6 +7,10 @@ router.get("/", async (req, res) => {
     const categories = await Category.findAll({
         where: req.query,
         include: [Product],
+        order: [
+            ['name', 'ASC'],
+            ['slug', 'ASC'],
+        ]
     });
     res.json(categories);
 });
@@ -49,7 +53,7 @@ router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
                 },
                 {
                     model: Category,
-                    as: 'parentCategory',
+                    as: 'subCategories',
                 }
             ],
         });

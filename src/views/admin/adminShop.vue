@@ -59,6 +59,14 @@
     </div>
 
     <div>
+      <h2>Catégories principales</h2>
+      <button @click="openEditModal('mainCategories')">Modifier</button>
+      <ul>
+        <li v-for="(category, index) in shop.mainCategories" :key="index">{{ category.name }}</li>
+      </ul>
+    </div>
+
+    <div>
       <div>
         <h2>Mentions légales</h2>
         <button @click="openEditModal('legalNotice')">Modifier</button>
@@ -134,6 +142,16 @@
           </div>
         </form>
       </template>
+      <template v-if="modalName === 'mainCategories'">
+        <form @submit.prevent="handleSubmit('mainCategories')">
+          <div class="form-group">
+            <label for="mainCategories">Catégories principales</label>
+            <select multiple id="mainCategories" v-model="shop.mainCategories" required>
+              <option v-for="(category, index) in categories" :key="index" :value="category.id">{{ category.name }}</option>
+            </select>
+          </div>
+        </form>
+      </template>
       <template v-else-if="modalName === 'logo'">
         <form @submit.prevent="handleSubmit('logo')">
           <div class="form-group">
@@ -181,8 +199,13 @@ const tinymceKey = import.meta.env.VITE_TINYMCE_API_KEY;
 const isOpen = ref(false);
 const modalName = ref('');
 const isInit = ref(false);
+const categories = ref([]);
 
 const openEditModal = (modal: string) => {
+
+  if(modal === 'mainCategories') {
+    fetchCategories();
+  }
   isOpen.value = true;
   modalName.value = modal;
 };
@@ -190,6 +213,7 @@ const openEditModal = (modal: string) => {
 const titleModal = {
   general: 'Modifier les informations générales de la boutique',
   address: 'Modifier l\'adresse de la boutique',
+  mainCategories: 'Modifier les catégories principales de la boutique',
   logo: 'Modifier le logo de la boutique',
   legalNotice: 'Modifier les mentions légales de la boutique',
   cgu: 'Modifier les conditions générales d\'utilisation de la boutique',
@@ -215,6 +239,12 @@ const shopSchema = z.object({
   siret: z.string().optional(),
   rgpd: z.string().optional(),
   active: z.boolean(),
+  mainCategories: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    slug: z.string(),
+    active: z.boolean(),
+  })).optional()
 });
 
 const modalGeneralSchema = z.object({
@@ -245,6 +275,11 @@ const tinymceSchema = z.object({
   rgpd: z.string().optional(),
 });
 
+const modalMainCategoriesSchema = z.object({
+  mainCategories: z.array(z.number()),
+});
+
+
 type Shop = z.infer<typeof shopSchema>;
 
 const shop = ref<Shop>({
@@ -265,6 +300,7 @@ const shop = ref<Shop>({
   rgpd: '',
   siret: '',
   active: true,
+  mainCategories: [],
 });
 
 const fetchShop = async () => {
@@ -273,6 +309,21 @@ const fetchShop = async () => {
     if (response.data) {
       shop.value = shopSchema.parse(response.data);
       isInit.value = true;
+    }
+  } catch (error) {
+    if (error instanceof ZodError) {
+      console.error(error.errors);
+    } else {
+      console.error(error);
+    }
+  }
+};
+
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`);
+    if (response.data) {
+      categories.value = response.data;
     }
   } catch (error) {
     if (error instanceof ZodError) {
@@ -296,19 +347,23 @@ const handleSubmit = async (type: string) => {
     else if(modalName.value === 'logo') {
       data = modalLogoSchema.parse(shop.value);
     }
+    else if(modalName.value === 'mainCategories') {
+      console.log(shop.value);
+      data = modalMainCategoriesSchema.parse(shop.value);
+      console.log(data);
+    }
     else if(modalName.value === 'legalNotice' || modalName.value === 'cgu' || modalName.value === 'cgv' || modalName.value === 'rgpd') {
       data = tinymceSchema.parse(shop.value);
     }
 
     if(!isInit.value) {
-      axios.post(`${import.meta.env.VITE_API_BASE_URL}/shop`, data)
-        .then(response => {
-          if (response.data) {
-            shop.value = shopSchema.parse(response.data);
-            isOpen.value = false;
-            showNotification('Boutique modifiée avec succès', 'success');
-          }
-        });
+      const response = axios.post(`${import.meta.env.VITE_API_BASE_URL}/shop`, data)
+      if (response.data) {
+        shop.value = shopSchema.parse(response.data);
+        isOpen.value = false;
+        showNotification('Boutique modifiée avec succès', 'success');
+      }
+
     }
     else{
       const response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/shop/${shop.value.id}`, data);
@@ -359,6 +414,10 @@ onMounted(() => {
   cursor: pointer;
 }
 
+form {
+  margin-top: 20px;
+}
+
 .form-group {
   margin-bottom: 15px;
 }
@@ -369,8 +428,10 @@ onMounted(() => {
 }
 
 .form-group input[type='text'],
-.form-group input[type='email'],
-.form-group input[type='password'] {
+.form-group input[type='date'],
+.form-group input[type='number'],
+.form-group textarea,
+.form-group select {
   width: 100%;
   padding: 8px;
   font-size: 1rem;

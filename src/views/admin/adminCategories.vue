@@ -6,7 +6,11 @@
         <i class="fa fa-plus"></i> Ajouter une catégorie
       </button>
     </div>
-
+    <div class="filters">
+        <label for="search">Identifiant</label>
+        <br>
+        <input v-model="filters.searchTerm" type="text" id="search" />
+    </div>
     <div class="category-table">
       <table>
         <thead>
@@ -16,36 +20,42 @@
             <th>Description</th>
             <th>Catégorie Parent</th>
             <th>Produits</th>
+            <th>Actif</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="category in categories" :key="category.id">
+          <tr v-if="filteredCategories.length > 0" v-for="category in filteredCategories" :key="category.id">
             <td>{{ category.name }}</td>
             <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
             <td>{{ findCategoryName(category.parentCategoryId) }}</td>
             <td><p v-if="category.Products">{{ category.Products.length }}</p></td>
             <td>
+              <i :class="category.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
+            </td>
+            <td>
               <div class="flex">
-              <a @click="showEditCategoryModal(category)" class="a-primary">
-                <i class="fa fa-edit"></i>
-              </a>
-              &nbsp;
-              <fancy-confirm
-                :class="'a-danger'"
-                :confirmationMessage="'Etes-vous sûr de vouloir supprimer la catégorie ?'"
-                :elementType="'a'"
-                @confirmed="deleteCategory(category)"
-            >
-            <template #buttonText>
-              <i class="fa fa-trash"></i>
-            </template>
-          </fancy-confirm>
-</div>
-
+                <a @click="showEditCategoryModal(category)" class="a-primary">
+                  <i class="fa fa-edit"></i>
+                </a>
+                &nbsp;
+                <fancy-confirm
+                  :class="'a-danger'"
+                  :confirmationMessage="'Etes-vous sûr de vouloir supprimer la catégorie ?'"
+                  :elementType="'a'"
+                  @confirmed="deleteCategory(category)"
+                >
+                  <template #buttonText>
+                    <i class="fa fa-trash"></i>
+                  </template>
+                </fancy-confirm>
+              </div>
             </td>
           </tr>
+          <tr v-else>
+          <td class="empty" colspan="7">Aucune catégorie trouvée</td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -74,11 +84,15 @@
           <div class="form-group">
             <label for="parentCategoryId">Catégorie Parent</label>
             <select v-model="currentCategory.parentCategoryId" id="parentCategoryId">
-              <option value="">Aucune</option>
               <option v-for="category in categories" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label for="active">Actif</label>
+            <input v-model="currentCategory.active" type="checkbox" id="active" />
           </div>
 
           <div class="form-group">
@@ -104,49 +118,72 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
-import { z } from 'zod'
+import { ref, onMounted, inject, computed } from 'vue'
+import { z, ZodError } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+import { load } from '../../components/loading/loading'; 
+
+const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
-
-interface Category {
-  id?: number
-  name: string
-  slug: string
-  description?: string
-  parentCategoryId?: number | null
-  Products: number[]
-}
-
-interface Product {
-  id: number
-  name: string
-}
 
 const categorySchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Le nom est requis'),
   slug: z.string().min(1, 'Le slug est requis'),
+  active: z.boolean().optional(),
   description: z.string().optional(),
   parentCategoryId: z.number().nullable(),
-  Products: z.array(z.number())
+  Products: z.array(z.object({
+    id: z.number(),
+    name: z.string()
+  })).optional()
 })
+
+const categoriesSchema = z.array(categorySchema)
+
+type Category = z.infer<typeof categorySchema>
 
 const categories = ref<Category[]>([])
 const currentCategory = ref<Category>({
   name: '',
   slug: '',
   description: '',
+  active: false,
   parentCategoryId: null,
   Products: []
 })
 const products = ref<Product[]>([])
 const showModal = ref(false)
 const isEditing = ref(false)
+const filters = ref({
+  searchTerm: ''
+})
+
+const filteredCategories = computed(() => {
+  let filtered = [...categories.value]
+
+  if (filters.value.searchTerm.trim() !== '') {
+    const searchTermLower = filters.value.searchTerm.toLowerCase()
+    filtered = filtered.filter(category =>
+      category.name.toLowerCase().includes(searchTermLower) ||
+      category.slug.toLowerCase().includes(searchTermLower)
+    )
+  }
+
+  return filtered
+})
 
 const fetchCategories = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
-  categories.value = response.data
+  try{
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
+    const parsedCategory = categoriesSchema.parse(response.data)
+    categories.value = parsedCategory
+  } catch (error) {
+    if (error instanceof ZodError) {
+        console.error(error.errors)
+    }
+    console.error(error)
+  }
 }
 
 const fetchProducts = async () => {
@@ -155,31 +192,57 @@ const fetchProducts = async () => {
 }
 
 const addCategory = async () => {
-    const parsedCategory = categorySchema.parse(currentCategory.value)
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
-    categories.value.push(response.data)
-    closeModal()
-    showNotification('Catégorie ajoutée avec succès', 'success');
+
+  try{
+    const parsedCategory = categorySchema.parse(currentCategory.value);
+    axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
+      .then(response => {
+        categories.value.push(response.data)
+        closeModal()
+        showNotification('Catégorie ajoutée avec succès', 'success');
+      })
+
+  } catch (error) {
+    if (error instanceof ZodError) {
+        console.error(error.errors)
+    }
+    console.error(error)
+  }
+
 }
 
 const updateCategory = async () => {
-  const parsedCategory = categorySchema.parse(currentCategory.value)
-  await axios.patch(
-    `${import.meta.env.VITE_API_BASE_URL}/categories/${currentCategory.value.id}`,
-    parsedCategory
-  )
-  const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
-  if (index !== -1) {
-    categories.value[index] = currentCategory.value
+
+  try{
+      
+    const parsedCategory = categorySchema.parse(currentCategory.value)
+    axios.patch(`${import.meta.env.VITE_API_BASE_URL}/categories/${currentCategory.value.id}`, parsedCategory)
+      .then(() => {
+        const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
+        if (index !== -1) {
+          categories.value[index] = currentCategory.value
+        }
+        closeModal()
+        showNotification('Catégorie modifiée avec succès', 'success');
+      })
+
+  } catch (error) {
+    if (error instanceof ZodError) {
+        console.error(error.errors)
+    }
+    console.error(error)
   }
-  closeModal()
-  showNotification('Catégorie modifiée avec succès', 'success');
 }
 
 const deleteCategory = async (category: Category) => {
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
-  categories.value = categories.value.filter((cat) => cat.id !== category.id)
-  showNotification('Catégorie suprimée avec succès', 'success');
+  try {
+    startLoading();
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
+    categories.value = categories.value.filter((cat) => cat.id !== category.id)
+    showNotification('Catégorie supprimée avec succès', 'success');
+  } finally {
+    stopLoading();
+  }
 }
 
 const showAddCategoryModal = () => {
@@ -188,6 +251,7 @@ const showAddCategoryModal = () => {
     name: '',
     slug: '',
     description: '',
+    active: false,
     parentCategoryId: null,
     Products: []
   }
@@ -214,6 +278,7 @@ onMounted(() => {
   fetchProducts()
 })
 </script>
+
 
 <style scoped>
 .categories {
@@ -259,5 +324,11 @@ form {
 
 .buttons button {
   margin-right: 10px;
+}
+
+.filters input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

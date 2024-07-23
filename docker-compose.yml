@@ -129,6 +129,15 @@ services:
       - ADMINER_DEFAULT_SERVER=postgres
     restart: unless-stopped
 
+  stripe:
+    build:
+      context: .
+      dockerfile: Dockerfile.stripe
+    container_name: stripe-cli
+    environment:
+      - STRIPE_API_KEY=sk_test_51PSJfGRvgxYLdiJ7BNE7Bd66RYSlpx4rxDPaZaNA3Gp3BbpTpX9TMiFQzgRMtWViErcK6NJiWrCj1613DtUr756M00OVXx6tdH
+    command: ["listen", "--forward-to", "http://node:3000/stripe/webhook"]
+
 volumes:
   mongo-data: {}
   postgres-data: {}

@@ -1,0 +1,5 @@
+créer une migration: npx sequelize-cli migration:generate --name {{ nom du fichier }}
+appliquer une migration: npx sequelize-cli db:migrate
+annuler une migration: npx sequelize-cli db:migrate:undo
+annuler toutes les migrations: npx sequelize-cli db:migrate:undo:all
+créer un seed: npx sequelize-cli seed:generate --name {{ nom du fichier }}

@@ -53,11 +53,13 @@ import BreadCrumb from './BreadCrumb.vue'
 import { ref, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { z, ZodError } from 'zod'
+import { useCartStore } from '@/store/cart'
 import axios from '../tools/axios'
 import Cookies from 'js-cookie'
 
 const route = useRoute()
 const router = useRouter()
+const cartStore = useCartStore();
 const isFavorite = ref(false)
 const productId = route.params.id
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
@@ -208,7 +210,7 @@ const addToCart = async (quantity: number) => {
       productVariantId: selectedVariant.value.id,
       quantity
     });
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, cart);
+    await cartStore.addProductToCart(cart);
     showNotification('Produit ajouté au panier avec succès', 'success');
   } catch (error) {
 

@@ -9,10 +9,10 @@
     </header>
 
     <div class="cart-content">
-      <div class="cart-items" v-if="cart">
-        <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
-          <div class="item-details" @click="showProductDetails(item.variantOption.productVariant.product.id)">
-            <RouterLink :to="{ name: 'ProductDetail', params: { id: item.productVariant.productId  }}">
+      <div class="cart-items" v-if="cartStore.getCart && cartStore.getCart.CartProducts && cartStore.getCart.CartProducts.length > 0">
+        <div v-for="(item, itemIndex) in cartStore.getCart.CartProducts" :key="itemIndex" class="cart-item">
+          <div class="item-details" @click="showProductDetails(item.productVariant.product.id)">
+            <RouterLink :to="{ name: 'ProductDetail', params: { id: item.productVariant.productId }}">
               <h3>{{ item.productVariant.Product.name }}</h3>
               <p v-for="attributeValue in item.productVariant.attributeValues" :key="attributeValue.id">
                 {{ attributeValue.attribute.name }} - {{ attributeValue.value }}
@@ -25,19 +25,19 @@
               />
             </RouterLink>
           </div>
-            <div class="item-quantity">
-              <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
-                <option value="remove">Supprimer</option>
-                <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-                <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
-                  {{ item.quantity }}
-                </option>
-              </select>
-            </div>
-            <div class="item-price">
-              <p>{{ item.productVariant.price }} €</p>
-              <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
-            </div>
+          <div class="item-quantity">
+            <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
+              <option value="remove">Supprimer</option>
+              <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+              <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
+                {{ item.quantity }}
+              </option>
+            </select>
+          </div>
+          <div class="item-price">
+            <p>{{ item.productVariant.price }} €</p>
+            <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
+          </div>
         </div>
 
         <button class="cart-button hold-cart" @click="updateCartHold(true)" v-if="!cartStore.getCart.heldUntil">Réserver le panier</button>
@@ -46,7 +46,7 @@
       <div v-else>
         <p>Il n'y a aucun article dans ton panier.</p>
       </div>
-      <div class="cart-summary" v-if="cart">
+      <div class="cart-summary" v-if="cartStore.getCart">
         <h2>Récapitulatif</h2>
         <div class="promo-code">
           <label for="promo">As-tu un code promo ?</label>
@@ -91,7 +91,7 @@
               </div>
             </div>
             <p v-if="promo" class="new-price">
-              {{ (total - (total * promo.discountPercentage) / 100).toFixed(2) }} €
+              {{ cartStore.getCartTotal }} €
             </p>
           </div>
         </div>
@@ -102,148 +102,104 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, inject, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from '../tools/axios';
 import Cookies from 'js-cookie';
-import { load } from '../components/loading/loading'; 
 import { useCartStore } from '@/store/cart';
+import { load } from '../components/loading/loading'; 
 
 const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
 const router = useRouter();
-const cart = ref(null);
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId');
-const promo = ref(null);
 const promoCode = ref('');
 const promoError = ref('');
 const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 const cartStore = useCartStore();
 
+const promo = computed(() => cartStore.getPromo);
+
 const removePromo = async (automatic: boolean) => {
   try {
     startLoading();
-    const cartIds = cart.value.id;
-    await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
-      { userId: authToken, cartIds },
-    );
-    promoError.value = '';
+    await cartStore.removePromo();
     if (!automatic) {
       showNotification('Code promo supprimé avec succès', 'success');
     } else {
       showNotification('Le code promo ' + promo.value.code + ' a expiré !', 'error');
     }
-    promo.value = null;
-    fetchCartItems();
-  } finally {
+    stopLoading();
+  } catch (error) {
+    console.error(error);
+    if (error.response && error.response.status === 400) {
+      promoError.value = error.response.data.message || 'Ce code promo a expiré !';
+      showNotification('Ce code promo a expiré !', 'error');
+    }
     stopLoading();
   }
 };
 
 const applyPromoCode = async () => {
   try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/promos/${promoCode.value}/apply`,
-      null,
-      { params: { userId: authToken } }
-    );
-
-    if (response.data.success) {
-      promo.value = response.data;
-      fetchCartItems();
-      promoError.value = '';
-      showNotification('Code promo appliqué avec succès', 'success');
-    }
+    startLoading();
+    await cartStore.applyPromoCode(promoCode.value);
+    promoError.value = '';
+    showNotification('Code promo appliqué avec succès', 'success');
+    stopLoading();
   } catch (error) {
     if (error.response.status === 400) {
       promoError.value = 'Ce code promo a expiré.';
     } else {
       promoError.value = 'Ce code promo n\'est pas valide.';
     }
+    stopLoading();
   }
 };
 
-const fetchCartItems = async () => {
-  if (authToken) {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
-
-      if (response.data) {
-        cart.value = response.data;
-
-        if (cart.value.promoCodeId) {
-          const promoId = cart.value.promoCodeId;
-          const responsePromo = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos/${promoId}/detail`);
-          promo.value = responsePromo.data;
-        } else {
-          promo.value = null;
-        }
-      } else {
-        cart.value = null;
-        promo.value = null;
-      }
-      let date = new Date();
-      let year = date.getFullYear();
-      let month = ('0' + (date.getMonth() + 1)).slice(-2);
-      let day = ('0' + date.getDate()).slice(-2);
-      let formattedDate = `${year}-${month}-${day}`;
-
-      if (promo.value && promo.value.endDate < formattedDate) {
-        removePromo(true);
-      }
-    } catch (error) {
-      console.error(error);
-      showNotification('Une erreur s\'est produite lors de la récupération du panier', 'error');
-    }
-  }
-};
-
-const updateCartQuantity = async (id, quantity) => {
+const updateCartQuantity = async (id: number, quantity: number | string) => {
   try {
     startLoading();
-    if (quantity === 'remove') {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`);
-    } else {
-      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/cartproducts/${id}`, { quantity });
-    }
-    fetchCartItems();
-  } finally {
+    await cartStore.updateCartQuantity(id, quantity);
+    showNotification('La quantité a été mise à jour avec succès', 'success');
+    stopLoading();
+  } catch (error) {
+    showNotification('Une erreur s\'est produite lors de la mise à jour de la quantité', 'error');
+    stopLoading();
+  }
+};
+
+const updateCartHold = async (hold: boolean) => {
+  try {
+    startLoading();
+    await cartStore.updateCartHold(hold);
+    showNotification(
+      hold ? 'Le panier a été réservé avec succès pendant 15 minutes' : 'La réservation du panier a été annulée',
+      'success'
+    );
+    stopLoading();
+  } catch (error) {
+    showNotification('Une erreur s\'est produite lors de la réservation du panier', 'error');
     stopLoading();
   }
 };
 
 const checkout = () => {
-  if (!Cookies.get('USER')) {
-    router.push('/login');
-  } else {
-    router.push('/payment');
-  }
+  cartStore.checkout();
 };
 
-const updateCartHold = async (action : boolean) => {
+const showProductDetails = (productId: number) => {
+  router.push({ name: 'ProductDetail', params: { id: productId } });
+};
+
+onMounted(async () => {
   try {
     startLoading();
-    await cartStore.updateCartHold(action);
-
-    showNotification(action
-      ? 'Le panier a été réservé avec succès pendant 15 minutes' 
-      : 'La réservation du panier a été annulée', 'success');
-  } 
-  catch (error) {
-    showNotification('Une erreur s\'est produite lors de la réservation du panier', 'error');
-  }
-  finally {
+    await cartStore.fetchCartItemsAuth();
+    stopLoading();
+  } catch (error) {
+    console.error(error);
     stopLoading();
   }
-};
-
-const showProductDetails = (id: string) => {
-  router.push({ name: 'ProductDetail', params: { id } });
-};
-
-onMounted(() => {
-  fetchCartItems();
 });
 </script>
 

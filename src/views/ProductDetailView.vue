@@ -12,6 +12,7 @@
       <button @click="prevSlide" class="slider-button prev-button"><</button>
       <button @click="nextSlide" class="slider-button next-button">></button>
     </div>
+    {{ selectedVariant }}
 
     <div class="product-infos">
       <h2>{{ product.name }}</h2>
@@ -20,9 +21,12 @@
 
       <div class="variant-attributes">
         <div class="product-variants">
-          <select v-for="attribute in attributes">
-            <option disabled selected>{{ attribute.name }}</option>
-            <option v-for="value in attribute.values" :key="value" :value="value">{{ value }}</option>
+          <select @change="changeVariant($event)">
+            <template v-for="variant in product.variants">
+              <option v-for="attribute in variant.attributeValues" :key="variant.id" :value="attribute.id">
+                {{ attribute.attribute.name }} : {{ attribute.value }}
+              </option>
+            </template>
           </select>
         </div>
       </div>
@@ -42,7 +46,7 @@
 
 <script setup lang="ts">
 import BreadCrumb from './BreadCrumb.vue'
-import { ref, onMounted, inject, computed } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { z, ZodError } from 'zod'
 import axios from '../tools/axios'
@@ -117,35 +121,10 @@ type ProductVariant = z.infer<typeof productVariantSchema>
 const product = ref<Product>()
 const selectedVariant = ref<ProductVariant>()
 
-const attributes = computed(() => {
-  if (!product.value || !product.value.variants || product.value.variants.length === 0) {
-    return [];
-  }
-
-  const attributeMap = new Map<number, { name: string, values: string[] }>();
-
-  product.value.variants.forEach(variant => {
-    if (variant.active) {
-      variant.attributeValues.forEach(attributeValue => {
-        if (!attributeMap.has(attributeValue.attribute.id)) {
-          attributeMap.set(attributeValue.attribute.id, {
-            name: attributeValue.attribute.name,
-            values: []
-          });
-        }
-        attributeMap.get(attributeValue.attribute.id)?.values.push(attributeValue.value);
-      });
-    }
-  });
-
-  return Array.from(attributeMap.values()).map(attr => {
-    return {
-      ...attr,
-      values: Array.from(new Set(attr.values)) // Remove duplicates
-    };
-  });
-});
-
+const changeVariant = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  selectedVariant.value = product.value.variants.find(variant => variant.attributeValues.map(av => av.id).includes(parseInt(target.value)));
+}
 
 const fetchProduct = async () => {
 

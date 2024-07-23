@@ -32,14 +32,6 @@ module.exports = function (connection) {
                 type: DataTypes.DATE,
                 allowNull: true
             },
-            createdAt: {
-                type: DataTypes.DATE,
-                allowNull: true
-              },
-            updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: true
-            }
         },
         {
             sequelize: connection,

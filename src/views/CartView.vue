@@ -13,29 +13,31 @@
         <div v-for="(cart, index) in carts" :key="index">
           <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
             <div class="item-details" @click="showProductDetails(item.variantOption.productVariant.product.id)">
-              <h3>{{ item.productVariant.Product.name }}</h3>
-              <p v-for="attributeValue in item.productVariant.attributeValues" :key="attributeValue.id">
-                {{ attributeValue.attribute.name }} - {{ attributeValue.value }}
-              </p>
-              <img
-                class="product-image"
-                :src="imageUrl + `/images/variant/${item.productVariant.images[0].id}`"
-                :alt="item.productVariant.images[0].description"
-              />
+              <RouterLink :to="{ name: 'ProductDetail', params: { id: item.productVariant.productId  }}">
+                <h3>{{ item.productVariant.Product.name }}</h3>
+                <p v-for="attributeValue in item.productVariant.attributeValues" :key="attributeValue.id">
+                  {{ attributeValue.attribute.name }} - {{ attributeValue.value }}
+                </p>
+                <img
+                  class="product-image"
+                  :src="imageUrl + item.productVariant.images[0].id"
+                  :alt="item.productVariant.images[0].description"
+                />
+              </RouterLink>
             </div>
-            <div class="item-quantity">
-              <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
-                <option value="remove">Supprimer</option>
-                <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-                <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
-                  {{ item.quantity }}
-                </option>
-              </select>
-            </div>
-            <div class="item-price">
-              <p>{{ item.productVariant.price }} €</p>
-              <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
-            </div>
+              <div class="item-quantity">
+                <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
+                  <option value="remove">Supprimer</option>
+                  <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                  <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
+                    {{ item.quantity }}
+                  </option>
+                </select>
+              </div>
+              <div class="item-price">
+                <p>{{ item.productVariant.price }} €</p>
+                <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
+              </div>
           </div>
 
           <button class="cart-button hold-cart" @click="updateCartHoldStatus(cart.id, 'hold')" v-if="!cart.heldUntil">Réserver le panier</button>
@@ -115,7 +117,7 @@ const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring
 const promo = ref(null);
 const promoCode = ref('');
 const promoError = ref('');
-const imageUrl = import.meta.env.VITE_API_BASE_URL;
+const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
 
 const removePromo = async (automatic: boolean) => {
@@ -294,7 +296,6 @@ header {
 }
 
 .item-details {
-  cursor: pointer;
   flex: 1;
 }
 

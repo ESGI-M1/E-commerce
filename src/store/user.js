@@ -10,10 +10,10 @@ export const useUserStore = defineStore('user', {
     getUserId: (state) => {
       if (state.user) return state.user.id
 
-      return  Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+      return  Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
     },
     getUserFromCookie: () => {
-      return Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)) : null
+      return Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)) : localStorage.getItem('temporaryId')
     },
     isAuthenticated: () => {
       return Cookies.get('USER') !== undefined

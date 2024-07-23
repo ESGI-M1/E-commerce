@@ -9,46 +9,44 @@
     </header>
 
     <div class="cart-content">
-      <div class="cart-items" v-if="carts && carts.length > 0">
-        <div v-for="(cart, index) in carts" :key="index">
-          <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
-            <div class="item-details" @click="showProductDetails(item.variantOption.productVariant.product.id)">
-              <RouterLink :to="{ name: 'ProductDetail', params: { id: item.productVariant.productId  }}">
-                <h3>{{ item.productVariant.Product.name }}</h3>
-                <p v-for="attributeValue in item.productVariant.attributeValues" :key="attributeValue.id">
-                  {{ attributeValue.attribute.name }} - {{ attributeValue.value }}
-                </p>
-                <img
-                  v-if="item.productVariant.images.length > 0"
-                  class="product-image"
-                  :src="imageUrl + item.productVariant.images[0].id"
-                  :alt="item.productVariant.images[0].description"
-                />
-              </RouterLink>
-            </div>
-              <div class="item-quantity">
-                <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
-                  <option value="remove">Supprimer</option>
-                  <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-                  <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
-                    {{ item.quantity }}
-                  </option>
-                </select>
-              </div>
-              <div class="item-price">
-                <p>{{ item.productVariant.price }} €</p>
-                <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
-              </div>
+      <div class="cart-items" v-if="cart">
+        <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
+          <div class="item-details" @click="showProductDetails(item.variantOption.productVariant.product.id)">
+            <RouterLink :to="{ name: 'ProductDetail', params: { id: item.productVariant.productId  }}">
+              <h3>{{ item.productVariant.Product.name }}</h3>
+              <p v-for="attributeValue in item.productVariant.attributeValues" :key="attributeValue.id">
+                {{ attributeValue.attribute.name }} - {{ attributeValue.value }}
+              </p>
+              <img
+                v-if="item.productVariant.images.length > 0"
+                class="product-image"
+                :src="imageUrl + item.productVariant.images[0].id"
+                :alt="item.productVariant.images[0].description"
+              />
+            </RouterLink>
           </div>
-
-          <button class="cart-button hold-cart" @click="updateCartHoldStatus(cart.id, 'hold')" v-if="!cart.heldUntil">Réserver le panier</button>
-          <button class="cart-button unhold-cart" @click="updateCartHoldStatus(cart.id, 'unhold')" v-else>Annuler la réservation</button>
+            <div class="item-quantity">
+              <select v-model="item.quantity" @change="updateCartQuantity(item.id, item.quantity)">
+                <option value="remove">Supprimer</option>
+                <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                <option v-if="item.quantity > 10" :value="item.quantity" :key="item.quantity">
+                  {{ item.quantity }}
+                </option>
+              </select>
+            </div>
+            <div class="item-price">
+              <p>{{ item.productVariant.price }} €</p>
+              <p>Total: {{ (item.productVariant.price * item.quantity).toFixed(2) }} €</p>
+            </div>
         </div>
+
+        <button class="cart-button hold-cart" @click="updateCartHold(true)" v-if="!cartStore.getCart.heldUntil">Réserver le panier</button>
+        <button class="cart-button unhold-cart" @click="updateCartHold(false)" v-else>Annuler la réservation</button>
       </div>
       <div v-else>
         <p>Il n'y a aucun article dans ton panier.</p>
       </div>
-      <div class="cart-summary" v-if="carts && carts.length > 0">
+      <div class="cart-summary" v-if="cart">
         <h2>Récapitulatif</h2>
         <div class="promo-code">
           <label for="promo">As-tu un code promo ?</label>
@@ -70,7 +68,7 @@
         <div class="totals">
           <div class="subtotal">
             <p>Sous-total</p>
-            <p>{{ subtotal }} €</p>
+            <p>{{ cartStore.getCartSubtotal }} €</p>
           </div>
           <div class="shipping">
             <p>Frais estimés de prise en charge et d'expédition</p>
@@ -87,7 +85,7 @@
                   }"
                   class="old-price"
                 >
-                  {{ promo ? subtotal : total }} €
+                  {{ promo ? cartStore.getCartSubtotal : cartStore.getCartTotal }} €
                 </p>
                 <span class="discount" v-if="promo">(- {{ promo.discountPercentage }}%)</span>
               </div>
@@ -104,27 +102,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, inject } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../tools/axios';
 import Cookies from 'js-cookie';
 import { load } from '../components/loading/loading'; 
+import { useCartStore } from '@/store/cart';
 
 const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
 const router = useRouter();
-const carts = ref(null);
+const cart = ref(null);
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId');
 const promo = ref(null);
 const promoCode = ref('');
 const promoError = ref('');
 const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
-
+const cartStore = useCartStore();
 
 const removePromo = async (automatic: boolean) => {
   try {
     startLoading();
-    const cartIds = carts.value[0].id;
+    const cartIds = cart.value.id;
     await axios.post(
       `${import.meta.env.VITE_API_BASE_URL}/carts/remove-promo`,
       { userId: authToken, cartIds },
@@ -170,18 +169,18 @@ const fetchCartItems = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
 
-      if (response.data && response.data.length > 0) {
-        carts.value = response.data;
+      if (response.data) {
+        cart.value = response.data;
 
-        if (carts.value[0].promoCodeId) {
-          const promoId = carts.value[0].promoCodeId;
+        if (cart.value.promoCodeId) {
+          const promoId = cart.value.promoCodeId;
           const responsePromo = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos/${promoId}/detail`);
           promo.value = responsePromo.data;
         } else {
           promo.value = null;
         }
       } else {
-        carts.value = null;
+        cart.value = null;
         promo.value = null;
       }
       let date = new Date();
@@ -194,8 +193,8 @@ const fetchCartItems = async () => {
         removePromo(true);
       }
     } catch (error) {
-      carts.value = null;
-      promo.value = null;
+      console.error(error);
+      showNotification('Une erreur s\'est produite lors de la récupération du panier', 'error');
     }
   }
 };
@@ -214,19 +213,6 @@ const updateCartQuantity = async (id, quantity) => {
   }
 };
 
-const subtotal = computed(() => {
-  if (carts.value && carts.value[0]) {
-    return carts.value[0].CartProducts
-      .reduce((acc, item) => acc + item.productVariant.price * item.quantity, 0)
-      .toFixed(2);
-  }
-  return '0.00';
-});
-
-const total = computed(() => {
-  return parseFloat(subtotal.value).toFixed(2);
-});
-
 const checkout = () => {
   if (!Cookies.get('USER')) {
     router.push('/login');
@@ -235,16 +221,19 @@ const checkout = () => {
   }
 };
 
-const updateCartHoldStatus = async (id, action) => {
+const updateCartHold = async (action : boolean) => {
   try {
     startLoading();
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts/${action}`, { cartId: id });
+    await cartStore.updateCartHold(action);
 
-    showNotification(action === 'hold'
+    showNotification(action
       ? 'Le panier a été réservé avec succès pendant 15 minutes' 
       : 'La réservation du panier a été annulée', 'success');
-  } finally {
-    fetchCartItems();
+  } 
+  catch (error) {
+    showNotification('Une erreur s\'est produite lors de la réservation du panier', 'error');
+  }
+  finally {
     stopLoading();
   }
 };

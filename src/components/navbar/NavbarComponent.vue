@@ -61,7 +61,6 @@ import axios from 'axios'
 const router = useRouter()
 const productsStore = useProductsStore()
 const shopStore = useShopStore()
-const search = ref('')
 const cartsNumber = ref(null)
 
 const applyFilters = () => {
@@ -78,7 +77,7 @@ const fetchCartItems = async () => {
   const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
   cartsNumber.value = null;
 
-  if (authToken && false) {
+  if (authToken) {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
 
@@ -98,11 +97,6 @@ const fetchCartItems = async () => {
 const isAuthenticated = computed(() => {
   return Cookies.get('USER') !== undefined
 })  
-
-const isAdmin = computed(() => {
-  const user = JSON.parse(Cookies.get('USER').slice(2))
-  return user.role === 'admin'
-})
 
 const logout = () => {
   Cookies.remove('USER')

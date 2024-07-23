@@ -30,7 +30,12 @@
         </div>
       </div>
 
-      <button @click="() => addToCart(1)" class="cart-actions">Ajouter au panier</button>
+      <button @click="() => addToCart(1)" class="cart-actions" v-if="selectedVariant.stock > 0">
+        <i class="fas fa-cart-plus"></i> Ajouter au panier
+      </button>
+      <button class="cart-actions" v-else>
+        <i class="fas fa-cart-plus"></i> Produit indisponible
+      </button>
 
       <button v-if="isFavorite" @click.stop="removeFromFavorites(product.id)" class="favorite-actions">
         <i class="fas fa-heart"></i> Ajouté aux favoris

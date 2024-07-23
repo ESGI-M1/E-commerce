@@ -153,7 +153,12 @@ router.post("/", async (req, res, next) => {
       cart = await Cart.create({ userId : parseInt(userId) });
     }
 
-    let cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, productVariantId } });
+    const cartProduct = await CartProduct.findOne({ where: { cartId: cart.id, productVariantId } });
+    const productVariant = await ProductVariant.findByPk(productVariantId);
+
+    if(!productVariant.stock > 0) return res.status(400).json({ error: 'Not enough stock' });
+
+    if(productVariant.stock < quantity) return res.status(400).json({ error: 'Not enough stock' });
 
     if (cartProduct) {
       cartProduct.quantity += 1;

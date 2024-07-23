@@ -81,6 +81,8 @@ router.post("/signup", async (req, res, next) => {
 
     if(req.body.role && req.body.role === 'admin') return res.status(401).send('Unauthorized');
 
+    if(req.body.cgu !== true) return res.status(400).send('CGU not accepted');
+
     const user = await User.create(req.body);
     mailer.sendNewsLetterInscription(user);
     res.status(201).json(user);

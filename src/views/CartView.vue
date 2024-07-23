@@ -19,6 +19,7 @@
                   {{ attributeValue.attribute.name }} - {{ attributeValue.value }}
                 </p>
                 <img
+                  v-if="item.productVariant.images.length > 0"
                   class="product-image"
                   :src="imageUrl + item.productVariant.images[0].id"
                   :alt="item.productVariant.images[0].description"

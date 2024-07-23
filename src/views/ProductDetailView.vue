@@ -12,7 +12,6 @@
       <button @click="prevSlide" class="slider-button prev-button"><</button>
       <button @click="nextSlide" class="slider-button next-button">></button>
     </div>
-    {{ selectedVariant }}
 
     <div class="product-infos">
       <h2>{{ product.name }}</h2>
@@ -21,7 +20,7 @@
 
       <div class="variant-attributes">
         <div class="product-variants">
-          <select @change="changeVariant($event)">
+          <select @change="changeVariant($event)" :value="selectedVariant.attributeValues[0]?.id">
             <template v-for="variant in product.variants">
               <option v-for="attribute in variant.attributeValues" :key="variant.id" :value="attribute.id">
                 {{ attribute.attribute.name }} : {{ attribute.value }}
@@ -123,7 +122,9 @@ const selectedVariant = ref<ProductVariant>()
 
 const changeVariant = (event: Event) => {
   const target = event.target as HTMLSelectElement;
-  selectedVariant.value = product.value.variants.find(variant => variant.attributeValues.map(av => av.id).includes(parseInt(target.value)));
+  selectedVariant.value = product.value.variants.find(variant => 
+    variant.attributeValues.some(av => av.id === parseInt(target.value))
+  );
 }
 
 const fetchProduct = async () => {
@@ -132,7 +133,14 @@ const fetchProduct = async () => {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${productId}`);
     product.value = productSchema.parse(response.data);
 
-    selectedVariant.value = product.value.variants.find(variant => variant.default === true);
+    const defaultVariant = product.value.variants.find(variant => variant.default === true);
+
+    if (defaultVariant?.active) {
+      selectedVariant.value = defaultVariant;
+    }
+    else{
+      selectedVariant.value = product.value.variants.find(variant => variant.default === true);
+    }
 
     if (user) {
       const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`);

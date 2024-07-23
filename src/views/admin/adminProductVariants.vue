@@ -101,9 +101,12 @@
 
     <Modal v-if="showModalImage" @close="showModalImage = false" title="Ajouter une image" :onSave="() => uploadImage(currentVariant.id)" :noShowFooter="true">
       <div class="images">
-        <div v-for="(image, index) in currentVariant.images" :key="index">
+        <div v-for="(image, index) in currentVariant.images" :key="index" class="image-item">
           <p>{{ image.description }}</p>
           <img :src="imageUrl + image.id" :alt="image.description" />
+          <button @click="deleteImage(image.id)" class="btn btn-danger">
+            <i class="fa fa-trash"></i> Supprimer
+          </button>
         </div>
       </div>
       <form @submit.prevent="uploadImage(currentVariant.id)">
@@ -121,6 +124,7 @@
         <button type="submit" class="btn btn-success">Ajouter</button>
       </form>
     </Modal>
+
 
   </div>
 
@@ -208,7 +212,7 @@ const currentAttributes = ref<attribute[]>([])
 const productVariants = ref<productVariantsType>([])
 
 const selectedImage = ref<File | null>(null);
-const imagePreview = ref<string | null>(null); // Pour la prévisualisation
+const imagePreview = ref<string | null>(null);
 const imageDescription = ref('');
 
 const titleModal = {
@@ -234,11 +238,6 @@ const showVariantModal = (modal: string) => {
     }
   }
 }
-
-const showImageModal = () => {
-  showModalImage.value = true
-}
-
 const fetchAttributes = async () => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/attributes`)
@@ -316,6 +315,19 @@ const uploadImage = async (productVariantId: number) => {
   } catch (error) {
     console.error(error);
     showNotification('Erreur lors de l\'ajout de l\'image', 'error');
+  }
+};
+
+const deleteImage = async (imageId: number) => {
+  try {
+    const response = await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/images/${imageId}`);
+    if (response.status === 204) {
+      currentVariant.value.images = currentVariant.value.images.filter(image => image.id !== imageId);
+      showNotification('Image supprimée avec succès', 'success');
+    }
+  } catch (error) {
+    console.error(error);
+    showNotification('Erreur lors de la suppression de l\'image', 'error');
   }
 };
 

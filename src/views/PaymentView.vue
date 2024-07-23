@@ -5,7 +5,7 @@
     </header>
 
     <div class="cart-content">
-      <div class="cart-items" v-if="carts && carts.length > 0">
+      <div class="cart-items" v-if="carts">
         <h2>Options de livraison</h2>
         <div class="delivery-options">
           <button
@@ -34,7 +34,7 @@
 
         <div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
     <h3>Livraison à domicile</h3>
-      <div v-if="carts[0].user && carts[0].user.deliveryAddress" v-for="(address, index) in carts[0].user.deliveryAddress" :key="address.id" class="delivery-address">
+      <div v-if="carts.user && carts.user.deliveryAddress" v-for="(address, index) in carts.user.deliveryAddress" :key="address.id" class="delivery-address">
         <label>
           <input
           type="radio"
@@ -74,7 +74,7 @@
   </div>
 
       </div>
-      <div class="cart-summary" v-if="carts && carts.length > 0">
+      <div class="cart-summary" v-if="carts">
         <h2>Récapitulatif</h2>
         <div class="totals">
           <div class="subtotal">
@@ -86,8 +86,8 @@
             <p>Gratuit</p>
           </div>
           <div class="total">
-            <div v-for="(cart, index) in carts" :key="index">
-              <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
+            <div v-if="carts">
+              <div v-for="(item, itemIndex) in carts.CartProducts" :key="itemIndex" class="cart-item">
                 <div class="item-details" @click="showProductDetails(item.product.id)">
                   <h3 v-if="item.product">{{ item.product.name }}</h3>
                   <img
@@ -186,21 +186,20 @@ const fetchCartItems = async () => {
 
     carts.value = response.data
 
-    if (carts.value[0].promoCodeId) {
-      const promoId = carts.value[0].promoCodeId
+    if (carts.value.promoCodeId) {
+      const promoId = carts.value.promoCodeId
       const responsePromo = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos/${promoId}/detail`)
       promo.value = responsePromo.data
     } else {
       promo.value = null
     }
   }
-  if (carts.value[0].user && carts.value[0].user.deliveryAddress[0]) {
-    newLivraisonDomicileAddress.value.street = carts.value[0].user.deliveryAddress[0].street
-    newLivraisonDomicileAddress.value.postalCode = carts.value[0].user.deliveryAddress[0].postalCode
-    newLivraisonDomicileAddress.value.city = carts.value[0].user.deliveryAddress[0].city
-    newLivraisonDomicileAddress.value.country = carts.value[0].user.deliveryAddress[0].country
+  if (carts.value.user && carts.value.user.deliveryAddress[0]) {
+    newLivraisonDomicileAddress.value.street = carts.value.user.deliveryAddress[0].street
+    newLivraisonDomicileAddress.value.postalCode = carts.value.user.deliveryAddress[0].postalCode
+    newLivraisonDomicileAddress.value.city = carts.value.user.deliveryAddress[0].city
+    newLivraisonDomicileAddress.value.country = carts.value.user.deliveryAddress[0].country
   }
-  console.log(carts.value)
 }
 
 const updateLivraisonDomicileAddress = (address) => {
@@ -216,8 +215,8 @@ const updateLivraisonDomicileAddress = (address) => {
 }
 
 const subtotal = computed(() => {
-  if (carts.value && carts.value[0]) {
-    return carts.value[0].CartProducts
+  if (carts.value) {
+    return carts.value.CartProducts
       .reduce((acc, item) => acc + item.productVariant.price * item.quantity, 0)
       .toFixed(2);
   }
@@ -279,11 +278,10 @@ const handlePayment = async (payment: string) => {
           `${import.meta.env.VITE_PUBLIC_KEY_STRIPE}`
         )
       const stripe = await stripePromise;
-      console.log(carts.value[0].CartProducts)
       const stripeSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe`, {
-        cartId: carts.value[0].id,
+        cartId: carts.value.id,
         orderId: order.data.id,
-        items: carts.value[0].CartProducts,
+        items: carts.value.CartProducts,
         promo: promo.value,
       });
 
@@ -291,9 +289,9 @@ const handlePayment = async (payment: string) => {
       await stripe.redirectToCheckout({ sessionId });
     } else if(payment == 'paypal') {
       const paypalSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/paypal`, {
-        cartId: carts.value[0].id,
+        cartId: carts.value.id,
         orderId: order.data.id,
-        items: carts.value[0].CartProducts,
+        items: carts.value.CartProducts,
         promo: promo.value,
       });
 

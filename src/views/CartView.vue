@@ -184,7 +184,11 @@ const updateCartHold = async (hold: boolean) => {
 };
 
 const checkout = () => {
-  cartStore.checkout();
+  if (!Cookies.get('USER')) {
+    router.push('/login');
+  } else {
+    router.push('/payment');
+  }
 };
 
 const showProductDetails = (productId: number) => {

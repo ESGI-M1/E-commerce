@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const router = new Router();
-const { ReturnProduct, User, Product, ProductVariant, VariantOption } = require('../models');
+const { ReturnProduct, User, Product, ProductVariant } = require('../models');
 const checkAuth = require("../middlewares/checkAuth");
 
 router.get('/', checkAuth, async (req, res, next) => {
@@ -39,7 +39,7 @@ router.get('/', checkAuth, async (req, res, next) => {
 
 router.post('/', checkAuth, async (req, res, next) => {
   try {
-    const { orderId, variantOptionId, quantityReturned, reason, deliveryMethod } = req.body; // TODO add parseInt*
+    const { orderId, productVariantId, quantityReturned, reason, deliveryMethod } = req.body; // TODO add parseInt*
     const userId = req.user.id;
 
     if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
@@ -48,7 +48,7 @@ router.post('/', checkAuth, async (req, res, next) => {
       where: {
           userId: userId,
           orderId: orderId,
-          variantOptionId: variantOptionId,
+          productVariantId: productVariantId,
       },
     });
 
@@ -57,7 +57,7 @@ router.post('/', checkAuth, async (req, res, next) => {
     const newReturn = await ReturnProduct.create({
       userId,
       orderId,
-      variantOptionId,
+      productVariantId,
       quantity: quantityReturned,
       reason: reason || 'aucune',
       deliveryMethod
@@ -70,8 +70,8 @@ router.post('/', checkAuth, async (req, res, next) => {
   }
 });
 
-router.get("/:variantOptionId", checkAuth, async (req, res, next) => {
-  const variantOptionId = req.params.variantOptionId;
+router.get("/:productVariantId", checkAuth, async (req, res, next) => {
+  const { productVariantId } = req.params;
   const { orderId } = req.query;
   const userId = req.user.id;
 
@@ -82,11 +82,11 @@ router.get("/:variantOptionId", checkAuth, async (req, res, next) => {
       where: {
         orderId: parseInt(orderId),
         userId: userId,
-        variantOptionId: parseInt(variantOptionId),
+        productVariantId: parseInt(productVariantId),
       }
     });
 
-    returnProduct ? res.json(returnProduct) : res.sendStatus(200);
+    returnProduct ? res.json(returnProduct) : res.sendStatus(404);
   } catch (e) {
     next(e);
   }

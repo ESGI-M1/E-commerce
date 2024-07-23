@@ -59,18 +59,4 @@ router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     }
 });
 
-router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
-    try {
-        const nbDeleted = await Shop.destroy({
-            where: {
-                id: parseInt(req.params.id),
-            },
-        });
-        const shop = await Shop.create(req.body);
-        res.status(nbDeleted === 1 ? 200 : 201).json(shop);
-    } catch (e) {
-        next(e);
-    }
-});
-
 module.exports = router;

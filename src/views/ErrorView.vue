@@ -30,9 +30,8 @@
       countdownMessage.value = '1 seconde';
 
       setTimeout(() => {
-        router.push('/payment'); // Redirection vers la page de paiement
+        router.push('/payment');
 
-        // Affichage du message d'erreur après la redirection
         setTimeout(() => {
           showErrorMessage.value = true;
           redirectMessage.value = 'Redirection avec les détails...';
@@ -42,7 +41,7 @@
   };
 
   onMounted(async () => {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/orders/${id.value}`);
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${id.value}`);
       redirectToPayment();
   });
 </script>

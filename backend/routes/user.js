@@ -6,8 +6,7 @@ const checkAuth = require("../middlewares/checkAuth");
 const { Op } = require('sequelize');
 const mailer = require('../services/mailer');
 
-router.get("/", checkAuth, checkRole({ roles: "admin" }), async (req, res) => {
-
+router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
     const users = await User.findAll({
       where: {
         ...req.query,
@@ -62,7 +61,7 @@ router.get("/:id", checkAuth, async (req, res, next) => {
 
 });
 
-router.post("/", checkAuth, checkRole({ roles: "admin" }), async (req, res, next) => {
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const user = await User.create(req.body);
     mailer.sendValidateInscriptionByAdmin(user, req.body.password);
@@ -180,29 +179,6 @@ router.delete("/:id", checkAuth, async (req, res, next) => {
 
     res.sendStatus(nbUpdated[0] === 1 ? 200 : 404);
   }
-  } catch (e) {
-    next(e);
-  }
-});
-
-router.put("/:id", checkAuth, async (req, res, next) => {
-  try {
-    const userId = parseInt(req.params.id);
-    
-    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
-
-    const nbDeleted = await User.destroy({
-      where: {
-        id: userId,
-      },
-    });
-    
-    const user = await User.create({
-      ...req.body,
-      id: userId,
-    });
-
-    res.status(nbDeleted ? 200 : 201).json(user);
   } catch (e) {
     next(e);
   }

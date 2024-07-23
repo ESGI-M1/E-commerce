@@ -192,7 +192,6 @@ const fetchProducts = async () => {
 }
 
 const addCategory = async () => {
-
   try{
     const parsedCategory = categorySchema.parse(currentCategory.value);
     axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)

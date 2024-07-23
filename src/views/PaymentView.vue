@@ -300,10 +300,10 @@ const handlePayment = async (payment: string) => {
       const { sessionId } = paypalSession.data;
     }
 
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
     } catch (error) {
       if (typeof order !== 'undefined' && order) {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
       }
     }
   }

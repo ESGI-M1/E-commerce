@@ -1,12 +1,11 @@
 const { Router } = require("express");
 const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, VariantOption, ProductVariant } = require("../models");
 const router = new Router();
-const { PDFDocument } = require('pdf-lib');
-const { format } = require('date-fns');
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
+const { Op } = require('sequelize');
 
-router.get('/', async (req, res, next) => {
+router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: req.query,
@@ -42,7 +41,14 @@ router.get('/own', checkAuth, async (req, res, next) => {
           const orderId = cart.orderId;
 
           if (!orderMap[orderId]) {
-              const order = await Order.findByPk(orderId);
+              const order = await Order.findAll({
+                  where: { 
+                    userId: userId, 
+                    id: orderId,
+                    status: { [Op.ne]: 'cancelled' }
+                   }
+              }
+              );
               const payment = await PaymentMethod.findOne({
                 where: {
                   orderId: orderId,
@@ -154,14 +160,6 @@ router.get('/:id', checkAuth, async (req, res, next) => {
 router.post('/', checkAuth, async (req, res, next) => {
   try {
     const { total, method } = req.body;
-    /*const exist = await Order.findAll({
-        where: { 
-            userId: userId,
-            totalAmount: total,
-            deliveryMethod: method
-        },
-    });
-*/
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + 3);
 
@@ -176,78 +174,6 @@ router.post('/', checkAuth, async (req, res, next) => {
       
   } catch (e) {
     next(e)
-  }
-});
-
-router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
-  const idUser = parseInt(req.params.idUser);
-  const orderId = parseInt(req.query.orderId);
-
-  try {
-      const carts = await Cart.findAll({
-          where: { userId: idUser, orderId: orderId },
-          include: [
-              {
-                  model: Product,
-                  as: 'product',
-                  attributes: ['id', 'name', 'price'],
-                  include: [Category],
-              },
-              {
-                  model: PromoCode,
-                  as: 'promoCode',
-                  attributes: ['discountPercentage']
-              }
-          ]
-      });
-
-      const orderMap = {};
-
-      for (const cart of carts) {
-          const orderId = cart.orderId;
-
-          if (!orderMap[orderId]) {
-              const order = await Order.findByPk(orderId);
-              if (order) {
-                  orderMap[orderId] = {
-                      id: order.id,
-                      userId: order.userId,
-                      totalAmount: order.totalAmount,
-                      status: order.status,
-                      createdAt: order.createdAt,
-                      deliveryDate: order.deliveryDate,
-                      deliveryMethod: order.deliveryMethod,
-                      carts: [] // Initialiser le tableau de paniers
-                  };
-              }
-          }
-
-          if (orderMap[orderId]) {
-              orderMap[orderId].carts.push({
-                  id: cart.id,
-                  quantity: cart.quantity,
-                  product: cart.product,
-                  promo: cart.promoCode,
-              });
-          }
-      }
-
-      const payment = await PaymentMethod.findOne({
-        where: {
-          orderId: orderId,
-          userId: req.user.id,
-        },
-      });
-
-      if (payment) {
-        orderMap[orderId].payment = payment;
-      }
-
-      const ordersWithCarts = Object.values(orderMap);
-
-      res.json(ordersWithCarts);
-  } catch (e) {
-      next(e);
   }
 });
 
@@ -267,7 +193,21 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", checkAuth, async (req, res) => {
+  const order = await Order.findByPk(req.params.id);
+  if (req.user.id !== order.userId) {
+    return res.sendStatus(403);
+  }
+  if (order) {
+    order.status = 'cancelled';
+    await order.save();
+      res.json(order);
+  } else {
+      res.sendStatus(404);
+  }
+});
+
+router.patch("/admin/:id", checkRole({ roles: "admin" }), async (req, res) => {
   const order = await Order.findByPk(req.params.id);
 
   if (order) {
@@ -278,6 +218,5 @@ router.patch("/:id", async (req, res) => {
       res.sendStatus(404);
   }
 });
-
 
 module.exports = router;

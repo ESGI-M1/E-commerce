@@ -120,7 +120,6 @@ const promoCode = ref('');
 const promoError = ref('');
 const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
-
 const removePromo = async (automatic: boolean) => {
   try {
     startLoading();

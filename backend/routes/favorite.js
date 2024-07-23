@@ -41,7 +41,6 @@ router.post('/', checkAuth, async (req, res, next) => {
   }
 });
 
-// Supprimer un produit des favoris d'un utilisateur
 router.delete('/:productId', checkAuth, async (req, res, next) => {
   const productId = parseInt(req.params.productId);
 

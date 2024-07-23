@@ -2,8 +2,9 @@ const { Router } = require("express");
 const router = new Router();
 const { ReturnProduct, User, Product, ProductVariant, VariantOption } = require('../models');
 const checkAuth = require("../middlewares/checkAuth");
+const checkRole = require("../middlewares/checkRole");
 
-router.get('/', checkAuth, async (req, res, next) => {
+router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const returns = await ReturnProduct.findAll({
       where: req.query,
@@ -109,7 +110,7 @@ router.delete("/", checkAuth, async (req, res) => {
   deleted ? res.sendStatus(200) : res.sendStatus(404);
 });
   
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", checkRole({ roles: "admin" }), async (req, res) => {
   const returned = await ReturnProduct.findByPk(req.params.id); // TODO security
 
   if (returned) {
@@ -121,5 +122,4 @@ router.patch("/:id", async (req, res) => {
   res.sendStatus(404);
 });
 
-  
 module.exports = router;

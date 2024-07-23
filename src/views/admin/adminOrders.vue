@@ -32,8 +32,8 @@
             <td>{{ formatDate(order.deliveryDate) }}</td>
             <td>n°{{ order.id }}</td>
             <td>#{{ order.user.id }} {{ order.user.lastname }} {{ order.user.firstname }}</td>
-            <td :title="order.status === 'completed' ? 'Terminé' : 'En cours'">
-              <i :class="order.status === 'completed' ? 'fas fa-check-circle status-completed' : 'fas fa-hourglass-half status-pending'"></i>
+            <td :title="order.status === 'completed' ? 'Terminé' : (order.status === 'pending' ? 'En cours' : 'annulé')">
+              <i :class="order.status === 'completed' ? 'fas fa-check-circle status-completed' : ( order.status === 'pending' ?  'fas fa-hourglass-half status-pending' : 'fas fa-times status-cancelled')"></i>
             </td>
             <td>{{ order.totalAmount }} €</td>
             <td v-if="order.addressOrder">{{ order.addressOrder.street }}, {{ order.addressOrder.postalCode }} {{ order.addressOrder.city }}, {{ order.addressOrder.country }}</td>
@@ -124,7 +124,7 @@ const formatDate = (dateStr: string) => {
 }
 
 const validate = async (id: number) => {
-  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${id}`)
+  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/admin/${id}`)
   fetchOrders()
   showNotification('Commande validée avec succès', 'success');
 }
@@ -149,6 +149,10 @@ onMounted(() => {
 
 .status-pending {
   color: orange;
+}
+
+.status-cancelled {
+  color: red;
 }
 
 .filters {

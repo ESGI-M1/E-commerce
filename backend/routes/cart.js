@@ -4,6 +4,8 @@ const router = new Router();
 const crypto = require('crypto');
 const checkAuth = require("../middlewares/checkAuth");
 
+// ERROR rajouter token pour toutes les functions !!
+
 // Récupère tous les produits du panier d'un utilisateur
 router.get("/:userId", async (req, res, next) => {
   try {

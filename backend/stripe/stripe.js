@@ -1,9 +1,11 @@
 const { Router } = require('express');
 const router = Router();
 const Stripe = require('stripe');
-const stripe = Stripe('sk_test_51PSJfGRvgxYLdiJ7BNE7Bd66RYSlpx4rxDPaZaNA3Gp3BbpTpX9TMiFQzgRMtWViErcK6NJiWrCj1613DtUr756M00OVXx6tdH');
-const { PaymentMethod } = require("../models");
+
+const stripe = Stripe(`${process.env.VITE_PRIVATE_KEY_STRIPE}`);
+const { PaymentMethod, Order } = require("../models");
 const checkAuth = require("../middlewares/checkAuth");
+const generateInvoice = require('./stripeInvoice');
 
 router.post('/', checkAuth, async (req, res) => {
   try {
@@ -35,8 +37,8 @@ router.post('/', checkAuth, async (req, res) => {
       }),
       
       mode: 'payment',
-      success_url: `http://localhost:5173/success/${orderId}/${cartId}`,
-      cancel_url: `http://localhost:5173/error/${orderId}`,
+      success_url: `${process.env.VITE_API_SECOND_URL}/success/${orderId}/${cartId}`,
+      cancel_url: `${process.env.VITE_API_SECOND_URL}/error/${orderId}`,
     });
 
     await PaymentMethod.create({
@@ -57,38 +59,24 @@ router.post('/', checkAuth, async (req, res) => {
   }
 });
 
-router.post('/invoice/:idOrder', checkAuth, async (req, res) => {
-  const orderId = req.params.idOrder;
+router.post('/invoice/:orderId', checkAuth, async (req, res) => {
+  const { orderId } = req.params;
+  const order = await Order.findOne({
+    where: {
+      id: orderId,
+      userId: req.user.id,
+    },
+  });
 
+  if (req.user.id !== order.userId) {
+    return res.status(401);
+  }
   try {
-    const payment = await PaymentMethod.findOne({
-      where: {
-        orderId: orderId,
-        userId: req.user.id,
-      },
-    });
-
-    if (!payment) {
-      return res.status(404).json({ error: 'Payment method not found' });
-    }
-
-    const invoice = await stripe.invoices.create({
-      customer: payment.stripeCustomerId,
-      collection_method: 'send_invoice',
-      days_until_due: 30,
-      description: `Facture de la commande n° ${orderId}`,
-      metadata: {
-        orderId: orderId,
-        userId: req.user.id,
-      },
-    });
-
-    const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
-
-    res.json({ invoicePdfUrl: finalizedInvoice.invoice_pdf });
-
+    const invoicePath = await generateInvoice(orderId);
+    const invoicePdfUrl = `${req.protocol}://${req.get('host')}/invoices/invoice_${orderId}.pdf`;
+    res.json({ invoicePdfUrl });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Erreur lors de la génération de la facture' });
   }
 });
 

@@ -25,7 +25,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="user in filteredUsers" :key="user.id">
+        <tr v-if="filteredUsers.length > 0" v-for="user in filteredUsers" :key="user.id">
           <td>{{ user.id }}</td>
           <td>{{ user.lastname }}</td>
           <td>{{ user.firstname }}</td>
@@ -55,6 +55,9 @@
               Réinitialiser MDP
             </button>
           </td>
+        </tr>
+        <tr v-else>
+          <td class="empty" colspan="8">Aucun utilisateur trouvé</td>
         </tr>
       </tbody>
     </table>

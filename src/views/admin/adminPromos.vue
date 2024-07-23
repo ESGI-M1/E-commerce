@@ -28,7 +28,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="promo in filteredPromos" :key="promo.id">
+        <tr v-if="filteredPromos.length > 0" v-for="promo in filteredPromos" :key="promo.id">
           <td>{{ promo.id }}</td>
           <td>{{ promo.code }}</td>
           <td>{{ formatDate(promo.startDate) }}</td>
@@ -39,6 +39,9 @@
               <i class="fa fa-edit"></i>
             </a>
           </td>
+        </tr>
+        <tr v-else>
+          <td class="empty" colspan="6">Aucun code promo trouvé</td>
         </tr>
       </tbody>
     </table>

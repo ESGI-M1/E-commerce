@@ -25,7 +25,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="category in filteredCategories" :key="category.id">
+          <tr v-if="filteredCategories.length > 0" v-for="category in filteredCategories" :key="category.id">
             <td>{{ category.name }}</td>
             <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
@@ -53,6 +53,9 @@
               </div>
             </td>
           </tr>
+          <tr v-else>
+          <td class="empty" colspan="7">Aucune catégorie trouvée</td>
+        </tr>
         </tbody>
       </table>
     </div>

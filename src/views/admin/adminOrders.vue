@@ -27,7 +27,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="order in filteredOrders" :key="order.id">
+          <tr v-if="filteredOrders.length > 0" v-for="order in filteredOrders" :key="order.id">
             <td>{{ formatDate(order.createdAt) }}</td>
             <td>{{ formatDate(order.deliveryDate) }}</td>
             <td>n°{{ order.id }}</td>
@@ -48,6 +48,9 @@
               </fancy-confirm>
             </td>
           </tr>
+          <tr v-else>
+          <td class="empty" colspan="8">Aucune commande trouvée</td>
+        </tr>
         </tbody>
       </table>
     </div>

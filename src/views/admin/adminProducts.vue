@@ -32,7 +32,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in filteredProducts" :key="product.id">
+        <tr v-if="filteredProducts.length > 0"v-for="product in filteredProducts" :key="product.id">
           <td>
             <label class="image-upload">
               <input
@@ -80,6 +80,9 @@
           </fancy-confirm>
           </div>
           </td>
+        </tr>
+        <tr v-else>
+          <td class="empty" colspan="9">Aucun produit trouvé</td>
         </tr>
       </tbody>
     </table>
@@ -202,7 +205,7 @@ const isEditing = ref(false)
 const fetchProducts = async () => {
 
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`) // TODO PARSE ZOD
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`)
     products.value = productsSchema.parse(response.data)
   } catch(error) {
 

@@ -1,10 +1,9 @@
-<!-- App.vue -->
 <script setup lang="ts">
 import { ref, inject } from 'vue';
 import Navbar from './components/navbar/NavbarComponent.vue';
 import Footer from './components/navbar/FooterComponent.vue';
 import Sidebar from './components/sidebar/SidebarComponent.vue';
-import { sidebarWidth } from './components/sidebar/state';
+import { sidebarWidth, isMobile } from './components/sidebar/state';
 import NotificationComponent from './components/notification/NotificationComponent.vue';
 import LoadingComponent from './components/loading/LoadingComponent.vue';
 import { load } from './components/loading/loading';
@@ -16,12 +15,13 @@ const notificationType = inject('notificationType', ref(''));
 
 <template>
   <div>
-    <Sidebar v-if="$route.meta.requiresAdmin" />
+    <Sidebar v-if="$route.meta.requiresAdmin || isMobile" />
     <Navbar />
     <div
-      :style="$route.meta.requiresAdmin
-      ? { marginLeft: sidebarWidth, transition: 'margin-left 0.3s ease' }
-      : { transition: 'margin-left 0.3s ease' }"
+      :style="{
+        marginLeft: $route.meta.requiresAdmin && !isMobile ? sidebarWidth : '0',
+        transition: 'margin-left 0.3s ease'
+      }"
     >
       <router-view />
     </div>

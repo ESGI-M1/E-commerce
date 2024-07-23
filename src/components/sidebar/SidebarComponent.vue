@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import SidebarLink from './SidebarLink.vue'
 import { ref, computed } from 'vue'
-import { collapsed, toggleSidebar, sidebarWidth } from './state'
+import { collapsed, toggleSidebar, sidebarWidth, isMobile } from './state'
 </script>
 
 <template>
-  <div class="sidebar" :class="{ collapsed: collapsed }" :style="{ width: sidebarWidth }">
+  <div :class="['sidebar', { collapsed: collapsed, mobile: isMobile }]" :style="{ width: sidebarWidth }">
     <SidebarLink to="/" icon="fas fa-home">Accueil</SidebarLink>
     <hr>
     <SidebarLink to="/admin/ressources" icon="fas fa-tachometer-alt">Tableau de bord</SidebarLink>
@@ -55,6 +55,15 @@ import { collapsed, toggleSidebar, sidebarWidth } from './state'
 .sidebar.collapsed {
   width: 0;
   padding: 0;
+}
+
+.sidebar.mobile {
+  width: 0;
+  padding: 0;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  z-index: 1000;
 }
 
 .sidebar h1 {

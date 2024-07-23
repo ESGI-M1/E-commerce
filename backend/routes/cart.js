@@ -129,6 +129,7 @@ function generateRandomPassword(length) {
 router.post("/", async (req, res, next) => {
   try {
     const userId = parseInt(req.body.userId);
+    const quantity = parseInt(req.body.quantity);
     const productVariantId = parseInt(req.body.productVariantId);
 
     if (!userId || !productVariantId) return res.status(400).json({ error: 'Missing userId or productId' });
@@ -164,7 +165,7 @@ router.post("/", async (req, res, next) => {
       cartProduct.quantity += 1;
       await cartProduct.save();
     } else {
-      await CartProduct.create({ cartId: cart.id, productVariantId, quantity: 1 });
+      await CartProduct.create({ cartId: cart.id, productVariantId, quantity });
     }
 
     res.status(200).json({ message: 'Product added to cart' });

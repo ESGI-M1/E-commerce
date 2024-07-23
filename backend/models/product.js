@@ -1,5 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
-const denormalizeProduct = require("../dtos/denormalization/product");
+const { denormalizeProduct } = require("../dtos/denormalization/product");
 const mailer = require('../services/mailer')
 
 module.exports = function(connection) {
@@ -10,10 +10,9 @@ module.exports = function(connection) {
 
             Product.belongsTo(models.Category, { as: 'defaultCategory', foreignKey: 'defaultCategoryId' });
 
-            Product.belongsToMany(models.VariantOption, { through: 'ProductOptions' });
-            models.VariantOption.belongsToMany(Product, { through: 'ProductOptions' });
-
             Product.belongsToMany(models.User, { through: models.Favorite, as: 'favoritedBy', foreignKey: 'productId' });
+
+            Product.hasMany(models.ProductVariant, { foreignKey: 'productId', as: 'variants' });
 
             Product.belongsToMany(models.AlertUser, {
               through: models.AlertUserProduct,
@@ -23,70 +22,68 @@ module.exports = function(connection) {
             });
 
             Product.hasMany(models.CartProduct, {
-                foreignKey: 'productId',
-                as: 'CartProducts',
+              foreignKey: 'productId',
+              as: 'CartProducts',
             });
         }
 
         static addHooks(models) {
             Product.addHook("afterCreate", async (product) => {
                 await denormalizeProduct(product, models);
-                await Product.verifyDefaultCategory(product, models);
-
-              const idAlert = await models.Alert.findOne({
-                where: {
-                  name: 'new_product'
-                }
-              });
-              if (idAlert) {
-                const userToPrevent = await models.AlertUser.findAll({
+                const idAlert = await models.Alert.findOne({
                   where: {
-                    alert_id: idAlert.id
+                    name: 'new_product'
                   }
                 });
-                if (userToPrevent) {
-                  for (let i=0; i < userToPrevent.length; i++) {
-                    const user = await models.User.findByPk(userToPrevent[i].user_id);
-                    mailer.sendNewProductNotification(user, product);
+                if (idAlert) {
+                  const userToPrevent = await models.AlertUser.findAll({
+                    where: {
+                      alert_id: idAlert.id
+                    }
+                  });
+                  if (userToPrevent) {
+                    for (let i=0; i < userToPrevent.length; i++) {
+                      const user = await models.User.findByPk(userToPrevent[i].user_id);
+                      mailer.sendNewProductNotification(user, product);
+                    }
                   }
                 }
-
-              }
             });
 
             Product.addHook("afterUpdate", async (product, { fields }) => {
-                if (fields.includes("active") || fields.includes("price") || fields.includes("name") || fields.includes("description") || fields.includes("reference")) {
+                console.log("fieldsdazd", fields);
+                if (fields.includes("active") || fields.includes("price") || fields.includes("name") || fields.includes("description") || fields.includes("reference") || fields.includes("defaultCategoryId")) {
                     await denormalizeProduct(product, models);
+                }
 
-                    if (fields.includes("price")) {
-                      const idAlertChangePrice = await models.Alert.findOne({
-                        where: {
-                          name: 'change_product_price'
-                        }
-                      });
+              if (fields.includes("price")) {
+                const idAlertChangePrice = await models.Alert.findOne({
+                  where: {
+                    name: 'change_product_price'
+                  }
+                });
 
-                      if (idAlertChangePrice) {
-                        const userAlerts = await models.AlertUser.findAll({
-                          where: {
-                            alert_id: idAlertChangePrice.id
-                          }
-                        });
-                        const userAlertProducts = await models.AlertUserProduct.findAll({
-                          where: {
-                            productId: product.id
-                          }
-                        });
-                        for (let i= 0; i < userAlertProducts.length; i++) {
-                          for (let j = 0; j < userAlerts.length; j++) {
-                            if (userAlertProducts[i].alertUserId === userAlerts[j].id) {
-                              const user = await models.User.findByPk(userAlerts[j].user_id);
-                              mailer.sendPriceChangeNotification(user, product);
-                            }
-                          }
-                        }
+                if (idAlertChangePrice) {
+                  const userAlerts = await models.AlertUser.findAll({
+                    where: {
+                      alert_id: idAlertChangePrice.id
+                    }
+                  });
+                  const userAlertProducts = await models.AlertUserProduct.findAll({
+                    where: {
+                      productId: product.id
+                    }
+                  });
+                  for (let i= 0; i < userAlertProducts.length; i++) {
+                    for (let j = 0; j < userAlerts.length; j++) {
+                      if (userAlertProducts[i].alertUserId === userAlerts[j].id) {
+                        const user = await models.User.findByPk(userAlerts[j].user_id);
+                        mailer.sendPriceChangeNotification(user, product);
                       }
                     }
+                  }
                 }
+              }
             });
 
             Product.addHook("afterDestroy", async (product) => {
@@ -125,10 +122,13 @@ module.exports = function(connection) {
             },
             name: {
                 type: DataTypes.STRING,
-                allowNull: false,
+                allowNull: true,
                 validate: {
                     notEmpty: true,
                 },
+            },
+            description: {
+                type: DataTypes.TEXT,
             },
             reference: {
                 type: DataTypes.STRING,
@@ -149,27 +149,10 @@ module.exports = function(connection) {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
-            description: {
-                type: DataTypes.TEXT,
-            },
             defaultCategoryId: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-                references: {
-                    model: 'Categories',
-                    key: 'id'
-                }
             },
-            createdAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
-            },
-            updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: true,
-                defaultValue: DataTypes.NOW,
-            }
         },
         {
             sequelize: connection,

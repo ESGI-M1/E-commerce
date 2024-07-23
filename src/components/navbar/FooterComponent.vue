@@ -48,7 +48,6 @@
 
   const shopStore = useShopStore()
 
-  
   onMounted(() => {
     shopStore.fetchShop()
   })
@@ -56,7 +55,6 @@
 </script>
 
 <style scoped>
-  /* Styles pour le footer */
   .footer {
     background-color: #f8f9fa;
     padding: 20px 0;

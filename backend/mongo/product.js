@@ -1,37 +1,70 @@
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
 
-module.exports = function (connection) {
-  const ProductSchema = new mongoose.Schema(
-    {
-      _id: Number,
-      name: {
+const ProductSchema = new mongoose.Schema({
+  _id: Number,
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true,
+  },
+  reference: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  active: {
+    type: Boolean,
+    default: false,
+  },
+  description: {
+    type: String,
+  },
+  defaultCategoryId: {
+    type: Number,
+  },
+  Categories: [{
+    id: Number,
+    name: String,
+    slug: String,
+    description: String,
+    active: Boolean,
+  }],
+  variants: [{
+    id: Number,
+    reference: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    stock: Number,
+    price: Number,
+    active: Boolean,
+    default: Boolean,
+    images: [{
+      id: Number,
+      description: String,
+    }],
+    attributeValues: [{
+      value: {
         type: String,
         required: true,
-        trim: true,
-        unique: true,
       },
-      reference: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
+      attribute: {
+        name: {
+          type: String,
+          required: true,
+        },
       },
-      price: {
-        type: Number,
-        required: true,
-      },
-      active: {
-        type: Boolean,
-        default: false,
-      },
-      description: {
-        type: String,
-      },
-      categories: Array,
-    }
-  );
+    }],
+  }],
+}, { timestamps: true });
 
-  const Product = connection.model('Product', ProductSchema);
+const Product = mongoose.model('Product', ProductSchema);
 
-  return Product;
-}
+module.exports = Product;

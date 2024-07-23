@@ -1,46 +1,27 @@
-<script setup lang="ts">
-import ProductList from './ProductListView.vue'
-import BreadCrumb from './BreadCrumb.vue'
-
-import axios from 'axios'
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { useProductsStore } from '@/store/products'
-import { useCategoriesStore } from '@/store/categories'
-
-const productsStore = useProductsStore()
-const categoriesStore = useCategoriesStore()
-const route = useRoute()
-
-const category = ref()
-const fetchCategory = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories/${route.params.slug}`)
-  categoriesStore.addCategory(response.data)
-  category.value = response.data
-  productsStore.setProducts(response.data.Products)
-}
-
-onMounted(() => {
-  fetchCategory()
-})
-</script>
-
 <template>
   <div>
-    <h1>Category : {{ $route.params.slug }}</h1>
-  </div>
-
-  <BreadCrumb v-if="category" :category="category" />
-
-  <div class="product-grid">
-    <ProductList />
+    <BreadCrumb v-if="categoryStore.getCategory" :category="categoryStore.getCategory" />
+    <h1>Category: {{ categoryStore.getCategory?.name }}</h1>
+    <ProductListView />
   </div>
 </template>
 
-<style>
-.product-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-</style>
+<script setup>
+import { onMounted } from 'vue';
+import { useCategoryStore } from '@/store/category';
+import { useProductsStore } from '@/store/products';
+import { useRoute } from 'vue-router';
+import BreadCrumb from './BreadCrumb.vue';
+import ProductListView from './ProductListView.vue';
+
+const route = useRoute();
+const categoryStore = useCategoryStore();
+const productsStore = useProductsStore();
+
+const fetchCategory = async () => {
+  await categoryStore.fetchCategory(route.params.slug);
+  productsStore.fetchProductsByCategory(categoryStore.getCategory.id);
+};
+
+onMounted(fetchCategory);
+</script>

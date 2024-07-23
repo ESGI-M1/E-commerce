@@ -1,36 +1,146 @@
+<template>
+
+  <BreadCrumb v-if="false" :category="product.Categories[0]" />
+
+  <div v-if="product" class="product-page">
+    <div v-if="selectedVariant" class="slider-container">
+      <div class="slider" ref="slider">
+        <div class="slide" v-for="image in selectedVariant.images" :key="image.id">
+          <img class="product-image" :src="imageUrl + image.id" :alt="image.description"/>
+        </div>
+      </div>
+      <button @click="prevSlide" class="slider-button prev-button"><</button>
+      <button @click="nextSlide" class="slider-button next-button">></button>
+    </div>
+
+    <div class="product-infos">
+      <h2>{{ product.name }}</h2>
+      <p>{{ product.description }}</p>
+      <p>Prix : {{ selectedVariant?.price }} €</p>
+
+      <div class="variant-attributes">
+        <div class="product-variants">
+          <select @change="changeVariant($event)" :value="selectedVariant.attributeValues[0]?.id">
+            <template v-for="variant in product.variants">
+              <option v-for="attribute in variant.attributeValues" :key="variant.id" :value="attribute.id">
+                {{ attribute.attribute.name }} : {{ attribute.value }}
+              </option>
+            </template>
+          </select>
+        </div>
+      </div>
+
+      <button @click="() => addToCart(1)" class="cart-actions" v-if="selectedVariant.stock > 0">
+        <i class="fas fa-cart-plus"></i> Ajouter au panier
+      </button>
+      <button class="cart-actions" v-else>
+        <i class="fas fa-cart-plus"></i> Produit indisponible
+      </button>
+
+      <button v-if="isFavorite" @click.stop="removeFromFavorites(product.id)" class="favorite-actions">
+        <i class="fas fa-heart"></i> Ajouté aux favoris
+      </button>
+
+      <button v-else @click.stop="addToFavorites(product.id)" class="favorite-actions">
+        <i class="far fa-heart"></i> Ajouter aux favoris
+      </button>
+
+      <div v-if="alerts && alerts.length > 0">
+        <h2>Alertes</h2>
+        <ul>
+          <li class="alertItem" v-for="alert in alerts" :key="alert.id">
+            <div class="alertContainer">
+              <div class="alertName">
+                {{ alert.description }}
+              </div>
+              <div class="alertStatus">
+                <label class="switch">
+                  <input :id="'alert' + alert.id" type="checkbox" :checked="alert.subscribe" @click="changeStatus(alert.id, product.id)">
+                  <span></span>
+                </label>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import BreadCrumb from './BreadCrumb.vue'
 import { ref, onMounted, inject, type UnwrapRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { z, ZodError } from 'zod'
 import axios from '../tools/axios'
 import Cookies from 'js-cookie'
 
 const route = useRoute()
 const router = useRouter()
 const isFavorite = ref(false)
-const productId = ref(route.params.id as string)
+const productId = route.params.id
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const showNotification = inject('showNotification');
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  reference: string;
-  comments: string[];
-  Categories: number[];
-};
+const slider = ref(null)
+const currentSlide = ref(0)
 
-const product = ref<Product>({
-  id: '',
-  name: '',
-  description: '',
-  price: 0,
-  reference: '',
-  comments: [],
-  Categories: [],
-});
+const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
+
+const categorySchema = z.object({
+  id: z.number(),
+  name: z.string()
+})
+
+const attributeSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, 'Le nom est requis')
+})
+
+const attributeValueSchema = z.object({
+  id: z.number(),
+  value: z.string().min(1, 'La valeur est requise'),
+  attribute: attributeSchema
+})
+
+const imageSchema = z.object({
+  id: z.number(),
+  description: z.string().optional()
+})
+
+const productVariantSchema = z.object({
+  id: z.number(),
+  productId: z.number(),
+  reference: z.string().min(1, 'La référence est requise'),
+  price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
+  stock: z.number().min(0, 'Le stock doit être supérieur ou égal à 0'),
+  active: z.boolean(),
+  default: z.boolean(),
+  attributeValues: z.array(attributeValueSchema).optional(),
+  images: z.array(imageSchema)
+})
+
+const productSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, 'Le nom est requis'),
+  reference: z.string().min(1, 'La référence est requise'),
+  description: z.string().min(1, 'La description est requise'),
+  price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
+  active: z.boolean(),
+  Categories: z.array(categorySchema),
+  defaultCategoryId: z.number().nullable(),
+  variants: z.array(productVariantSchema)
+})
+
+const cartSchema = z.object({
+  userId: z.number(),
+  productVariantId: z.number().positive('L\'identifiant de la variante du produit doit être supérieur à 0'),
+  quantity: z.number().positive('La quantité doit être supérieure à 0')
+})
+
+type Product = z.infer<typeof productSchema>
+type ProductVariant = z.infer<typeof productVariantSchema>
 
 const alerts = ref<AlertSubscribe>([] as AlertSubscribe);
 
@@ -47,14 +157,42 @@ interface Alert {
   description: string
 }
 
-const fetchProductById = async (id: string) => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${id}`);
-  product.value = response.data;
+const product = ref<Product>()
+const selectedVariant = ref<ProductVariant>()
 
-  if (user) {
-    const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`);
-    const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId);
-    isFavorite.value = favoriteProductIds.includes(product.value.id);
+const changeVariant = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  selectedVariant.value = product.value.variants.find(variant =>
+    variant.attributeValues.some(av => av.id === parseInt(target.value))
+  );
+}
+
+const fetchProduct = async () => {
+
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${productId}`);
+    product.value = productSchema.parse(response.data);
+
+    const defaultVariant = product.value.variants.find(variant => variant.default === true);
+
+    if (defaultVariant?.active) {
+      selectedVariant.value = defaultVariant;
+    }
+    else{
+      selectedVariant.value = product.value.variants.find(variant => variant.default === true);
+    }
+
+    if (user) {
+      const favoriteResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/favorites`);
+      const favoriteProductIds = favoriteResponse.data.map((fav: any) => fav.productId);
+      isFavorite.value = favoriteProductIds.includes(product.value.id);
+    }
+  } catch (error) {
+    if (error instanceof ZodError) {
+      console.error(error.errors);
+    }
+
+    console.error(error);
   }
 };
 
@@ -68,26 +206,35 @@ async function fetchAlertUserProduct(alertId: string, userId: string, productId:
 }
 
 const addToFavorites = async (productId: string) => {
-  if (!user) {
-    router.push('/login');
-    return;
-  }
+  try {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/favorites`, { productId });
 
     if (response.status === 201) {
       isFavorite.value = true
       showNotification('Produit ajouté aux favoris avec succès', 'success');
     }
+  } catch (error) {
+    showNotification('Échec de l\'ajout du produit aux favoris', 'error');
+  }
 };
 
 const removeFromFavorites = async (productId: string) => {
-  if (!user) {
-    throw new Error('User is not authenticated');
-  }
 
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
-  isFavorite.value = false
-  showNotification('Produit supprimé des favoris avec succès', 'success');
+  try {
+    if (!user) {
+      throw new Error('User is not authenticated');
+    }
+
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/favorites/${productId}`)
+    isFavorite.value = false
+    showNotification('Produit supprimé des favoris avec succès', 'success');
+  } catch (error) {
+    showNotification('Échec de la suppression du produit des favoris', 'error');
+  }
 }
 
 const addToCart = async (quantity: number) => {
@@ -99,16 +246,36 @@ const addToCart = async (quantity: number) => {
       localStorage.setItem('temporaryId', user);
     }
   }
-
   try {
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
+    const cart = cartSchema.parse({
       userId: user,
-      productId: product.value.id,
-      quantity: quantity
-    })
+      productVariantId: selectedVariant.value.id,
+      quantity
+    });
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, cart);
     showNotification('Produit ajouté au panier avec succès', 'success');
   } catch (error) {
+
+    if (error instanceof ZodError) {
+      console.error(error.errors);
+    }
+
+    console.error(error);
     showNotification('Échec de l\'ajout du produit au panier', 'error');
+  }
+};
+
+const nextSlide = () => {
+  if (slider.value) {
+    currentSlide.value = (currentSlide.value + 1) % selectedVariant.value.images.length;
+    slider.value.style.transform = `translateX(-${currentSlide.value * 100}%)`;
+  }
+};
+
+const prevSlide = () => {
+  if (slider.value) {
+    currentSlide.value = (currentSlide.value - 1 + selectedVariant.value.images.length) % selectedVariant.value.images.length;
+    slider.value.style.transform = `translateX(-${currentSlide.value * 100}%)`;
   }
 };
 
@@ -174,69 +341,41 @@ async function initAlerts() {
   }
 }
 
-onMounted(async () => {
-  fetchProductById(productId.value);
-  initAlerts();
+onMounted(() => {
+  fetchProduct();
 });
 </script>
-
-<template>
-  <BreadCrumb v-if="product.Categories && product.Categories[0]" :category="product.Categories[0]" />
-
-  <div v-if="product" class="product-page">
-    <img
-      class="product-image"
-      :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'"
-      :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name"
-    />
-
-    <div class="product-infos">
-      <h2>{{ product.name }}</h2>
-      <p>{{ product.description }}</p>
-      <p>Prix : {{ product.price }}€</p>
-
-      <button @click="() => addToCart(1)" class="cart-actions">Ajouter au panier</button>
-
-      <button v-if="isFavorite" @click.stop="removeFromFavorites(product.id)" class="favorite-actions">
-        <i class="fas fa-heart"></i> Ajouté aux favoris
-      </button>
-
-      <button v-else @click.stop="addToFavorites(product.id)" class="favorite-actions">
-        <i class="far fa-heart"></i> Ajouter aux favoris
-      </button>
-
-      <div v-if="alerts && alerts.length > 0">
-        <h2>Alertes</h2>
-        <ul>
-          <li class="alertItem" v-for="alert in alerts">
-            <div class="alertContainer">
-              <div class="alertName">
-                {{ alert.description }}
-              </div>
-              <div class="alertStatus">
-                <label class="switch">
-                  <input :id="'alert' + alert.id" type="checkbox" :checked="alert.subscribe" @click="changeStatus(alert.id, product.id)">
-                  <span></span>
-                </label>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-    </div>
-  </div>
-</template>
 
 <style scoped>
 
 .product-page {
   display: flex;
   flex-wrap: wrap;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 15px;
 }
 
 .product-page > * {
   flex: 1 1 50%;
+}
+
+@media (max-width: 768px) {
+  .product-page {
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-page {
+    padding: 0 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-page > * {
+    flex: 1 1 100%;
+  }
 }
 
 .product-image {
@@ -287,10 +426,53 @@ onMounted(async () => {
   opacity: 0.8;
 }
 
-@media (max-width: 768px) {
-  .product-page > * {
-    flex: 1 1 100%;
-  }
+.product-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.product-variants select {
+  flex: 1 1 33%;
+  padding: 4px 6px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.slider-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.slider {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.slide {
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.slider-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.prev-button {
+  left: 10px;
+}
+
+.next-button {
+  right: 10px;
 }
 
 .alertItem {

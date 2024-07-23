@@ -28,19 +28,15 @@ module.exports = function (connection) {
                     key: 'id',
                 },
             },
-            createdAt: {
+            heldUntil: {
                 type: DataTypes.DATE,
                 allowNull: true
-              },
-            updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: true
-            }
+            },
         },
         {
             sequelize: connection,
             modelName: 'Cart',
-            tableName: 'carts',
+            tableName: 'Carts',
             timestamps: true,
         }
     );

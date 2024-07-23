@@ -1,17 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { Favorite, Product, Image, Category } = require('../models');
+const { Favorite, Product } = require('../models');
 const checkAuth = require('../middlewares/checkAuth');
 
 router.get('/', checkAuth, async (req, res) => {
 
   const favorites = await Favorite.findAll({
     where: { userId: req.user.id },
-    include: [
-      { model: Product, as: 'product',          
-        include: [Category, Image],
-      }
-    ]
+    include: {
+      model: Product,
+      as: 'product',
+    }
   });
 
   res.json(favorites);

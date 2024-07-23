@@ -18,16 +18,16 @@
     <div class="navbar-section actions">
       <!-- Shopping Cart Icon -->
       <a class="icon" href="/cart">
-  <i class="fas fa-shopping-cart"></i>
-  <span class="badge">{{ cartsNumber }}</span>
-</a>
+        <i class="fas fa-shopping-cart"></i>
+        <span class="badge">{{ cartsNumber }}</span>
+      </a>
 
       &nbsp;
       <!-- Search Bar -->
       <input
         type="text"
-        v-model="search"
-        @input="searchProducts"
+        v-model="productsStore.filter.q"
+        @input="applyFilters"
         placeholder="Rechercher"
         class="search-bar"
       />
@@ -36,16 +36,16 @@
       <div v-if="isAuthenticated" class="user-menu">
         <i class="fas fa-user"></i>
         <div class="dropdown">
-          <RouterLink to="/profile" class="dropdown-item">Mon profil</RouterLink>
-          <RouterLink to="/favorites" class="dropdown-item">Mes favoris</RouterLink>
-          <RouterLink to="/admin/ressources" v-if="isAdmin" class="dropdown-item">Gestion des ressources</RouterLink>
-          <RouterLink to="/order" class="dropdown-item">Historique des commandes</RouterLink>
-          <a :href="'/alerts'" class="dropdown-item">Mes alertes</a>
+          <RouterLink :to="{ name: 'Profile' }" class="dropdown-item">Mon profil</RouterLink>
+          <RouterLink :to="{ name: 'Favoris' }" class="dropdown-item">Mes favoris</RouterLink>
+          <RouterLink :to="{ name: 'Ressources' }" class="dropdown-item">Gestion des ressources</RouterLink>
+          <RouterLink :to="{ name: 'Historique des commandes' }" class="dropdown-item">Historique des commandes</RouterLink>
+          <RouterLink :to="{ name: 'Alertes' }" class="dropdown-item">Mes alertes</RouterLink>
           <a @click="showCookiePage" class="dropdown-item">Gestion des cookies</a>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
       </div>
-      <RouterLink v-else to="/login" class="login-button">S'identifier</RouterLink>
+      <RouterLink v-else :to="{ name: 'Identifier' }" class="login-button">Connexion</RouterLink>
     </div>
     <CookieComponent @closePage="closeCookiePage" v-if="showCookies"/>
   </nav>
@@ -64,23 +64,18 @@ import CookieComponent from '@/components/CookieComponent.vue'
 const router = useRouter()
 const productsStore = useProductsStore()
 const shopStore = useShopStore()
-const search = ref('')
 const cartsNumber = ref(null)
 const showCookies = ref(false);
 
-const searchProducts = async () => {
-  // route search
-  try {
-    axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/search?q=${search.value}`)
-    .then(response => {
-      router.push('/search?q=' + search.value)
-      productsStore.setProducts(response.data)
-      productsStore.setFilter({ name: search.value })
-    })
-  } catch (error) {
-    console.error('Error fetching products:', error)
+const applyFilters = () => {
+
+productsStore.fetchProducts();
+router.push({
+  query: {
+    q: productsStore.filter.q,
   }
-}
+});
+};
 
 const fetchCartItems = async () => {
   const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
@@ -106,11 +101,6 @@ const fetchCartItems = async () => {
 const isAuthenticated = computed(() => {
   return Cookies.get('USER') !== undefined
 })  
-
-const isAdmin = computed(() => {
-  const user = JSON.parse(Cookies.get('USER').slice(2))
-  return user.role === 'admin'
-})
 
 const logout = () => {
   Cookies.remove('USER')
@@ -201,7 +191,7 @@ onMounted(() => {
   display: none;
   position: absolute;
   top: 100%;
-  right: 0;
+  right: -20px;
   background-color: white;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 1;

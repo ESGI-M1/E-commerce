@@ -5,42 +5,40 @@
       <button v-if="order" @click="downloadInvoice(order.id)" class="btn-details">
         Télécharger ma facture
       </button>
-      <p v-if="order">Date de la commande: {{ formatDate(order.createdAt) }}</p>
+      <p v-if="order">Date de la commande: {{ formatDate(order.createdAt) }} à {{formatHeure(order.createdAt)}}</p>
       <p class="payment-details" v-if="order && order.Payment">
-        Paiement effectué via <span>{{ order.Payment.method }}</span>, 
-        <span>{{ order.Payment.currency }}</span>, 
+        Paiement effectué via <span>{{ order.Payment.method }}</span>,
+        <span>{{ order.Payment.currency }}</span>,
         <small><span>**** **** **** {{ order.Payment.cardLast4 }}</span></small>
       </p>
     </header>
     <div v-if="order" class="order-details">
       <h2>Détails de la commande</h2>
       <div v-if="order.addressOrder">
-      <p>
-        Adresse: {{ order.addressOrder.street }}, {{ order.addressOrder.postalCode }} {{ order.addressOrder.city }}, {{ order.addressOrder.country }}
-      </p>    
-    </div>
+        <p>
+          Adresse: {{ order.addressOrder.street }}, {{ order.addressOrder.postalCode }} {{ order.addressOrder.city }}, {{ order.addressOrder.country }}
+        </p>
+      </div>
       <small v-if="order.deliveryDate">
-      {{ isFutureDate(order.deliveryDate) ? 'Livraison prévu le' : 'Livré le' }} {{ formatDate(order.deliveryDate) }}
-      {{ isFutureDate(order.deliveryDate) ? '' : 'à ' + formatHeure(order.deliveryDate)  }}
-    </small>
+        {{ isFutureDate(order.deliveryDate) ? 'Livraison prévue le' : 'Livré le' }} {{ formatDate(order.deliveryDate) }}
+        {{ isFutureDate(order.deliveryDate) ? '' : 'à ' + formatHeure(order.deliveryDate) }}
+      </small>
       <div>
         Statut:
         <p :class="['order-status', order.status]">{{ order.status }}</p>
       </div>
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
       <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
-        <div v-if="cartProduct.product" class="product-image-container">
-          <img :src="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].url : 
-                  '../../produit_avatar.jpg'" 
-                  :alt="cartProduct.product.Images && cartProduct.product.Images.length > 0 ? cartProduct.product.Images[0].description : 
-                  cartProduct.product.name" class="product-image" 
-                  />
+        <div v-if="cartProduct.variantOption.productVariant.images && cartProduct.variantOption.productVariant.images.length > 0" class="product-image-container">
+          <img :src="cartProduct.variantOption.productVariant.images[0].url ? cartProduct.variantOption.productVariant.images[0].url : '../../produit_avatar.jpg'"
+               :alt="cartProduct.variantOption.productVariant.images[0].description ? cartProduct.variantOption.productVariant.images[0].description : cartProduct.variantOption.productVariant.name"
+               class="product-image" />
         </div>
-        <div class="item-details" @click="showProductDetails(cartProduct.product.id)">
-          <h3>{{ cartProduct.product.name }}</h3>
+        <div class="item-details" @click="showProductDetails(cartProduct.variantOption.productVariant.product.id)">
+          <h3>{{ cartProduct.variantOption.productVariant.product.name }} | {{ cartProduct.variantOption.productVariant.name }}</h3>
           <p>
             Catégorie:
-            <span v-if="cartProduct" v-for="category in cartProduct.product.Categories" :key="category.id">
+            <span v-if="cartProduct.variantOption.productVariant.product.Categories" v-for="category in cartProduct.variantOption.productVariant.product.Categories" :key="category.id">
               {{ category.name }}
             </span>
           </p>
@@ -49,15 +47,15 @@
         <div class="order-actions">
           <div v-if="order.Cart.promoCode">
             <div class="first-price">
-              <p class="old-price">{{ cartProduct.product.price }} €</p>
+              <p class="old-price">{{ cartProduct.variantOption.price }} €</p>
               <span class="discount">(-{{ order.Cart.promoCode.discountPercentage }}%)</span>
             </div>
-            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.product.price, order.Cart.promoCode.discountPercentage) }} €</p>
+            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.variantOption.price, order.Cart.promoCode.discountPercentage) }} €</p>
           </div>
-          <p v-else class="new-price">{{ cartProduct.product.price }} €</p>
-          <button @click="addToCart(cartProduct.product.id, 1)" class="btn-details">Commander à nouveau</button>
-          <button v-if="!cartProduct.product.returned && order.status == 'completed'" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="btn-details">Retourner l'article</button>
-          <button v-else-if="cartProduct.product.returned" @click="returnItem(order.id, cartProduct.product.id, cartProduct.quantity)" class="btn-details">Voir les détails ({{ cartProduct.product.returned.status }})</button>
+          <p v-else class="new-price">{{ cartProduct.variantOption.price }} €</p>
+          <button @click="addToCart(cartProduct.variantOption.id, 1)" class="btn-details">Commander à nouveau</button>
+          <button v-if="!cartProduct.variantOption.returned && order.status == 'completed'" @click="returnItem(order.id, cartProduct.variantOption.id, cartProduct.quantity)" class="btn-details">Retourner l'article</button>
+          <button v-else-if="cartProduct.variantOption.returned" @click="returnItem(order.id, cartProduct.variantOption.id, cartProduct.quantity)" class="btn-details">Voir les détails ({{ cartProduct.variantOption.returned.status }})</button>
         </div>
       </div>
     </div>
@@ -80,26 +78,29 @@ const order = ref<any>(null)
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 
 const fetchOrder = async () => {
-    if (authToken) {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`, {
-      })
+  if (authToken) {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`)
       order.value = response.data
 
       if (order.value.Cart) {
-      for (const cart of order.value.Cart.CartProducts) {
-        const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.product.id}`, {
-          params: {
-            orderId: orderId.value,
-          }
-        })
+        for (const cart of order.value.Cart.CartProducts) {
+          const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.variantOption.id}`, {
+            params: {
+              orderId: orderId.value,
+            }
+          })
 
-        if (returnProduct.data && typeof returnProduct.data === 'object') {
-          cart.product.returned = returnProduct.data
+          if (returnProduct.data && typeof returnProduct.data === 'object') {
+            cart.variantOption.returned = returnProduct.data
+          }
         }
       }
+    } catch (error) {
+      console.error('Error fetching order:', error)
+      showNotification('Erreur lors du chargement de la commande', 'error')
     }
-    console.log(order.value)
-    }
+  }
 }
 
 const calculateDiscountedPrice = (price: number, discount: number) => {
@@ -128,32 +129,33 @@ const downloadInvoice = async (orderId) => {
     link.click();
     document.body.removeChild(link);
   } catch (error) {
-    console.error('Error downloading invoice:', error);
+    console.error('Erreur lors du téléchargement de la facture :', error);
     showNotification('Échec du téléchargement de la facture', 'error');
   }
 };
 
-const returnItem = (orderId: number, productId: number) => {
-  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productId: productId } })
+const returnItem = (orderId: number, variantOptionId: number) => {
+  router.push({ name: 'ReturnProducts', params: { orderId: orderId, variantOptionId: variantOptionId } })
 }
 
 const formatDate = (dateStr: string) => {
-    const parsedDate = parseISO(dateStr)
-    return format(parsedDate, 'dd/MM/yyyy')
+  const parsedDate = parseISO(dateStr)
+  return format(parsedDate, 'dd/MM/yyyy')
 }
 
 const formatHeure = (dateStr: string) => {
-    const parsedDate = parseISO(dateStr)
-    return format(parsedDate, 'HH:mm')
+  const parsedDate = parseISO(dateStr)
+  return format(parsedDate, 'HH:mm')
 }
 
 const addToCart = async (id: number, quantity: number) => {
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
-      userId: authToken,
-      productId: id,
-      quantity: quantity
-    })
-    showNotification('Produit ajouté au panier avec succès', 'success')
+  console.log(id)
+  await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
+    userId: authToken,
+    variantOptionId: id,
+    quantity: quantity
+  })
+  showNotification('Produit ajouté au panier avec succès', 'success')
 }
 
 onMounted(() => {
@@ -329,12 +331,9 @@ onMounted(() => {
 
 .payment-details span {
   margin-right: 10px;
-  /* Pour espacer les éléments */
 }
 
 .payment-details span:last-child {
   margin-right: 0;
-  /* Pour enlever la marge à droite du dernier élément */
 }
-
 </style>

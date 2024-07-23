@@ -6,7 +6,11 @@
         <i class="fa fa-plus"></i> Ajouter une catégorie
       </button>
     </div>
-
+    <div class="filters">
+        <label for="search">Identifiant</label>
+        <br>
+        <input v-model="filters.searchTerm" type="text" id="search" />
+    </div>
     <div class="category-table">
       <table>
         <thead>
@@ -21,7 +25,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="category in categories" :key="category.id">
+          <tr v-if="filteredCategories.length > 0" v-for="category in filteredCategories" :key="category.id">
             <td>{{ category.name }}</td>
             <td>{{ category.slug }}</td>
             <td>{{ category.description }}</td>
@@ -49,6 +53,9 @@
               </div>
             </td>
           </tr>
+          <tr v-else>
+          <td class="empty" colspan="7">Aucune catégorie trouvée</td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -77,7 +84,6 @@
           <div class="form-group">
             <label for="parentCategoryId">Catégorie Parent</label>
             <select v-model="currentCategory.parentCategoryId" id="parentCategoryId">
-              <option value="">Aucune</option>
               <option v-for="category in categories" :key="category.id" :value="category.id">
                 {{ category.name }}
               </option>
@@ -112,25 +118,13 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, computed } from 'vue'
 import { z, ZodError } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+import { load } from '../../components/loading/loading'; 
+
+const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
-
-interface Category {
-  id?: number
-  name: string
-  slug: string
-  active?: boolean
-  description?: string
-  parentCategoryId?: number | null
-  Products: number[]
-}
-
-interface Product {
-  id: number
-  name: string
-}
 
 const categorySchema = z.object({
   id: z.number().optional(),
@@ -139,8 +133,15 @@ const categorySchema = z.object({
   active: z.boolean().optional(),
   description: z.string().optional(),
   parentCategoryId: z.number().nullable(),
-  Products: z.array(z.number())
+  Products: z.array(z.object({
+    id: z.number(),
+    name: z.string()
+  })).optional()
 })
+
+const categoriesSchema = z.array(categorySchema)
+
+type Category = z.infer<typeof categorySchema>
 
 const categories = ref<Category[]>([])
 const currentCategory = ref<Category>({
@@ -154,10 +155,35 @@ const currentCategory = ref<Category>({
 const products = ref<Product[]>([])
 const showModal = ref(false)
 const isEditing = ref(false)
+const filters = ref({
+  searchTerm: ''
+})
+
+const filteredCategories = computed(() => {
+  let filtered = [...categories.value]
+
+  if (filters.value.searchTerm.trim() !== '') {
+    const searchTermLower = filters.value.searchTerm.toLowerCase()
+    filtered = filtered.filter(category =>
+      category.name.toLowerCase().includes(searchTermLower) ||
+      category.slug.toLowerCase().includes(searchTermLower)
+    )
+  }
+
+  return filtered
+})
 
 const fetchCategories = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
-  categories.value = response.data
+  try{
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`)
+    const parsedCategory = categoriesSchema.parse(response.data)
+    categories.value = parsedCategory
+  } catch (error) {
+    if (error instanceof ZodError) {
+        console.error(error.errors)
+    }
+    console.error(error)
+  }
 }
 
 const fetchProducts = async () => {
@@ -168,8 +194,7 @@ const fetchProducts = async () => {
 const addCategory = async () => {
 
   try{
-
-    categorySchema.parse(currentCategory.value)
+    const parsedCategory = categorySchema.parse(currentCategory.value);
     axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
       .then(response => {
         categories.value.push(response.data)
@@ -192,7 +217,7 @@ const updateCategory = async () => {
       
     const parsedCategory = categorySchema.parse(currentCategory.value)
     axios.patch(`${import.meta.env.VITE_API_BASE_URL}/categories/${currentCategory.value.id}`, parsedCategory)
-      .then(response => {
+      .then(() => {
         const index = categories.value.findIndex((cat) => cat.id === currentCategory.value.id)
         if (index !== -1) {
           categories.value[index] = currentCategory.value
@@ -210,14 +235,13 @@ const updateCategory = async () => {
 }
 
 const deleteCategory = async (category: Category) => {
-
-  try{
+  try {
+    startLoading();
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${category.id}`)
     categories.value = categories.value.filter((cat) => cat.id !== category.id)
-    showNotification('Catégorie suprimée avec succès', 'success');
-
-  } catch (error) {
-    console.error(error)
+    showNotification('Catégorie supprimée avec succès', 'success');
+  } finally {
+    stopLoading();
   }
 }
 
@@ -254,6 +278,7 @@ onMounted(() => {
   fetchProducts()
 })
 </script>
+
 
 <style scoped>
 .categories {
@@ -299,5 +324,11 @@ form {
 
 .buttons button {
   margin-right: 10px;
+}
+
+.filters input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

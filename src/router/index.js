@@ -38,6 +38,7 @@ import Returns from '../views/admin/adminReturns.vue'
 import Alerts from '../views/AlertsView.vue'
 import NewsLetter from '../views/NewsLetterView.vue'
 import Shop from '../views/admin/adminShop.vue'
+import Attributes from '../views/admin/adminAttributes.vue'
 import LegalNotice from '@/views/LegalNoticeView.vue'
 
 const routes = [
@@ -145,7 +146,7 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/order/:orderId/returnProduct/:productId',
+    path: '/order/:orderId/returnProduct/:variantOptionId',
     name: 'ReturnProducts',
     component: ReturnProduct,
     meta: { requiresAuth: true },
@@ -177,8 +178,8 @@ const routes = [
     meta: { requiresAdmin: true },
   },
   {
-    path: '/admin/products/:id/variants',
-    name: 'Déclinaisons du produit',
+    path: '/admin/products/:productId',
+    name: 'ProductVariants',
     component: ProductVariants,
     meta: { requiresAdmin: true },
   },
@@ -220,6 +221,12 @@ const routes = [
     path: '/admin/shop',
     name: 'Shop',
     component: Shop,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/attributes',
+    name: 'Attributes',
+    component: Attributes,
     meta: { requiresAdmin: true }
   },
   {

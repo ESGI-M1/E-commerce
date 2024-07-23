@@ -7,6 +7,16 @@
       </button>
     </div>
 
+    <div class="filters">
+      <div>
+      <label>Identifiant</label>
+      <input v-model="filters.searchTerm" type="text" />
+    </div>
+    <div>
+      <label>Prix</label>
+      <input v-model.number="filters.price" type="number" step="0.01" />
+    </div>
+  </div>
     <table>
       <thead>
         <tr>
@@ -22,7 +32,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in products" :key="product.id">
+        <tr v-if="filteredProducts.length > 0"v-for="product in filteredProducts" :key="product.id">
           <td>
             <label class="image-upload">
               <input
@@ -46,7 +56,7 @@
               <li v-for="category in product.Categories" :key="category.id">{{ category.name }}</li>
             </ul>
           </td>
-          <td>{{ product.defaultCategoryId ? categories.find((c) => c.id === product.defaultCategoryId).name : '' }}</td>
+          <td>{{ product.defaultCategoryId ? categories.find((c) => c.id === product.defaultCategoryId)?.name : '' }}</td>
           <td>
             <i :class="product.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
           </td>
@@ -55,9 +65,9 @@
             <a @click="showEditProductModal(product)" class="a-primary" title="Modifier">
               <i class="fa fa-edit"></i>
             </a>
-            <a :href="'/admin/products/' + product.id + '/variants'" class="a-primary" title="Modifier les déclinaisons">
+            <RouterLink :to="{ name: 'ProductVariants', params : { productId: product.id } }" class="a-primary" title="Modifier les déclinaisons">
               <i class="fa fa-edit"></i>
-            </a>
+            </RouterLink>
             <fancy-confirm
                 :class="'a-danger'"
                 :confirmationMessage="'Etes-vous sûr de vouloir supprimer le produit ?'"
@@ -70,6 +80,9 @@
           </fancy-confirm>
           </div>
           </td>
+        </tr>
+        <tr v-else>
+          <td class="empty" colspan="9">Aucun produit trouvé</td>
         </tr>
       </tbody>
     </table>
@@ -115,7 +128,7 @@
             <div class="form-group">
               <label for="categories">Catégories</label>
               <select v-model="currentProduct.Categories" id="categories" multiple>
-                <option v-for="category in categories" :key="category.id" :value="category.id">
+                <option v-for="category in categories" :key="category.id" :value="category">
                   {{ category.name }}
                 </option>
               </select>
@@ -130,12 +143,10 @@
               </select>
             </div>
           </template>
-
           <div class="form-group">
             <label for="active">Actif</label>
             <input v-model="currentProduct.active" type="checkbox" id="active" />
           </div>
-
           <div class="buttons">
             <button type="submit" class="btn btn-primary">
               {{ isEditing ? 'Modifier' : 'Ajouter' }}
@@ -150,21 +161,31 @@
 
 <script setup lang="ts">
 import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
-import { z } from 'zod'
+import { ref, onMounted, inject, computed } from 'vue'
+import { z, ZodError } from 'zod'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+import { load } from '../../components/loading/loading'; 
 
+const { loading, startLoading, stopLoading } = load();
 const showNotification = inject('showNotification');
+
+const categorySchema = z.object({
+  id: z.number(),
+  name: z.string()
+})
+
 const productSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Le nom est requis'),
   reference: z.string().min(1, 'La référence est requise'),
   description: z.string().min(1, 'La description est requise'),
-  price: z.number().positive('Le prix doit être supérieur à 0'),
+  price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
   active: z.boolean(),
-  Categories: z.array(z.number()),
-  defaultCategoryId: z.number().optional()
+  Categories: z.array(categorySchema),
+  defaultCategoryId: z.number().nullable().optional()
 })
+
+const productsSchema = z.array(productSchema)
 
 type Product = z.infer<typeof productSchema>;
 
@@ -182,41 +203,70 @@ const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchProducts = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`)
-  products.value = response.data
+
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`)
+    products.value = productsSchema.parse(response.data)
+  } catch(error) {
+
+    if(error instanceof ZodError) {
+      console.log(error.errors)
+    }
+
+    console.log(error)
+    showNotification('Une erreur est survenue lors du chargement des produits', 'error');
+  }
+
 }
 
 const addProduct = async () => {
 
-  const parsedProduct = productSchema.parse({
-    ...currentProduct.value,
-    price: parseFloat(currentProduct.value.price)
-  })
-  const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/products`, parsedProduct, { withCredentials: true })
-  products.value.push(response.data)
-  closeModal()
-  showNotification('Produit ajouté avec succès', 'success');
+  try {
+    const parsedProduct = productSchema.parse(currentProduct.value)
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/products`, parsedProduct)
+    products.value.push(response.data)
+    closeModal()
+    showNotification('Produit ajouté avec succès', 'success');
+  } catch(error) {
+
+    if(error instanceof ZodError) {
+      console.log(error.errors)
+    }
+
+    console.log(error)
+  }
 }
 
 const updateProduct = async () => {
 
-  const parsedProduct = productSchema.parse({
-    ...currentProduct.value,
-    price: parseFloat(currentProduct.value.price)
-  })
-  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/products/${currentProduct.value.id}`, parsedProduct, { withCredentials: true })
-  const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
-  if (index !== -1) {
-    products.value[index] = currentProduct.value
+  try {
+    const parsedProduct = productSchema.parse(currentProduct.value)
+    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/products/${currentProduct.value.id}`, parsedProduct)
+    const index = products.value.findIndex((p) => p.id === currentProduct.value.id)
+    if (index !== -1) {
+      products.value[index] = currentProduct.value
+    }
+    closeModal()
+    showNotification('Produit modifié avec succès', 'success');
+  } catch(error) {
+
+    if(error instanceof ZodError) {
+      console.log(error.errors)
+    }
+
+    console.log(error)
   }
-  closeModal()
-  showNotification('Produit modifié avec succès', 'success');
 }
 
 const deleteProduct = async (product) => {
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`, { withCredentials: true })
-  products.value = products.value.filter((p) => p.id !== product.id)
-  showNotification('Produit supprimé avec succès', 'success');
+  try{ 
+    startLoading();
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/products/${product.id}`)
+    products.value = products.value.filter((p) => p.id !== product.id)
+    showNotification('Produit supprimé avec succès', 'success');
+  } finally {
+    stopLoading();
+  }
 }
 
 const categories = ref([])
@@ -239,7 +289,7 @@ const showAddProductModal = () => {
   showModal.value = true
 }
 
-const showEditProductModal = (product) => {
+const showEditProductModal = (product : Product) => {
   isEditing.value = true
   currentProduct.value = { ...product }
   showModal.value = true
@@ -249,51 +299,42 @@ const closeModal = () => {
   showModal.value = false
 }
 
-const updateProductImage = async (productId, newImage) => {
-  const formData = new FormData()
-  formData.append('image', newImage)
-
-  const response = await axios.post(
-    `${import.meta.env.VITE_API_BASE_URL}/products/${productId}/image`,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    }
-  )
-
-  // Mettre à jour les images du produit dans la liste
-  const updatedProductIndex = products.value.findIndex((p) => p.id === productId)
-  if (updatedProductIndex !== -1) {
-    products.value[updatedProductIndex].Images = response.data.Images
-  }
-  showNotification('Image modifiée avec succès', 'success');
-}
-
-const triggerFileInput = () => {
-  const fileInput = document.createElement('input')
-  fileInput.type = 'file'
-  fileInput.accept = 'image/*'
-  fileInput.style.display = 'none'
-  fileInput.addEventListener('change', (event) => {
-    const newImage = event.target.files[0]
-    updateProductImage(currentProduct.value.id, newImage)
-  })
-  fileInput.click()
-}
-
 const truncateString = (string: string, sub: number) => {
   if (!string) return ''
   return string.length > sub ? `${string.substring(0, sub)}...` : string
 }
 
-/*
-NOT USED
-const handleImageChange = (event, product) => {
-  // Ce gestionnaire peut être vide ici ou supprimé car on utilise `triggerFileInput` pour gérer le changement d'image.
-}
-*/
+const filters = ref({
+  searchTerm: '',
+  price: null
+})
+
+const filteredProducts = computed(() => {
+  let filtered = [...products.value]
+
+  if (filters.value.searchTerm) {
+    const searchTermLower = filters.value.searchTerm.toLowerCase()
+    filtered = filtered.filter(product =>
+      product.name.toLowerCase().includes(searchTermLower) ||
+      product.reference.toLowerCase().includes(searchTermLower)
+    )
+  }
+
+  if (filters.value.price !== null && filters.value.price !== '') {
+    const priceFilter = parseFloat(filters.value.price)
+    filtered = filtered.filter(product => {
+      // Vérifier si le prix commence par les chiffres entrés
+      const productPriceString = product.price.toString()
+      if (productPriceString.startsWith(filters.value.price)) {  
+        return true
+      }
+      // Vérifier si le prix est exactement égal à la valeur saisie
+      return product.price === priceFilter
+    })
+  }
+
+  return filtered
+})
 
 onMounted(() => {
   fetchProducts()
@@ -312,6 +353,24 @@ onMounted(() => {
   right: 10px;
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+.filters {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.filters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters input {
+  margin-right: 10px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 form {
@@ -374,3 +433,4 @@ img {
   color: red;
 }
 </style>
+

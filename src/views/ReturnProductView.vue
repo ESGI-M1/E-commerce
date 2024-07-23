@@ -1,13 +1,14 @@
 <template>
   <div class="return-product">
-    <h1>Retour du Produit</h1>
+    <h1 v-if="returned && returned.id">Retour du Produit # {{ returned.id }}</h1>
+    <h1 v-else>Retour du Produit</h1>
     <form @submit.prevent="submitReturn">
       <div class="return-details">
         <p>
           <strong>Commande n°{{ orderId }}</strong>
         </p>
-        <p v-if="product">
-          Produit retourné : <span>{{ product.name }}</span>
+        <p v-if="variantOption && productVariant">
+          Produit retourné : <span>{{ productVariant.product.name }} | {{ productVariant.name }} | {{ variantOption.color }} | {{ variantOption.size }}</span>
         </p>
         <p v-if="statut">
           Statut : <span>{{ statut }}</span>
@@ -63,16 +64,19 @@ import FancyConfirm from '../components/ConfirmComponent.vue'
 const route = useRoute()
 const router = useRouter()
 const orderId = ref(route.params.orderId as string)
-const productId = ref(route.params.productId as string)
+const variantOptionId = ref(route.params.variantOptionId as string)
 const quantity = ref(0)
 
 const quantityReturned = ref(1)
 const returnReason = ref('')
 const deliveryMethod = ref('mondial-relay')
 const statut = ref('')
+const variantOption = ref<any>(null)
+const productVariant = ref<any>(null)
 const product = ref<any>(null)
 const existingReturn = ref(false)
 const card = ref('')
+const returned = ref(false)
 
 const quantityOptions = computed(() => {
   const options = []
@@ -83,64 +87,75 @@ const quantityOptions = computed(() => {
 })
 
 const fetchProductDetails = async () => {
+  try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`);
-    if (response.data.status == 'pending') {
-      router.push(`/order/${orderId.value}`) ;
+    if (response.data.status === 'pending') {
+      router.push(`/order/${orderId.value}`);
     }
 
     const cartProducts = response.data.Cart.CartProducts;
-
-    const cartProduct = cartProducts.find(cp => cp.productId === parseInt(productId.value));
+    const cartProduct = cartProducts.find(cp => cp.variantOption.id === parseInt(variantOptionId.value));
+    
     if (cartProduct) {
       quantity.value = cartProduct.quantity;
+      product.value = cartProduct.variantOption.productVariant.product;
+      productVariant.value = cartProduct.variantOption.productVariant;
+      variantOption.value = cartProduct.variantOption;
     } else {
       quantity.value = 0;
     }
 
-    const productResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${productId.value}`);
-    product.value = productResponse.data;
+    const returnResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${variantOptionId.value}`, {
+      params: { orderId: orderId.value }
+    });
 
-    const returnResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${productId.value}`, {
-      params: {
-        orderId: orderId.value,
-      }
-    })
+    returned.value = returnResponse.data;
 
-    if (returnResponse.data && typeof(returnResponse.data) === 'object'){
-      existingReturn.value = true
-      quantityReturned.value = returnResponse.data.quantity
-      returnReason.value = returnResponse.data.reason
-      deliveryMethod.value = returnResponse.data.deliveryMethod
-      statut.value = returnResponse.data.status
+    if (returnResponse.data && typeof(returnResponse.data) === 'object') {
+      existingReturn.value = true;
+      quantityReturned.value = returnResponse.data.quantity;
+      returnReason.value = returnResponse.data.reason;
+      deliveryMethod.value = returnResponse.data.deliveryMethod;
+      statut.value = returnResponse.data.status;
     }
 
     if (response.data.Payment) {
-      card.value = response.data.Payment.cardLast4
+      card.value = response.data.Payment.cardLast4;
     }
-
+  } catch (error) {
+    console.error('Error fetching product details:', error);
   }
+}
 
 onMounted(() => fetchProductDetails())
 
 const submitReturn = async () => {
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/return`, {
+  try {
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/return`, {
       orderId: orderId.value,
-      productId: productId.value,
+      variantOptionId: variantOptionId.value,
       quantityReturned: quantityReturned.value,
       reason: returnReason.value,
       deliveryMethod: deliveryMethod.value
-    })
-    router.push(`/order/${orderId.value}`)
+    });
+    router.push(`/order/${orderId.value}`);
+  } catch (error) {
+    console.error('Error submitting return:', error);
+  }
 }
 
 const deleteReturn = async () => {
+  try {
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/return`, {
       params: {
-        productId: productId.value,
+        variantOptionId: variantOptionId.value,
         orderId: orderId.value
       }
-    })
-    router.push(`/order/${orderId.value}`)
+    });
+    router.push(`/order/${orderId.value}`);
+  } catch (error) {
+    console.error('Error deleting return:', error);
+  }
 }
 </script>
 

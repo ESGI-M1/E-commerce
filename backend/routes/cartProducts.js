@@ -42,14 +42,11 @@ router.delete("/:id", async (req, res) => {
     if (remainingCartProducts.length === 0) {
       const cart = await Cart.findByPk(cartProduct.cartId);
       if (cart)  await cart.destroy();
-  
-      return res.sendStatus(204);
     }
-
+    return res.sendStatus(204);
+  } else {
+    res.sendStatus(404);
   }
-
-  res.sendStatus(404);
 });
-  
 
-  module.exports = router;
+module.exports = router;

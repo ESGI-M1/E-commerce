@@ -8,7 +8,7 @@ let user;
 const getUser = async () => {
     if (user) return user;
   
-    user = User.create({
+    user = await User.create({
       firstname: 'John',
       lastname: 'Doe',
       email: 'admin@zorglux.com',
@@ -62,7 +62,7 @@ describe('Category routes', () => {
   });
 
   it('should update a category with products', async () => {
-    const category = Category.create({
+    const category = await Category.create({
       name: 'Home Appliances',
       description: 'Appliances for home use',
     });
@@ -75,7 +75,7 @@ describe('Category routes', () => {
       description: 'Efficient washing machine',
     });
 
-    const product2 = Product.create({
+    const product2 = await Product.create({
       name: 'Refrigerator',
       reference: 'RF456',
       price: 800,
@@ -98,7 +98,7 @@ describe('Category routes', () => {
   });
 
   it('should delete a category', async () => {
-    const category = Category.create({
+    const category = await Category.create({
       name: 'Temporary Category',
       description: 'This category will be deleted',
     });
@@ -108,7 +108,7 @@ describe('Category routes', () => {
       .set('Cookie', cookie)
       .expect(204);
 
-    const deletedCategory = Category.findByPk(category.id);
+    const deletedCategory = await Category.findByPk(category.id);
     expect(deletedCategory).toBeNull();
   });
 

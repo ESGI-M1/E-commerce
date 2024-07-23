@@ -6,7 +6,11 @@
         <i class="fa fa-plus"></i> Ajouter un utilisateur
       </button>
     </div>
-
+    <div class="filters">
+     <label>Identifiant</label>
+     <br>
+      <input v-model="filters.search" type="text" />
+    </div>
     <table>
       <thead>
         <tr>
@@ -14,17 +18,23 @@
           <th>Nom</th>
           <th>Prénom</th>
           <th>Email</th>
+          <th>Tél</th>
           <th>Rôle</th>
+          <th>Actif</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="user in users" :key="user.id">
+        <tr v-if="filteredUsers.length > 0" v-for="user in filteredUsers" :key="user.id">
           <td>{{ user.id }}</td>
           <td>{{ user.lastname }}</td>
           <td>{{ user.firstname }}</td>
           <td>{{ user.email }}</td>
+          <td>{{ user.phone }}</td>
           <td>{{ user.role }}</td>
+          <td>
+            <i :class="user.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
+          </td>
           <td class="flex flex-center">
             <a @click="showEditUserModal(user)" class="a-primary">
               <i class="fa fa-edit"></i>
@@ -46,6 +56,9 @@
             </button>
           </td>
         </tr>
+        <tr v-else>
+          <td class="empty" colspan="8">Aucun utilisateur trouvé</td>
+        </tr>
       </tbody>
     </table>
 
@@ -58,21 +71,41 @@
           <div class="form-group">
             <label for="firstname">Prénom:</label>
             <input v-model="currentUser.firstname" type="text" id="firstname" required />
+            <br>
+            <span v-if="errors.firstname" class="error">{{ errors.firstname }}</span>
           </div>
 
           <div class="form-group">
             <label for="lastname">Nom:</label>
             <input v-model="currentUser.lastname" type="text" id="lastname" required />
+            <br>
+            <span v-if="errors.lastname" class="error">{{ errors.lastname }}</span>
           </div>
 
           <div class="form-group">
             <label for="email">Email:</label>
             <input v-model="currentUser.email" type="email" id="email" required />
+            <br>
+            <span v-if="errors.email" class="error">{{ errors.email }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Téléphone:</label>
+            <input v-model="currentUser.phone" type="tel" id="phone" />
+            <br>
+            <span v-if="errors.phone" class="error">{{ errors.phone }}</span>
           </div>
 
           <div class="form-group">
             <label for="role">Rôle:</label>
             <input v-model="currentUser.role" type="text" id="role" required />
+            <br>
+            <span v-if="errors.role" class="error">{{ errors.role }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="active">Actif</label>
+            <input v-model="currentUser.active" type="checkbox" id="active" />
           </div>
 
           <div class="buttons">
@@ -87,40 +120,66 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import axios from '../../tools/axios';
-import { ref, onMounted, inject } from 'vue'
-import { z } from 'zod'
-import FancyConfirm from '../../components/ConfirmComponent.vue'
 
+<script setup lang="ts">import axios from '../../tools/axios';
+import { ref, onMounted, computed, inject } from 'vue';
+import { z } from 'zod';
+import FancyConfirm from '../../components/ConfirmComponent.vue';
+import { load } from '../../components/loading/loading'; 
+
+const { loading, startLoading, stopLoading } = load();
+const phoneRegex = /^(\+33[1-9]\d{8}|0\d{9})$/;
 const showNotification = inject('showNotification');
+
 const userSchema = z.object({
   id: z.number().optional(),
   firstname: z.string().min(1, 'Le prénom est requis'),
   lastname: z.string().min(1, 'Le nom est requis'),
   email: z.string().email('Adresse email invalide'),
+  phone: z.string().optional().nullable().refine(value => value === null || value === '' || phoneRegex.test(value), {
+    message: "Le numéro de téléphone doit être au format +33xxxxxxxxx ou 0xxxxxxxx",
+  }),
   role: z.string(),
+  active: z.boolean().optional(),
   password: z.string().optional()
-})
+});
 
-type User = z.infer<typeof userSchema>
+type User = z.infer<typeof userSchema>;
 
-const users = ref<User[]>([])
+const users = ref<User[]>([]);
 const currentUser = ref<User>({
   firstname: '',
   lastname: '',
   email: '',
+  phone: '',
   role: '',
-  password: generateRandomPassword(12)
-})
+  active: true,
+  password: generateRandomPassword(15)
+});
 
-const showModal = ref(false)
-const isEditing = ref(false)
+const showModal = ref(false);
+const isEditing = ref(false);
+const errors = ref<{ [key: string]: string }>({});
+
+const filters = ref({
+  search: ''
+});
+
+const filteredUsers = computed(() => {
+  return users.value.filter(user => {
+    const searchTerm = filters.value.search.toLowerCase();
+    return (
+      user.firstname.toLowerCase().includes(searchTerm) ||
+      user.lastname.toLowerCase().includes(searchTerm) ||
+      user.email.toLowerCase().includes(searchTerm)
+    );
+  });
+});
 
 const fetchUsers = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`)
-  users.value = response.data
-}
+  const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`);
+  users.value = response.data;
+};
 
 function generateRandomPassword(length: number): string {
   const lowercaseLetters = 'abcdefghijklmnopqrstuvwxyz';
@@ -152,66 +211,95 @@ function generateRandomPassword(length: number): string {
 }
 
 const addUser = async () => {
-    const parsedUser = userSchema.parse(currentUser.value)
-    parsedUser.password = generateRandomPassword(15)
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, parsedUser)
-    users.value.push(response.data)
-    closeModal()
-    showNotification('Utilisateur ajouté avec succès', 'success')
-}
+  try {
+    errors.value = {};
+    const parsedUser = userSchema.parse(currentUser.value);
+    parsedUser.password = generateRandomPassword(15);
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, parsedUser);
+    users.value.push(response.data);
+    closeModal();
+    showNotification('Utilisateur ajouté avec succès', 'success');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      error.errors.forEach(e => {
+        if (e.path.length > 0) {
+          errors.value[e.path[0] as string] = e.message;
+        }
+      });
+    }
+  }
+};
 
 const updateUser = async () => {
-    const parsedUser = userSchema.parse(currentUser.value)
+  try {
+    errors.value = {};
+    const parsedUser = userSchema.parse(currentUser.value);
     const response = await axios.patch(
       `${import.meta.env.VITE_API_BASE_URL}/users/${currentUser.value.id}`,
       parsedUser
-    )
-    const updatedUser = response.data
-    const index = users.value.findIndex((u) => u.id === updatedUser.id)
+    );
+    const updatedUser = response.data;
+    const index = users.value.findIndex((u) => u.id === updatedUser.id);
     if (index !== -1) {
-      users.value.splice(index, 1, updatedUser)
+      users.value.splice(index, 1, updatedUser);
     }
-    closeModal()
-    showNotification('Utilisateur modifié avec succès', 'success')
-}
+    closeModal();
+    showNotification('Utilisateur modifié avec succès', 'success');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      error.errors.forEach(e => {
+        if (e.path.length > 0) {
+          errors.value[e.path[0] as string] = e.message;
+        }
+      });
+    }
+  }
+};
 
 const deleteUser = async (userId: number) => {
-    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
-    users.value = users.value.filter(user => user.id !== userId)
-    showNotification('Utilisateur supprimé avec succès', 'success')
-}
+  try{
+    startLoading();
+  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`);
+  users.value = users.value.filter(user => user.id !== userId);
+  showNotification('Utilisateur supprimé avec succès', 'success');
+} finally {
+    stopLoading();
+  }
+};
 
 const showAddUserModal = () => {
-  isEditing.value = false
+  isEditing.value = false;
   currentUser.value = {
     firstname: '',
     lastname: '',
     email: '',
-    role: ''
-  }
-  showModal.value = true
-}
+    phone: '',
+    role: '',
+    active: true,
+    password: generateRandomPassword(15)
+  };
+  showModal.value = true;
+};
 
 const showEditUserModal = (user: User) => {
-  isEditing.value = true
-  currentUser.value = { ...user }
-  showModal.value = true
-}
+  isEditing.value = true;
+  currentUser.value = { ...user };
+  showModal.value = true;
+};
 
 const closeModal = () => {
-  showModal.value = false
-}
+  showModal.value = false;
+};
 
 const resetPassword = async (userId: number) => {
-  await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}/reset-password`)
-  showNotification('Le mot de passe a été réinitialisé.', 'success')
-}
+  await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}/reset-password`);
+  showNotification('Le mot de passe a été réinitialisé.', 'success');
+};
 
 onMounted(() => {
-  fetchUsers()
-})
+  fetchUsers();
+});
 </script>
-
 <style scoped>
 
 .users {
@@ -240,6 +328,7 @@ onMounted(() => {
 }
 
 .form-group input[type='text'],
+.form-group input[type='tel'],
 .form-group input[type='email'],
 .form-group input[type='password'] {
   width: 100%;
@@ -256,4 +345,20 @@ onMounted(() => {
 .buttons button {
   margin-right: 10px;
 }
+
+.text-success {
+  color: green;
+}
+
+.text-danger {
+  color: red;
+}
+
+
+.filters input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 </style>

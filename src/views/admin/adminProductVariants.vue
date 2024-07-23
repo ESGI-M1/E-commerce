@@ -1,311 +1,417 @@
 <template>
-  <div v-if="isLoading" class="loading">Chargement...</div>
-  <div v-else class="content">
-    <div class="product-infos">
-      <div>
-        <div class="div-header">
-          <h2>Informations du produit</h2>
-        </div>
-        <div>
-          <p>Nom : {{ product.name || '-' }}</p>
-          <p>Référence : {{ product.reference || '-' }}</p>
-          <p>Prix de base : {{ product.price || '-' }} €</p>
-          <p>Description : {{ product.description || '-' }}</p>
-          <p>Statut : {{ product.active ? 'Actif' : 'Inactif' }}</p>
-          <p>
-            Catégories :
-            <span v-if="product.Categories.length === 0">Aucune</span>
-            <span v-else>{{ product.Categories.map(category => category.name).join(', ') }}</span>
-          </p>
-        </div>
-      </div>
+  <div class="return">
+    <RouterLink :to="{ name: 'Produits' }">
+      <i class="fa fa-arrow-left"></i> Retour
+    </RouterLink>
+  </div>
 
-      <form v-if="productOptions.length === 0" @submit.prevent="setProductOptions">
-        <div class="div-header">
-          <h2>Options de déclinaison</h2>
-          <button type="submit" class="btn btn-primary">
-            <i class="fa fa-floppy-disk"></i> Enregistrer
+  <div class="products">
+    <div class="div-header">
+      <h1>Déclinaisons : {{ productVariants.length }}</h1>
+      <button @click="isEditing = false; showVariantModal('variant');" class="btn btn-success">
+        <i class="fa fa-plus"></i> Ajouter une déclinaison
+      </button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Référence</th>
+          <th>Prix</th>
+          <th>Stock</th>
+          <th>Attributs</th>
+          <th>Actif</th>
+          <th>Défaut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(variant, index) in productVariants" :key="index">
+          <td>{{ variant.reference }}</td>
+          <td>{{ variant.price }}</td>
+          <td>{{ variant.stock }}</td>
+          <td>
+            <span v-for="(attributeValue, index) in variant.attributeValues" :key="index">
+              {{ attributeValue.value }}
+              <span v-if="index < variant.attributeValues.length - 1">, </span>
+            </span>
+          </td>
+          <td>
+            <i :class="variant.active ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
+          </td>
+          <td>
+            <span @click="changeDefaultVariant(variant.id)" class="default-variant-button">
+              <i :class="variant.default ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i>
+            </span>
+          </td>
+          <td>
+            <button @click="isEditing = true; currentVariant = variant; showVariantModal('variant');" class="btn btn-primary">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button @click="currentVariant = variant; showModalImage = true;" class="btn btn-info">
+              <i class="fa fa-image"></i>
+            </button>
+            <fancy-confirm
+              :class="'a-danger'"
+              :confirmationMessage="'Etes-vous sûr de vouloir supprimer la déclinaison ?'"
+              :elementType="'a'"
+              @confirmed="deleteVariant(variant.id)"
+            >
+              <template #buttonText>
+                <i class="fa fa-trash"></i>
+              </template>
+            </fancy-confirm>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <Modal v-if="showModal" @close="showModal = false" :title="isEditing ? 'Modifier ' : 'Ajouter ' + titleModal[modalName]" :onSave="() => handleSubmit(modalName)">
+      <form @submit.prevent="handleSubmit('variant')">
+        <div class="form-group">
+          <label for="reference">Référence</label>
+          <input type="text" v-model="currentVariant.reference" id="reference" />
+        </div>
+        <div class="form-group">
+          <label for="price">Prix</label>
+          <input type="number" v-model="currentVariant.price" id="price" />
+        </div>
+        <div class="form-group">
+          <label for="stock">Stock</label>
+          <input type="number" v-model="currentVariant.stock" id="stock" />
+        </div>
+        <div class="form-group">
+          <label for="attributeValues">Attributs</label>
+            <select v-model="currentAttributes" multiple id="attributeValues">
+              <option v-for="(attribute, index) in attributes" :key="index" :value="attribute">{{ attribute.name }}</option>
+            </select>
+        </div>
+        <div class="form-group" v-for="(attribute, index) in currentAttributes" :key="index">
+          <label :for="'attributeValue' + index">{{ attribute.name }}</label>
+          <select v-model="currentVariant.attributeValues[index]" :id="'attributeValue' + index">
+            <option v-for="(value, index) in attribute.values" :key="index" :value="value">{{ value.value }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="active">Actif</label>
+          <input type="checkbox" v-model="currentVariant.active" id="active" />
+        </div>
+      </form>
+    </Modal>
+
+    <Modal v-if="showModalImage" @close="showModalImage = false" title="Ajouter une image" :onSave="() => uploadImage(currentVariant.id)" :noShowFooter="true">
+      <div class="images">
+        <div v-for="(image, index) in currentVariant.images" :key="index" class="image-item">
+          <p>{{ image.description }}</p>
+          <img :src="imageUrl + image.id" :alt="image.description" />
+          <button @click="deleteImage(image.id)" class="btn btn-danger">
+            <i class="fa fa-trash"></i> Supprimer
           </button>
         </div>
-
-        <ul v-for="option in allVariantOptions" :key="option.id">
-          <input type="checkbox" :id="option.id" :value="option.id" class="option-checkbox" />
-          <label :for="option.id">{{ option.name }}</label>
-        </ul>
+      </div>
+      <form @submit.prevent="uploadImage(currentVariant.id)">
+        <div class="form-group images">
+          <label for="imageFile">Image</label>
+          <input type="file" @change="handleFileUpload" id="imageFile" accept="image/*" />
+          <div v-if="imagePreview" class="image-preview">
+            <img :src="imagePreview" alt="Preview" />
+          </div>
+        </div>
+        <div class="form-group" v-if="selectedImage">
+          <label for="imageDescription">Description de l'image</label>
+          <input type="text" v-model="imageDescription" id="imageDescription" />
+        </div>
+        <button type="submit" class="btn btn-success">Ajouter</button>
       </form>
+    </Modal>
 
-      <div v-else>
-        <div class="div-header">
-          <h2>Options de déclinaison</h2>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Nom</th>
-              <th>Valeurs</th>
-              <th>Nombre de produits</th>
-            </tr>
-          </thead>
 
-          <tbody>
-            <tr v-for="option in variantOptions" :key="option.id">
-              <td>{{ option.name }}</td>
-              <td>
-                <ul v-if="option.variantValues">
-                  <li v-for="value in option.variantValues" :key="value.id">
-                    {{ value.value }}
-                  </li>
-                </ul>
-              </td>
-              <td>
-                <template v-if="option.productVariantDetails">
-                  {{ option.productVariantDetails.length }} produits
-                </template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="product-variants" v-if="productOptions.length !== 0">
-      <div class="div-header">
-        <h2>Déclinaisons du produit : {{ product.name }} ({{ productVariants.length }})</h2>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Déclinaisons</th>
-            <th>Nom</th>
-            <th>Référence</th>
-            <th>Prix</th>
-            <th>Quantité en stock</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="variant in productVariants" :key="variant.id">
-            <td>
-              <ul v-if="variant.productVariantDetails">
-                <li v-for="detail in variant.productVariantDetails" :key="detail.id">
-                  {{ detail.variantOption && detail.variantValue ? detail.variantOption.name : 'Aucune donnée' }} : 
-                  {{ detail.variantValue ? detail.variantValue.value : 'Aucune donnée' }}
-                </li>
-              </ul>
-            </td>
-
-            <td :class="{ 'text-grayed-out': !variant.reference }">
-              {{ variant.name || product.name + ' #' + variant.id }}
-            </td>
-
-            <td :class="{ 'text-grayed-out': !variant.reference }">
-              {{ variant.reference || product.reference }}
-            </td>
-
-            <td :class="{ 'text-grayed-out': !variant.reference }">
-              {{ variant.price || product.price }} €
-            </td>
-
-            <td>{{ variant.stockQuantity }}</td>
-
-            <td>
-              <div class="actions">
-                <a @click="showEditProductVariantModal(variant)" class="a-primary" title="Modifier">
-                  <i class="fa fa-edit"></i>
-                </a>
-                <a @click="resetProductVariant(variant)" class="a-primary" title="Réinitialiser">
-                  <i class="fa fa-ban"></i>
-                </a>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div v-if="showModal" class="modal-overlay">
-        <div class="modal">
-          <span class="close" @click="closeModal">&times;</span>
-          <h2>Modifier la déclinaison</h2>
-          <form @submit.prevent="updateProductVariant()">
-            <div class="form-group">
-              <label for="name">Nom</label>
-              <input v-model="currentProductVariant.name" type="text" id="name" />
-            </div>
-
-            <div class="form-group">
-              <label for="reference">Référence</label>
-              <input v-model="currentProductVariant.reference" type="text" id="reference" />
-            </div>
-
-            <div class="form-group">
-              <label for="price">Prix</label>
-              <input v-model.number="currentProductVariant.price" type="number" step="0.01" id="price" />
-            </div>
-
-            <div class="form-group">
-              <label for="stockQuantity">Quantité en stock</label>
-              <input v-model.number="currentProductVariant.stockQuantity" type="number" id="stockQuantity" />
-            </div>
-
-            <div class="buttons">
-              <button type="submit" class="btn btn-primary">Enregistrer</button>
-              <button type="button" class="btn btn-danger" @click="closeModal">Annuler</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
   </div>
+
+
 </template>
 
 <script setup lang="ts">
-
-import { z } from 'zod';
-import { ref, onMounted } from 'vue';
 import axios from '../../tools/axios';
+import Modal from '../../components/ModalView.vue';
+import FancyConfirm from '../../components/ConfirmComponent.vue';
+import { ref, onMounted, inject } from 'vue';
+import { z, ZodError } from 'zod'
 import { useRoute } from 'vue-router';
 
+const showNotification = inject('showNotification');
 const route = useRoute();
-const isLoading = ref(true);
-const showModal = ref(false);
 
-const productOptions = ref([]);
-const productVariants = ref([]);
-const variantOptions = ref([]);
-const allVariantOptions = ref([]);
+const productId = parseInt(route.params.productId)
 
-const productId = ref(route.params.id);
-const product = ref({ name: '', reference: '', description: '', price: 0, active: true, Categories: [] });
-const currentProductVariant = ref({ name: '', reference: '', price: 0, stockQuantity: 0 });
+const showModal = ref(false)
+const showModalImage = ref(false)
+const isEditing = ref(false)
+const modalName = ref('')
+const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
-const fetchProduct = async (id) => {
-  try {
-    const response = await axios.get(`http://localhost:3000/products/${id}`);
-    product.value = response.data || {};
-  } catch (error) {
-    console.error("Erreur lors du chargement du produit", error);
-  }
-};
+const productSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().min(1, 'Le nom est requis'),
+  reference: z.string().min(1, 'La référence est requise'),
+  description: z.string().min(1, 'La description est requise'),
+  price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0'),
+  active: z.boolean(),
+})
 
-const fetchProductOptions = async (productId) => {
-  try {
-    const response = await axios.get(`http://localhost:3000/products/${productId}/options`);
-    productOptions.value = response.data || [];
-  } catch (error) {
-    console.error("Erreur lors du chargement des options de produit", error);
-  }
-};
+const attributeValueSchema = z.object({
+  id: z.number(),
+  value: z.string().min(1, 'La valeur est requise'),
+})
 
-const fetchProductVariants = async (productId) => {
-  try {
-    const response = await axios.get(`http://localhost:3000/product_variants/${productId}`);
-    productVariants.value = response.data || [];
-  } catch (error) {
-    console.error("Erreur lors du chargement des déclinaisons de produit", error);
-  }
-};
+const attributeSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, 'Le nom est requis'),
+  values: z.array(attributeValueSchema)
+})
 
-const fetchAllVariantOptions = async () => {
-  try {
-    const response = await axios.get(`http://localhost:3000/variant_options`);
-    allVariantOptions.value = response.data || [];
-  } catch (error) {
-    console.error("Erreur lors du chargement des options de variante", error);
-  }
-};
+const attributesSchema = z.array(
+  attributeSchema
+)
 
-const fetchVariantOptions = async (productId) => {
-  try {
-    const response = await axios.get(`http://localhost:3000/variant_options/${productId}`);
-    variantOptions.value = response.data || [];
-  } catch (error) {
-    console.error("Erreur lors du chargement des options de variante pour le produit", error);
-  }
-};
+const imageSchema = z.object({
+  id: z.number(),
+  description: z.string().min(1, 'La description est requise'),
+})
 
+const imagesSchema = z.array(
+  imageSchema
+)
 
 const productVariantSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(2, 'Le nom est trop court'),
-  reference: z.string().min(2, 'La référence est trop courte'),
-  price: z.number().positive('Le prix doit être positif'),
-  stockQuantity: z.number().positive('La quantité en stock doit être positive'),
-});
+  productId: z.number(),
+  reference: z.string().min(1, 'La référence est requise'),
+  price: z.number({ coerce: true }).positive('Le prix doit être supérieur à 0').optional(),
+  stock: z.number().min(0, 'Le stock doit être supérieur ou égal à 0').optional(),
+  active: z.boolean(),
+  default: z.boolean(),
+  attributeValues: z.array(attributeValueSchema).optional(),
+  images: imagesSchema.optional()
+})
 
-const updateProductVariant = async () => {
-  console.log('updateProductVariant');
+const productVariantsSchema = z.array(
+  productVariantSchema
+)
+
+type attribute = z.infer<typeof attributeSchema>
+
+type productType = z.infer<typeof productSchema>
+type productVariantType = z.infer<typeof productVariantSchema>
+type productVariantsType = z.infer<typeof productVariantsSchema>
+
+const attributes = ref<attribute[]>([])
+const product = ref<productType>()
+const currentVariant = ref<productVariantType>()
+const currentAttributes = ref<attribute[]>([])
+const productVariants = ref<productVariantsType>([])
+
+const selectedImage = ref<File | null>(null);
+const imagePreview = ref<string | null>(null);
+const imageDescription = ref('');
+
+const titleModal = {
+  variant: 'une déclinaison',
+};
+
+const showVariantModal = (modal: string) => {
+  showModal.value = true
+  modalName.value = modal
+
+  if(isEditing.value) {
+    console.log(currentVariant.value)
+  } else {
+    currentAttributes.value = []
+    currentVariant.value = {
+      productId: productId,
+      reference: '',
+      price: 0,
+      stock: 0,
+      active: true,
+      default: false,
+      attributeValues: []
+    }
+  }
+}
+const fetchAttributes = async () => {
   try {
-    const parsedProductVariant = productVariantSchema.parse({ ...currentProductVariant.value, price: parseFloat(currentProductVariant.value.price) });
-    await axios.patch(`http://localhost:3000/product_variants/${currentProductVariant.value.id}`, parsedProductVariant, { withCredentials: true });
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/attributes`)
+    attributes.value = attributesSchema.parse(response.data)
+  } catch (error) {
+
+    if(error instanceof ZodError) {
+      console.error(error.errors)
+    }
+
+    showNotification('Erreur lors de la récupération des attributs', 'error')
+  }
+}
+
+const fetchProduct = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/${productId}`)
+    product.value = productSchema.parse(response.data)
+  } catch (error) {
+    if (error instanceof ZodError) {
+      console.log(error.errors)
+    } else {
+      console.log(error)
+      showNotification('Erreur lors de la récupération du produit', 'error')
+    }
+  }
+}
+
+const fetchProductVariants = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/productVariants?productId=${productId}`)
+    productVariants.value = productVariantsSchema.parse(response.data)
+  } catch (error) {
+
+    if (error instanceof ZodError) {
+      console.log(error.errors)
+    } 
+
+    console.log(error)
+    showNotification('Erreur lors de la récupération des déclinaisons', 'error')
     
-    const index = productVariants.value.findIndex((p) => p.id === currentProductVariant.value.id);
-    if (index !== -1) productVariants.value[index] = currentProductVariant.value;
+  }
+}
 
-    closeModal();
+const changeDefaultVariant = async (id: number) => {
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/productVariants/set-default/${id}`)
+    if(response.status === 200){
+      productVariants.value.map((variant) => {
+        variant.default = variant.id === id
+      })
+      showNotification('Déclinaison par défaut modifiée avec succès', 'success')
+    }
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de la déclinaison:', error);
+    console.error(error)
+    showNotification('Erreur lors de la modification de la déclinaison par défaut', 'error')
+  }
+}
+
+const uploadImage = async (productVariantId: number) => {
+  try {
+    if (selectedImage.value) {
+      const formData = new FormData();
+      formData.append('productVariantId', productVariantId.toString());
+      formData.append('image', selectedImage.value);
+      formData.append('description', imageDescription.value);
+      
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/images`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      currentVariant.value.images.push(imageSchema.parse(response.data));
+
+      showNotification('Image ajoutée avec succès', 'success');
+    }
+  } catch (error) {
+    console.error(error);
+    showNotification('Erreur lors de l\'ajout de l\'image', 'error');
   }
 };
 
-const resetProductVariant = async (productVariant) => {
+const deleteImage = async (imageId: number) => {
   try {
-    await axios.patch(`http://localhost:3000/product_variants/${productVariant.id}/reset`);
+    const response = await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/images/${imageId}`);
+    if (response.status === 204) {
+      currentVariant.value.images = currentVariant.value.images.filter(image => image.id !== imageId);
+      showNotification('Image supprimée avec succès', 'success');
+    }
+  } catch (error) {
+    console.error(error);
+    showNotification('Erreur lors de la suppression de l\'image', 'error');
+  }
+};
 
-    const index = productVariants.value.findIndex((pv) => pv.id === productVariant.id);
-    if (index !== -1) productVariants.value[index] = {
-      ...productVariant,
-      name: null,
-      reference: null,
-      price: null,
+const handleFileUpload = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files.length > 0) {
+    selectedImage.value = input.files[0];
+    
+    // Afficher l'aperçu de l'image
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreview.value = e.target?.result as string;
     };
-
-    closeModal();
-  } catch (error) {
-    console.error('Erreur lors de la réinitialisation de la déclinaison:', error);
+    reader.readAsDataURL(file);
+  } else {
+    selectedImage.value = null;
+    imagePreview.value = null;
   }
 };
 
-const showEditProductVariantModal = (productVariant) => {
-  currentProductVariant.value = { ...productVariant };
-  showModal.value = true;
-};
+const handleSubmit = async (modalName: string) => {
+  try{
 
-const closeModal = () => {
-  showModal.value = false;
-};
+    let data;
+    if(modalName === 'variant'){
+      console.log(currentVariant.value)
+      data = productVariantSchema.parse(currentVariant.value)
+    }
 
-onMounted(async () => {
+    if(isEditing.value){
+      const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/productVariants/${currentVariant.value.id}`, data)
+      const parsedData = productVariantSchema.parse(response.data)
+      await uploadImage(response.data.id);
+      const index = productVariants.value.findIndex((variant) => variant.id === currentVariant.value.id)
+      productVariants.value[index] = parsedData
+      showNotification('Déclinaison modifiée avec succès', 'success')
+
+    } else {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/productVariants`, data)
+      const parsedData = productVariantSchema.parse(response.data)
+      await uploadImage(response.data.id);
+      productVariants.value.push(parsedData)
+      showNotification('Déclinaison ajoutée avec succès', 'success')
+    }
+
+    
+    showModal.value = false
+  }
+  catch (error) {
+
+    if (error instanceof ZodError) {
+      console.log(error.errors)
+    }
+
+    console.log(error)
+    showNotification('Erreur lors de la sauvegarde de la déclinaison', 'error')
+    
+  }
+}
+
+const deleteVariant = async (id: number) => {
   try {
-    await Promise.all([
-      fetchProduct(productId.value),
-      fetchProductOptions(productId.value),
-      fetchProductVariants(productId.value),
-      fetchVariantOptions(productId.value),
-      fetchAllVariantOptions()
-    ]);
+    const response = await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/productVariants/${id}`)
+    if(response.status === 204){
+      productVariants.value = productVariants.value.filter((variant) => variant.id !== id)
+      showNotification('Déclinaison supprimée avec succès', 'success')
+    }
   } catch (error) {
-    console.error("Erreur lors du chargement des données", error);
-  } finally {
-    isLoading.value = false;
+    console.error(error)
+    showNotification('Erreur lors de la suppression de la déclinaison', 'error')
   }
-});
+}
 
+onMounted(() => {
+  fetchProduct()
+  fetchProductVariants()
+  fetchAttributes()
+})
 </script>
 
 <style scoped>
-
-.content {
+.products {
   padding: 20px;
-}
-
-.product-infos {
-  display: flex;
-  justify-content: space-between;
-}
-
-.product-infos > div,
-.product-infos > form {
-  width: 100%;
 }
 
 .close {
@@ -314,6 +420,24 @@ onMounted(async () => {
   right: 10px;
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+.filters {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.filters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.filters input {
+  margin-right: 10px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 form {
@@ -356,10 +480,6 @@ form {
   margin-right: 10px;
 }
 
-.option-checkbox {
-  margin-right: 8px;
-}
-
 .close {
   position: absolute;
   top: 10px;
@@ -372,11 +492,6 @@ img {
   cursor: pointer;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
 .text-success {
   color: green;
 }
@@ -385,8 +500,18 @@ ul {
   color: red;
 }
 
-.text-grayed-out {
-  opacity: 0.5;
+.default-variant-button:hover{
+  cursor: pointer;
+}
+
+.images {
+  display: flex;
+  gap: 10px;
+}
+
+.images img {
+  width: 100px;
+  height: 100px;
 }
 
 </style>

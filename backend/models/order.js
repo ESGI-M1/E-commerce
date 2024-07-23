@@ -26,6 +26,11 @@ module.exports = function (connection) {
         as: 'addressOrder',
       });
 
+      Order.belongsTo(models.BillingAddress, {
+        foreignKey: 'billingAddressId',
+        as: 'billingAddress',
+      });
+
       Order.hasOne(models.PaymentMethod, {
         foreignKey: 'orderId',
         as: 'paymentMethod',

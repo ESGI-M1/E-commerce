@@ -71,9 +71,42 @@
             <input type="text" v-model="livraisonDomicileAddress.country" placeholder="Pays" required>
           </label>
         </div>
+        <div class="check-address">
+          <label>
+            <input type="checkbox" :checked="checked" @change="checkBilling(checked)" />
+            Utiliser la même adresse de facturation
+          </label>
+        </div>
+        <div v-if="!checked">
+            Nouvelle adresse de facturation</input>
+            <label>
+            Nom :
+            <input type="text" v-model="billingAddress.lastname" placeholder="Nom" required>
+          </label>
+          <label>
+            Prénom :
+            <input type="text" v-model="billingAddress.firstname" placeholder="Prénom" required>
+          </label>
+            <label>
+            Adresse :
+            <input type="text" v-model="billingAddress.street" placeholder="Rue" required>
+          </label>
+          <label>
+            Code postal :
+            <input type="text" v-model="billingAddress.postalCode" placeholder="Code postal" required>
+          </label>
+          <label>
+            Ville :
+            <input type="text" v-model="billingAddress.city" placeholder="Ville" required>
+          </label>
+          <label>
+            Pays :
+            <input type="text" v-model="billingAddress.country" placeholder="Pays" required>
+          </label>
+        </div>
+        </div>
   </div>
 
-      </div>
       <div class="cart-summary" v-if="carts && carts.length > 0">
         <h2>Récapitulatif</h2>
         <div class="totals">
@@ -134,10 +167,6 @@
         <button class="pay-button" @click="handlePayment('stripe')">
           Paiement avec stripe
         </button>
-        &nbsp;
-       <!-- <button @click="handlePayment('paypal')" class="paypal-button">
-          Paiement avec PayPal <i class="fab fa-paypal"></i>
-        </button> -->
       </div>
     </div>
   </div>
@@ -156,7 +185,8 @@ const promo = ref(null)
 const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
 const carts = ref(null)
-const imageUrl = import.meta.env.VITE_API_BASE_URL;
+const imageUrl = import.meta.env.VITE_API_BASE_URL
+const checked = ref(true)
 
 interface Address {
   street: string;
@@ -173,6 +203,15 @@ const newLivraisonDomicileAddress = ref<Address>({
 })
 
 const livraisonDomicileAddress = ref<Address>({
+  street: '',
+  postalCode: '',
+  city: '',
+  country: '',
+})
+
+const billingAddress = ({
+  lastname: '',
+  firstname: '',
   street: '',
   postalCode: '',
   city: '',
@@ -265,13 +304,33 @@ const handlePayment = async (payment: string) => {
   }
   newAddress = response.data;
 
-
   if (newAddress) {
     try {
+      let billingAddress = null
+
+      if (checked.value) {
+        billingAddress = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/billingaddress`, {
+          street: newAddress.street,
+          postalCode: newAddress.postalCode,
+          city: newAddress.city,
+          country: newAddress.country,
+        });
+      } else {
+        billingAddress = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/billingaddress`, {
+          firstname: billingAddress.firstname,
+          lastname: billingAddress.lastname,
+          street: billingAddress.street,
+          postalCode: billingAddress.postalCode,
+          city: billingAddress.city,
+          country: billingAddress.country,
+        });
+      }
+
       const order = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/orders`, {
         total: discountedTotal.value,
         method: newAddress.id,
         userId: authToken,
+        billingId: billingAddress.data.id,
       });
 
       if (payment == 'stripe') {
@@ -289,17 +348,7 @@ const handlePayment = async (payment: string) => {
 
       const { sessionId } = stripeSession.data;
       await stripe.redirectToCheckout({ sessionId });
-    } else if(payment == 'paypal') {
-      const paypalSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/paypal`, {
-        cartId: carts.value[0].id,
-        orderId: order.data.id,
-        items: carts.value[0].CartProducts,
-        promo: promo.value,
-      });
-
-      const { sessionId } = paypalSession.data;
     }
-
       await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
     } catch (error) {
       if (typeof order !== 'undefined' && order) {
@@ -329,6 +378,11 @@ const getCountryFromPostalCode = (postalCode) => {
 
 const selectDeliveryOption = (option: string) => {
   deliveryOption.value = option
+}
+
+const checkBilling = (option: boolean) => {
+  console.log(option)
+  checked.value = !option
 }
 
 onMounted(() => {
@@ -503,22 +557,5 @@ input[type='text'] {
 
 .new-price {
   text-align: right;
-}
-
-.paypal-button {
-  padding: 10px 20px;
-  background-color: #0070ba;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-}
-
-.paypal-button:hover {
-  background-color: #005ea6;
-}
-
-.fa-paypal {
-  margin-left: 5px;
 }
 </style>

@@ -159,7 +159,7 @@ router.get('/:id', checkAuth, async (req, res, next) => {
 
 router.post('/', checkAuth, async (req, res, next) => {
   try {
-    const { total, method } = req.body;
+    const { total, method, billingId } = req.body;
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + 3);
 
@@ -168,6 +168,7 @@ router.post('/', checkAuth, async (req, res, next) => {
         totalAmount: parseFloat(total),
         deliveryDate: deliveryDate,
         deliveryMethod: method,
+        billingAddressId: billingId,
       });
 
     res.status(201).json(newOrder);

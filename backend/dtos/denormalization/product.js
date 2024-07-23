@@ -3,46 +3,53 @@ const ProductMongo = require("../../mongo/product");
 async function denormalizeProduct(product, models) {
     const { Product, Category, ProductVariant, AttributeValue, Image } = models;
 
-    // Fetch the full product including related data
-    const productDenormalized = await Product.findByPk(product.id, {
-        include: [
-            {
-                model: Category,
-                attributes: ["id", "name", "slug", "description"],
-                required: false,
-            },
-            {
-                model: ProductVariant,
-                as: 'variants',
-                include: [
-                    {
-                        model: AttributeValue,
-                        as: 'attributeValues',
-                        include: [
-                            {
-                                model: models.Attribute,
-                                as: 'attribute'
-                            }
-                        ]
-                    },
-                    {
-                        model: Image,
-                        as: 'images'
-                    }
-                ]
-            }
-        ]
-    });
 
-    // Upsert the denormalized product into MongoDB
-    await ProductMongo.findByIdAndUpdate(
-        product.id,
-        productDenormalized.toJSON(),
-        {
-            upsert: true,
-            new: true,
-        }
-    );
+    try{
+
+
+        // Fetch the full product including related data
+        const productDenormalized = await Product.findByPk(product.id, {
+            include: [
+                {
+                    model: Category,
+                    attributes: ["id", "name", "slug", "description"],
+                    required: false,
+                },
+                {
+                    model: ProductVariant,
+                    as: 'variants',
+                    include: [
+                        {
+                            model: AttributeValue,
+                            as: 'attributeValues',
+                            include: [
+                                {
+                                    model: models.Attribute,
+                                    as: 'attribute'
+                                }
+                            ]
+                        },
+                        {
+                            model: Image,
+                            as: 'images'
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // Upsert the denormalized product into MongoDB
+        await ProductMongo.findByIdAndUpdate(
+            product.id,
+            productDenormalized.toJSON(),
+            {
+                upsert: true,
+                new: true,
+            }
+        );
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 // Utility function to handle denormalization when related entities change

@@ -66,7 +66,7 @@
       </tbody>
     </table>
 
-    <Modal v-if="showModal" @close="showModal = false" :title="isEditing ? 'Modifier ' : 'Ajouter ' + titleModal[modalName]" :onSave="() => handleSubmit(modalName)">
+    <Modal v-if="showModal" @close="showModal = false" :title="isEditing ? 'Modifier ' : 'Ajouter ' + 'une déclinaison'" :onSave="() => handleSubmit(modalName)">
       <form @submit.prevent="handleSubmit('variant')">
         <div class="form-group">
           <label for="reference">Référence</label>
@@ -214,10 +214,6 @@ const productVariants = ref<productVariantsType>([])
 const selectedImage = ref<File | null>(null);
 const imagePreview = ref<string | null>(null);
 const imageDescription = ref('');
-
-const titleModal = {
-  variant: 'une déclinaison',
-};
 
 const showVariantModal = (modal: string) => {
   showModal.value = true;

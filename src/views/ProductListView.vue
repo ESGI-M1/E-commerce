@@ -85,11 +85,10 @@ onMounted(() => {
 .product-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 30px; /* Espace entre les cartes */
-  padding: 20px; /* Padding autour de la liste */
+  gap: 30px;
+  padding: 20px; 
 }
 
-/* Carte du produit avec styles modernes */
 .product-card {
   background: #fff;
   border-radius: 12px;
@@ -105,10 +104,9 @@ onMounted(() => {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Image du produit avec effet */
 .product-image {
   width: 100%;
-  height: 300px; /* Hauteur augmentée pour un impact visuel plus fort */
+  height: 300px; 
   object-fit: cover;
   transition: opacity 0.3s;
 }
@@ -117,7 +115,6 @@ onMounted(() => {
   opacity: 0.8;
 }
 
-/* Informations sur le produit avec mise en forme */
 .product-info {
   padding: 20px;
   background: #fff;
@@ -156,7 +153,6 @@ onMounted(() => {
   font-size: 0.9em;
 }
 
-/* Styles pour quand aucun produit n'est disponible */
 .no-products {
   text-align: center;
   padding: 50px;
@@ -170,22 +166,21 @@ onMounted(() => {
 }
 
 .calc {
-  flex: 1 1 calc(33.333% - 30px); /* Flexibilité avec ajustement de la largeur */
-  max-width: calc(33.333% - 30px); /* Assure la largeur maximale */
+  flex: 1 1 calc(33.333% - 30px); 
+  max-width: calc(33.333% - 30px); 
 }
 
-/* Media queries pour responsive design */
 @media (max-width: 1200px) {
   .calc {
-    flex: 1 1 calc(50% - 30px); /* 2 colonnes pour écrans moyens */
-    max-width: calc(50% - 30px); /* Assure la largeur maximale */
+    flex: 1 1 calc(50% - 30px); 
+    max-width: calc(50% - 30px); 
   }
 }
 
 @media (max-width: 768px) {
   .calc {
-    flex: 1 1 calc(100% - 30px); /* 1 colonne pour écrans petits */
-    max-width: calc(100% - 30px); /* Assure la largeur maximale */
+    flex: 1 1 calc(100% - 30px);
+    max-width: calc(100% - 30px);
   }
 }
 </style>

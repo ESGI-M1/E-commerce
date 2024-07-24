@@ -69,30 +69,6 @@ const usersFixtures = async () => {
         country: 'France',
         userId: admin.id,
     });
-
-    await productsFixtures();
-
-    await findOrCreate(Favorite, { userId: user.id, productId: 1 }, {
-        userId: user.id,
-        productId: 1,
-    });
-
-    await findOrCreate(Favorite, { userId: user.id, productId: 2 }, {
-        userId: user.id,
-        productId: 2,
-    });
-
-    const productVariant = await findOrCreate(ProductVariant, { reference: 'variant-1' }, {
-        reference: 'variant-1',
-        price: 12.5,
-        active: true,
-        stock: 100,
-        productId: 1
-    });
-
-    const attributeSize = await findOrCreateAttribute('Size');
-    const attributeValueL = await findOrCreateAttributeValue('L', attributeSize.id);
-    await productVariant.addAttributeValues([attributeValueL]);
 };
 
 const productsFixtures = async () => {
@@ -169,6 +145,18 @@ const productsFixtures = async () => {
     }
 
     await shopFixtures();
+
+    const productVariant = await findOrCreate(ProductVariant, { reference: 'variant-1' }, {
+        reference: 'variant-1',
+        price: 12.5,
+        active: true,
+        stock: 100,
+        productId: 1
+    });
+
+    const attributeSize = await findOrCreateAttribute('Size');
+    const attributeValueL = await findOrCreateAttributeValue('L', attributeSize.id);
+    await productVariant.addAttributeValues([attributeValueL]);
 };
 
 const shopFixtures = async () => {
@@ -220,11 +208,12 @@ const orderStatusFixtures = async () => {
 
 (async () => {
     try {
-        await usersFixtures();
+        await productsFixtures();
         await promoCodeFixtures();
         await orderStatusFixtures();
         await alertsFixtures();
         await findOrCreateCookie();
+        await usersFixtures();
         console.log('Fixtures data has been added successfully.');
     } catch (error) {
         console.error('Error adding fixtures data:', error);

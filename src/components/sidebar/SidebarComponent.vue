@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import SidebarLink from './SidebarLink.vue'
 import { ref, computed } from 'vue'
+import SidebarLink from './SidebarLink.vue'
 import { collapsed, toggleSidebar, sidebarWidth } from './state'
 </script>
 
@@ -57,8 +57,8 @@ import { collapsed, toggleSidebar, sidebarWidth } from './state'
   padding: 0;
 }
 
-.sidebar h1 {
-  height: 2.5em;
+.sidebar a {
+  white-space: nowrap;
 }
 
 .sidebar hr {

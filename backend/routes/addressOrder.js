@@ -4,23 +4,7 @@ const router = new Router();
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
 
-router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
-    const address = await AddressOrder.findAll();
-    res.json(address);
-});
-
-router.get("/:id", checkAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const address = await AddressOrder.findOne({
-    where: {
-      id: id,
-    },
-  });
-  res.json(address);
-});
-
-router.post("/", async (req, res) => {
+router.post("/", checkAuth, async (req, res) => {
       const { street, postalCode, city, country } = req.body;
       const newAddress = await AddressOrder.create({
         street: street,

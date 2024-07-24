@@ -8,6 +8,7 @@ const firstname = ref('')
 const lastname = ref('')
 const email = ref('')
 const password = ref('')
+const cgu = ref(true)
 const router = useRouter()
 const showNotification = inject('showNotification');
 
@@ -31,6 +32,7 @@ const passwordSchema = z
   .min(12, {
     message: '12 caractères minimum'
   })
+const cguSchema = z.boolean()
 
 const firstnameError = computed(() => {
   const parsedFirstname = firstnameSchema.safeParse(firstname.value)
@@ -72,12 +74,24 @@ const passwordError = computed(() => {
   return parsedPassword.error.issues[0].message
 })
 
+const cguError = computed(() => {
+  const parsedCgu = cguSchema.safeParse(cgu.value)
+
+  if (parsedCgu.success && parsedCgu.data) {
+    return ''
+  }
+
+  return 'Vous devez accepter les CGU'
+})
+
 const signup = async () => {
   if (
     !firstnameSchema.safeParse(firstname.value).success ||
     !lastnameSchema.safeParse(lastname.value).success ||
     !emailSchema.safeParse(email.value).success ||
-    !passwordSchema.safeParse(password.value).success
+    !passwordSchema.safeParse(password.value).success ||
+    !cguSchema.safeParse(cgu.value).success ||
+    !cgu.value
   ) {
     return
   }
@@ -87,7 +101,8 @@ const signup = async () => {
       firstname: firstname.value,
       lastname: lastname.value,
       email: email.value,
-      password: password.value
+      password: password.value,
+      cgu: cgu.value
     })
     router.push('/login')
   } catch (error) {
@@ -147,6 +162,13 @@ const signup = async () => {
           {{ passwordError }}
         </small>
       </div>
+      <div class="cgu">
+        <label for="cgu">J'accepte les <RouterLink :to="{ name: 'Page', params: { slug: 'cgu' } }">CGU</RouterLink></label>
+        <input type="checkbox" v-model="cgu" required />
+        <small class="error" v-if="cguError && !cgu">
+          {{ cguError }}
+        </small>
+      </div>
       <button type="submit">S'inscrire</button>
     </form>
   </div>
@@ -184,5 +206,8 @@ const signup = async () => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+.auth-form button:hover {
+  background-color: #0056b3;
 }
 </style>

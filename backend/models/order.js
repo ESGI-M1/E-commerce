@@ -5,7 +5,6 @@ module.exports = function (connection) {
   class Order extends Model {
 
     static associate(models) {
-
       Order.belongsTo(models.User, {
         foreignKey: 'userId',
         as: 'user',
@@ -26,27 +25,72 @@ module.exports = function (connection) {
         as: 'addressOrder',
       });
 
+      Order.belongsTo(models.BillingAddress, {
+        foreignKey: 'billingAddressId',
+        as: 'billingAddress',
+      });
+
       Order.hasOne(models.PaymentMethod, {
         foreignKey: 'orderId',
         as: 'paymentMethod',
       });
+
+      Order.hasMany(models.OrderStatusHistory, {
+        foreignKey: 'orderId',
+        as: 'statusHistory',
+      });
+    }
+
+    static async getStatusIdByName(name, models) {
+      const status = await models.OrderStatus.findOne({
+        where: { name }
+      });
+      if (status) {
+        return status.id;
+      }
+      throw new Error(`OrderStatus with name '${name}' not found`);
     }
 
     static addHooks(models) {
-      
-      Order.addHook("afterCreate", (order) =>
-        denormalizeOrder(order, models)
-      );
-
-      Order.addHook("afterUpdate", (order, { fields }) => {
-        if (fields.includes("totalAmount") || fields.includes("status") || fields.includes("deliveryDate") || fields.includes("deliveryMethod")) {
+      Order.addHook('afterCreate', async (order) => {
+        try {
+          const statusId = await Order.getStatusIdByName('pending', models);
+          await models.OrderStatusHistory.create({
+            orderId: order.id,
+            statusId: statusId,
+            changeDate: new Date(),
+          });
           denormalizeOrder(order, models);
+        } catch (error) {
+          console.error('Error in afterCreate hook:', error);
         }
       });
 
-      Order.addHook("afterDestroy", (order) =>
-        denormalizeOrder(order, models)
-      );
+      Order.addHook('afterUpdate', async (order, { fields }) => {
+        try {
+          if (fields.includes('status')) {
+            const statusId = await Order.getStatusIdByName(order.status, models);
+            await models.OrderStatusHistory.create({
+              orderId: order.id,
+              statusId: statusId,
+              changeDate: new Date(),
+            });
+          }
+          if (fields.includes('totalAmount') || fields.includes('deliveryDate') || fields.includes('deliveryMethod')) {
+            denormalizeOrder(order, models);
+          }
+        } catch (error) {
+          console.error('Error in afterUpdate hook:', error);
+        }
+      });
+
+      Order.addHook('afterDestroy', async (order) => {
+        try {
+          await denormalizeOrder(order, models);
+        } catch (error) {
+          console.error('Error in afterDestroy hook:', error);
+        }
+      });
     }
   }
 
@@ -64,11 +108,6 @@ module.exports = function (connection) {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
       },
-      status: {
-        type: DataTypes.ENUM('pending', 'completed'),
-        allowNull: false,
-        defaultValue: 'pending',
-      },
       deliveryDate: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -83,11 +122,11 @@ module.exports = function (connection) {
       },
       createdAt: {
         type: DataTypes.DATE,
-        allowNull: true
+        allowNull: true,
       },
       updatedAt: {
         type: DataTypes.DATE,
-        allowNull: true
+        allowNull: true,
       }
     },
     {

@@ -292,7 +292,7 @@ const closeModal = () => {
 };
 
 const resetPassword = async (userId: number) => {
-  await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}/reset-password`);
+  await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}/reset-password`); //TODO route not exist
   showNotification('Le mot de passe a été réinitialisé.', 'success');
 };
 

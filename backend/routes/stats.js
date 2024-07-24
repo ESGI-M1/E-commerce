@@ -51,6 +51,4 @@ router.get("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     }
 });
 
-    
-
 module.exports = router;

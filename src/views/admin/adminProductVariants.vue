@@ -276,14 +276,11 @@ const fetchProductVariants = async () => {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/productVariants?productId=${productId}`)
     productVariants.value = productVariantsSchema.parse(response.data)
   } catch (error) {
-
     if (error instanceof ZodError) {
       console.log(error.errors)
     } 
-
     console.log(error)
     showNotification('Erreur lors de la récupération des déclinaisons', 'error')
-    
   }
 }
 

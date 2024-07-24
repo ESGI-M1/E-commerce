@@ -3,7 +3,6 @@ const router = new Router();
 const { PromoCode, Cart } = require('../models');
 const checkRole = require("../middlewares/checkRole");
 
-//get
 router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const promos = await PromoCode.findAll({
@@ -26,7 +25,6 @@ router.post('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   }
 });
 
-//edit
 router.put('/:id', checkRole({ roles: "admin" }), async (req, res, next) => {
   const promoId = req.params.id;
   const { code, startDate, endDate, discountPercentage } = req.body;
@@ -38,30 +36,6 @@ router.put('/:id', checkRole({ roles: "admin" }), async (req, res, next) => {
 
     await promo.update({ code, startDate, endDate, discountPercentage });
     res.status(200).json(promo);
-  } catch (e) {
-    next(e);
-  }
-});
-
-// Route pour vérifier le code promo
-router.post('/:code', async (req, res, next) => { // TODO RATE LIMITER
-  const promoCode = req.params.code;
-
-  try {
-    const promo = await PromoCode.findOne({ where: { code: promoCode } });
-
-    if (!promo) return res.sendStatus(404);
-
-    const currentDate = new Date();
-    const startDate = new Date(promo.startDate);
-    const endDate = new Date(promo.endDate);
-
-    if (currentDate >= startDate && currentDate <= endDate) {
-      const discountPercentage = promo.discountPercentage;
-      res.status(200).json({ success: true, discountPercentage });
-    } else {
-      res.status(400).json({ error: 'Ce code promo est invalide ou a expiré.' });
-    }
   } catch (e) {
     next(e);
   }
@@ -100,11 +74,10 @@ router.post('/:code/apply', async (req, res, next) => {
     }
   });
 
-  router.get('/:id/detail', async (req, res, next) => {
+router.get('/:id/detail', async (req, res, next) => {
   try {
     const promoId = parseInt(req.params.id);
 
-    // Recherche du code promo par son ID avec Sequelize
     const promo = await PromoCode.findByPk(promoId);
 
     promo ? res.json(promo) : res.sendStatus(404);

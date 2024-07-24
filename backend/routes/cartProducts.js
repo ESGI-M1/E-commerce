@@ -2,16 +2,7 @@ const { Router } = require("express");
 const { CartProduct, Cart } = require("../models");
 const router = new Router();
 
-router.get('/', async (req, res, next) => {
-  try {
-    const orders = await CartProduct.findAll({
-      order: [['createdAt', 'DESC']],
-    });
-    res.json(orders);
-  } catch (e) {
-    next(e)
-  }
-});
+// Token a faire !!
 
 router.patch("/:id", async (req, res, next) => {
   const id = parseInt(req.params.id);

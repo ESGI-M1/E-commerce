@@ -203,9 +203,8 @@ const showModal = ref(false)
 const isEditing = ref(false)
 
 const fetchProducts = async () => {
-
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products/admin`)
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`)
     products.value = productsSchema.parse(response.data)
   } catch(error) {
 

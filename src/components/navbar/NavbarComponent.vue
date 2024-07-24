@@ -1,8 +1,7 @@
 <template>
   <nav class="navbar">
     <div class="navbar-section logo">
-      <RouterLink :to="{ name: 'Accueil' }" class="nav-link">Accueil</RouterLink>
-      <!-- Logo -->
+      <RouterLink :to="{ name: 'Accueil' }" class="nav-link"><img src="../../../logo.jpg"></RouterLink>
     </div>
 
     <div class="navbar-section links">
@@ -122,6 +121,10 @@ onMounted(() => {
   color: black;
   text-decoration: none;
   position: relative;
+}
+
+.nav-link img {
+  width: 30px;
 }
 
 .nav-link:hover {

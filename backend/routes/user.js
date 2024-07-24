@@ -97,22 +97,32 @@ router.post("/signup", async (req, res, next) => {
 router.patch("/:id", checkAuth, async (req, res, next) => {
   try {
     const userId = parseInt(req.params.id);
-    
-    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
+
+    if (!userId || (userId !== req.user.id && req.user.role !== 'admin')) {
+      return res.sendStatus(403);
+    }
+
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ message: 'Invalid request body' });
+    }
 
     const [nbUpdated, users] = await User.update(req.body, {
-      where: {
-        id: userId,
-      },
+      where: { id: userId },
       individualHooks: true,
       returning: true,
     });
 
-    nbUpdated === 1 ? res.json(users[0]) : res.sendStatus(404);
+    if (nbUpdated === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(users[0]);
   } catch (e) {
+    console.error('Error updating user:', e);
     next(e);
   }
 });
+
 
 router.delete("/:id", checkAuth, async (req, res, next) => {
   try {

@@ -128,7 +128,7 @@ async function initializeAlert() {
   }
 }
 
-describe('Commandes routes', () => {
+describe('Alerts routes', () => {
 
   beforeEach(async () => {
     await initializeAlert();

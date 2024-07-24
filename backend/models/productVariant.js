@@ -30,9 +30,9 @@ module.exports = function(connection) {
 
             ProductVariant.addHook("beforeUpdate", async (productvariant, { fields }) => {
 
-              if (fields.includes("stockQuantity")) {
-                const newQuantity = productvariant.dataValues.stockQuantity;
-                const oldQuantity = productvariant._previousDataValues.stockQuantity;
+              if (fields.includes("stock")) {
+                const newQuantity = productvariant.dataValues.stock;
+                const oldQuantity = productvariant._previousDataValues.stock;
 
                 if ((oldQuantity === 0 && newQuantity > 0) || (oldQuantity > 0 && newQuantity === 0)) {
                   const product = await models.Product.findByPk(productvariant.productId);
@@ -82,7 +82,6 @@ module.exports = function(connection) {
                 }
               }
             });
-          }
         }
     }
 

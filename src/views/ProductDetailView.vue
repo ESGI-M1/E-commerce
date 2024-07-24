@@ -320,7 +320,7 @@ async function initAlerts() {
     const alertsProduct = await getProductAlerts();
     if (alertsProduct) {
       for (let i = 0; i < alertsProduct.length; i++) {
-        let userSubscribe = await fetchAlertUserProduct(String(alertsProduct[i].id), user, productId.value);
+        let userSubscribe = await fetchAlertUserProduct(String(alertsProduct[i].id), user, String(productId));
         if (userSubscribe) {
           alerts.value.push({
             id: alertsProduct[i].id,
@@ -343,6 +343,7 @@ async function initAlerts() {
 
 onMounted(() => {
   fetchProduct();
+  initAlerts();
 });
 </script>
 

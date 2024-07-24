@@ -68,18 +68,19 @@ router.get("/:id/user/:userId/product/:productId", async (req, res, next) => {
 
     if (!alertUser) { return res.sendStatus(404); }
     else {
-      const alertUserProduct = await AlertUserProduct.findOne({
-        where: {
-          alertUserId: alertUser.id,
-          productId: req.params.productId
+      try {
+        const alertUserProduct = await AlertUserProduct.findOne({
+          where: {
+            alertUserId: alertUser.id,
+            productId: req.params.productId
+          }
+        });
+        if (!alertUserProduct) {
+          res.sendStatus(404);
+        } else {
+          res.json(alertUserProduct);
         }
-      });
-
-      if (!alertUserProduct) {
-        res.sendStatus(404);
-      } else {
-        res.json(alertUserProduct);
-      }
+      } catch (e) {res.sendStatus(404);}
     }
 
   } catch (e) {

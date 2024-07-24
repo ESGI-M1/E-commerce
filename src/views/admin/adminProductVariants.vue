@@ -208,6 +208,7 @@ type productVariantsType = z.infer<typeof productVariantsSchema>
 const attributes = ref<attribute[]>([])
 const product = ref<productType>()
 const currentVariant = ref<productVariantType>()
+let variantStockBeforeUpdate:number;
 const currentAttributes = ref<attribute[]>([])
 const productVariants = ref<productVariantsType>([])
 
@@ -222,7 +223,11 @@ const showVariantModal = (modal: string) => {
   if (isEditing.value) {
     currentAttributes.value = currentVariant.value.attributeValues.map((attrValue) => {
       return attributes.value.find((attr) => attr.values.some((val) => val.id === attrValue.id));
-    }).filter(attr => attr !== undefined);
+    }).filter(attr => attr !== undefined)
+    if (currentVariant.value?.stock) {
+      variantStockBeforeUpdate = currentVariant.value.stock;
+    }
+
   } else {
     currentAttributes.value = [];
     currentVariant.value = {
@@ -359,7 +364,14 @@ const handleSubmit = async (modalName: string) => {
     }
 
     if(isEditing.value){
-      const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/productVariants/${currentVariant.value.id}`, data)
+
+      let response;
+      if (currentVariant.value?.stock !== variantStockBeforeUpdate) {
+        response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/productVariants/${currentVariant.value.id}`, data)
+      } else {
+        response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/productVariants/${currentVariant.value.id}`, data)
+      }
+
       const parsedData = productVariantSchema.parse(response.data)
       await uploadImage(response.data.id);
       const index = productVariants.value.findIndex((variant) => variant.id === currentVariant.value.id)

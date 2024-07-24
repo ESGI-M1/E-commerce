@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useCategoryStore } from '@/store/category';
 import { useProductsStore } from '@/store/products';
 import { useRoute } from 'vue-router';
@@ -24,4 +24,6 @@ const fetchCategory = async () => {
 };
 
 onMounted(fetchCategory);
+
+watch(() => route.params.slug, fetchCategory);
 </script>

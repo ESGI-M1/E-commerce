@@ -1,8 +1,9 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, ProductVariant, AttributeValue, Attribute } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, ProductVariant, AttributeValue, Attribute, BillingAddress } = require("../models");
 const router = new Router();
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
+const { Op } = require("sequelize");
 
 router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
@@ -31,7 +32,12 @@ router.get('/own', checkAuth, async (req, res, next) => {
   
   try {
     const ordersWithCarts = await Order.findAll({
-      where: { userId },
+      where: { 
+        userId,
+        status: {
+          [Op.ne]: 'cancelled',
+        }
+      },
       include: [
         {
           model: Cart,
@@ -169,6 +175,7 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
     const id = parseInt(req.params.id);
     const order = await Order.findByPk(id);
     const addressId = order.deliveryMethod;
+    const billingAddressId = order.billingAddressId;
 
     if (order) {
     const deletedOrder = await Order.destroy({
@@ -176,6 +183,9 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
       });
     if (addressId) {
       await AddressOrder.destroy({ where: { id: addressId } });
+    }
+    if (billingAddressId) {
+      await BillingAddress.destroy({ where: { id: billingAddressId } });
     }
     deletedOrder > 0 ? res.sendStatus(204) : res.sendStatus(404);
   }

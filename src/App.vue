@@ -14,7 +14,7 @@ const notificationType = inject('notificationType', ref(''));
 </script>
 
 <template>
-  <div :class="{ mobile: isMobile }">
+  <div>
     <Sidebar v-if="$route.meta.requiresAdmin || isMobile" />
     <Navbar />
     <div id="page-content" :style="{ marginLeft: $route.meta.requiresAdmin && !isMobile ? sidebarWidth : '0' }">

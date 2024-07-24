@@ -97,18 +97,10 @@ a.icon:hover {
   margin-bottom: 16px;
 }
 
-.mobile .div-header {
-  flex-direction: column;
-}
-
 .filters {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
-}
-
-.mobile .filters {
-  flex-direction: column;
 }
 
 .filters div {
@@ -125,6 +117,16 @@ a.icon:hover {
 
 .error {
   color: red;
+}
+
+@media (max-width: 768px) {
+  .div-header {
+    flex-direction: column;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
 }
 
 @media (hover: hover) {

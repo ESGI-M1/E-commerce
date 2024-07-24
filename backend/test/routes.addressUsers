@@ -9,12 +9,21 @@ const getUser = async () => {
 
   if (user) return user;
 
-  user = await User.create({
-    firstname: 'John',
-    lastname: 'Doe',
-    email: 'zorglux+addressusers@zorglux.com',
-    password: 'Password123254369!',
-  });
+  try {
+    user = await User.create({
+      firstname: 'John',
+      lastname: 'Doe',
+      email: 'zorglux+addressusers@zorglux.com',
+      password: 'Password123254369!',
+      active: true
+    });
+  } catch (e) {
+    user = await User.findOne({
+       where: {
+          email: 'zorglux+addressusers@zorglux.com',
+        }
+    });
+  }
 
   return user;
   
@@ -79,7 +88,7 @@ describe('User Address Routes', () => {
     };
 
     await server
-      .post(`/addressusers/${nonExistentUserId}`)
+      .get(`/addressusers/${nonExistentUserId}`)
       .send(newAddressData)
       .expect(404);
   });

@@ -1,5 +1,6 @@
 let request = require('supertest');
 const { User, Product, Favorite } = require("../models");
+const exp = require('node:constants')
 const server = request('http://localhost:3000');
 
 let user;
@@ -9,12 +10,21 @@ const getUser = async () => {
 
   if (user) return user;
 
-  user = await User.create({
-    firstname: 'John',
-    lastname: 'Doe',
-    email: 'zorglux+favorites@zorglux.com',
-    password: 'Password123254369!',
-  });
+  try {
+    user = await User.create({
+      firstname: 'John',
+      lastname: 'Doe',
+      email: 'zorglux+favorites@zorglux.com',
+      password: 'Password123254369!',
+      active: true
+    });
+  } catch (e) {
+    user = await User.findOne({
+      where: {
+        email: 'zorglux+favorites@zorglux.com',
+      }
+    })
+  }
 
   return user;
   
@@ -124,12 +134,12 @@ describe('Favoris routes', () => {
 
     const user = await getUser();
 
-    await Favorite.create({
+    const fav1 = await Favorite.create({
       userId: user.id,
       productId: product1.id,
     });
 
-    await Favorite.create({
+    const fav2 = await Favorite.create({
       userId: user.id,
       productId: product2.id,
     });
@@ -140,8 +150,9 @@ describe('Favoris routes', () => {
       .get('/favorites')
       .set('Cookie', cookie)
       .expect(200)
-    
-    // TODO Check if the response contains the two products
+
+    expect(response.body[1].id).toBe(fav1.id);
+    expect(response.body[2].id).toBe(fav2.id);
   });
 
 

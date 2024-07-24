@@ -1,12 +1,11 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, VariantOption, ProductVariant } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, ProductVariant, AttributeValue, Attribute, BillingAddress, OrderStatus, OrderStatusHistory } = require("../models");
 const router = new Router();
-const { PDFDocument } = require('pdf-lib');
-const { format } = require('date-fns');
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
+const { Op, where, or } = require("sequelize");
 
-router.get('/', async (req, res, next) => {
+router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: req.query,
@@ -18,9 +17,23 @@ router.get('/', async (req, res, next) => {
         {
           model: AddressOrder,
           as: 'addressOrder',
+        },
+        {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          include: [
+            {
+              model: OrderStatus,
+              as: 'orderStatus',
+            }
+          ]
         }
       ],
-      order: [['createdAt', 'DESC']],
+      order: [
+        ['createdAt', 'DESC'],
+        [{ model: OrderStatusHistory, as: 'statusHistory' }, 'changeDate', 'DESC']
+      ],
+      
     });
     res.json(orders);
   } catch (e) {
@@ -30,45 +43,54 @@ router.get('/', async (req, res, next) => {
 
 router.get('/own', checkAuth, async (req, res, next) => {
   const userId = req.user.id;
-
+  
   try {
-      const carts = await Cart.findAll({
-          where: { userId },
-      });
+    const ordersWithCarts = await Order.findAll({
+      where: { 
+        userId,
+      },
+      include: [
+        {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          include: [
+            {
+              model: OrderStatus,
+              as: 'orderStatus',
+            }
+          ]
+        },
+        {
+          model: Cart,
+          as: 'carts',
+          include: [
+            {
+              model: CartProduct,
+              as: 'CartProducts',
+            },
+          ],
+        },
+        {
+          model: PaymentMethod,
+          as: 'paymentMethod',
+          where: {
+            userId,
+          },
+          required: false,
+        },
+      ],
+      order: [
+        [{ model: OrderStatusHistory, as: 'statusHistory' }, 'changeDate', 'DESC']
+      ],
+    });
 
-      const orderMap = {};
+    const filteredOrders = ordersWithCarts.filter(order => {
+      return order.statusHistory.length === 0 || order.statusHistory[0].orderStatus.name !== 'cancelled';
+    });
 
-      for (const cart of carts) {
-          const orderId = cart.orderId;
-
-          if (!orderMap[orderId]) {
-              const order = await Order.findByPk(orderId);
-              const payment = await PaymentMethod.findOne({
-                where: {
-                  orderId: orderId,
-                  userId: userId,
-                },
-              });
-              if (order && payment) {
-                  orderMap[orderId] = {
-                      id: order.id,
-                      userId: order.userId,
-                      totalAmount: order.totalAmount,
-                      status: order.status,
-                      createdAt: order.createdAt,
-                      updatedAt: order.updatedAt,
-                      carts: []
-                  };
-              } else {
-                res.sendStatus(404);
-              }
-          }
-      }
-
-      const ordersWithCarts = Object.values(orderMap);
-
-      res.json(ordersWithCarts);
+    res.json(filteredOrders);
   } catch (e) {
+    console.error(e);
     next(e);
   }
 });
@@ -84,26 +106,30 @@ router.get('/:id', checkAuth, async (req, res, next) => {
         {
           model: CartProduct,
           as: 'CartProducts',
-          include: [{ 
-            model: VariantOption, 
-            as: 'variantOption',
-            include: [
-              {
-                model: ProductVariant,
-                as: 'productVariant',
-                include: [ 
-                  {
-                    model: Image,
-                    as: 'images',
-                  },
-                  {
-                    model: Product,
-                    as: 'product',
+          include: [
+            {
+              model: ProductVariant,
+              as: 'productVariant',
+              include: [ 
+                {
+                  model: Image,
+                  as: 'images',
+                },
+                {
+                  model: AttributeValue,
+                  as: 'attributeValues',
+                  include: {
+                    model: Attribute,
+                    as: 'attribute',
                   }
-                ]
-              }
-            ],
-          }]
+                },
+                {
+                  model: Product,
+                  include: [Category],
+                }
+              ]
+            }
+          ]
         },
         {
           model: PromoCode,
@@ -119,6 +145,21 @@ router.get('/:id', checkAuth, async (req, res, next) => {
       },
       include: [
         {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          include: [
+            {
+              model: OrderStatus,
+              as: 'orderStatus',
+              where: {
+                name: {
+                  [Op.ne]: 'cancelled',
+                }
+              }
+            }
+          ]
+        },
+        {
           model: User,
           as: 'user',
         },
@@ -127,7 +168,10 @@ router.get('/:id', checkAuth, async (req, res, next) => {
           as: 'addressOrder',
         }
       ],
-      order: [['createdAt', 'DESC']],
+      order: [
+        ['createdAt', 'DESC'],
+        [{ model: OrderStatusHistory, as: 'statusHistory' }, 'changeDate', 'DESC']
+      ],
     });
 
     if (!order || !cart) return res.status(404).json({ error: 'Commande ou panier non trouvé' });
@@ -153,23 +197,15 @@ router.get('/:id', checkAuth, async (req, res, next) => {
 
 router.post('/', checkAuth, async (req, res, next) => {
   try {
-    const { total, method } = req.body;
-    /*const exist = await Order.findAll({
-        where: { 
-            userId: userId,
-            totalAmount: total,
-            deliveryMethod: method
-        },
-    });
-*/
+    const { total, method, billingId } = req.body;
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + 3);
-
     const newOrder = await Order.create({
         userId: req.user.id,
         totalAmount: parseFloat(total),
         deliveryDate: deliveryDate,
         deliveryMethod: method,
+        billingAddressId: billingId,
       });
 
     res.status(201).json(newOrder);
@@ -179,82 +215,11 @@ router.post('/', checkAuth, async (req, res, next) => {
   }
 });
 
-router.get("/details/:idUser", async (req, res, next) => {    // TODO SECURITY
-  const idUser = parseInt(req.params.idUser);
-  const orderId = parseInt(req.query.orderId);
-
-  try {
-      const carts = await Cart.findAll({
-          where: { userId: idUser, orderId: orderId },
-          include: [
-              {
-                  model: Product,
-                  as: 'product',
-                  attributes: ['id', 'name', 'price'],
-                  include: [Category],
-              },
-              {
-                  model: PromoCode,
-                  as: 'promoCode',
-                  attributes: ['discountPercentage']
-              }
-          ]
-      });
-
-      const orderMap = {};
-
-      for (const cart of carts) {
-          const orderId = cart.orderId;
-
-          if (!orderMap[orderId]) {
-              const order = await Order.findByPk(orderId);
-              if (order) {
-                  orderMap[orderId] = {
-                      id: order.id,
-                      userId: order.userId,
-                      totalAmount: order.totalAmount,
-                      status: order.status,
-                      createdAt: order.createdAt,
-                      deliveryDate: order.deliveryDate,
-                      deliveryMethod: order.deliveryMethod,
-                      carts: [] // Initialiser le tableau de paniers
-                  };
-              }
-          }
-
-          if (orderMap[orderId]) {
-              orderMap[orderId].carts.push({
-                  id: cart.id,
-                  quantity: cart.quantity,
-                  product: cart.product,
-                  promo: cart.promoCode,
-              });
-          }
-      }
-
-      const payment = await PaymentMethod.findOne({
-        where: {
-          orderId: orderId,
-          userId: req.user.id,
-        },
-      });
-
-      if (payment) {
-        orderMap[orderId].payment = payment;
-      }
-
-      const ordersWithCarts = Object.values(orderMap);
-
-      res.json(ordersWithCarts);
-  } catch (e) {
-      next(e);
-  }
-});
-
 router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
     const id = parseInt(req.params.id);
     const order = await Order.findByPk(id);
     const addressId = order.deliveryMethod;
+    const billingAddressId = order.billingAddressId;
 
     if (order) {
     const deletedOrder = await Order.destroy({
@@ -263,21 +228,56 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
     if (addressId) {
       await AddressOrder.destroy({ where: { id: addressId } });
     }
+    if (billingAddressId) {
+      await BillingAddress.destroy({ where: { id: billingAddressId } });
+    }
     deletedOrder > 0 ? res.sendStatus(204) : res.sendStatus(404);
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", checkAuth, async (req, res) => {
   const order = await Order.findByPk(req.params.id);
+  if (req.user.id !== order.userId) {
+    return res.sendStatus(403);
+  }
+
+  const status = await OrderStatus.findOne({
+    where: {
+      name: 'cancelled',
+    }
+  });
+
+  await OrderStatusHistory.create({
+    orderId: order.id,
+    statusId: status.id,
+    changeDate: new Date(),
+  });
 
   if (order) {
-    order.status = 'completed';
-    await order.save();
-      res.json(order);
+    res.json(order);
   } else {
-      res.sendStatus(404);
+    res.sendStatus(404);
   }
 });
 
+router.patch("/admin/:id", checkRole({ roles: "admin" }), async (req, res) => {
+  const order = await Order.findByPk(req.params.id);
+  const status = await OrderStatus.findOne({
+    where: {
+      name: 'completed',
+    }
+  });
+
+  await OrderStatusHistory.create({
+    orderId: order.id,
+    statusId: status.id,
+    changeDate: new Date(),
+  });
+  if (order) {
+    res.json(order);
+  } else {
+    res.sendStatus(404);
+  }
+});
 
 module.exports = router;

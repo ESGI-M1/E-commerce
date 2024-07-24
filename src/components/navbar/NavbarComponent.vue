@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar">
     <div class="navbar-section logo">
-      <a href="/" class="nav-link">Accueil</a>
+      <RouterLink :to="{ name: 'Accueil' }" class="nav-link">Accueil</RouterLink>
       <!-- Logo -->
     </div>
 
@@ -17,10 +17,10 @@
 
     <div class="navbar-section actions">
       <!-- Shopping Cart Icon -->
-      <a class="icon" href="/cart">
+      <RouterLink :to="{ name: 'Panier' }" class="icon">
         <i class="fas fa-shopping-cart"></i>
-        <span class="badge">{{ cartsNumber }}</span>
-      </a>
+        <span class="badge">{{ cartStore.getCartItemCount }}</span>
+      </RouterLink>
 
       &nbsp;
       <!-- Search Bar -->
@@ -33,7 +33,7 @@
       />
 
       <!-- Login Button or User Icon -->
-      <div v-if="isAuthenticated" class="user-menu">
+      <div v-if="userStore.isAuthenticated" class="user-menu">
         <i class="fas fa-user"></i>
         <div class="dropdown">
           <RouterLink :to="{ name: 'Profile' }" class="dropdown-item">Mon profil</RouterLink>
@@ -52,10 +52,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
 import { useShopStore } from '@/store/shop'
+import { useCartStore } from '@/store/cart'
+import { useUserStore } from '@/store/user'
 import Cookies from 'js-cookie'
 
 import axios from 'axios'
@@ -64,7 +66,8 @@ import CookieComponent from '@/components/CookieComponent.vue'
 const router = useRouter()
 const productsStore = useProductsStore()
 const shopStore = useShopStore()
-const cartsNumber = ref(null)
+const cartStore = useCartStore()
+const userStore = useUserStore()
 const showCookies = ref(false);
 
 const applyFilters = () => {
@@ -77,34 +80,8 @@ router.push({
 });
 };
 
-const fetchCartItems = async () => {
-  const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
-  cartsNumber.value = null;
-
-  if (authToken) {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
-
-    if (response.data && response.data.length > 0) {
-      response.data[0].CartProducts.forEach(CartProduct => {
-        cartsNumber.value += CartProduct.quantity;
-      });
-    } else {
-      cartsNumber.value = null;
-    }
-    } catch (error) {
-      cartsNumber.value = null;
-    }
-  }
-};
-
-const isAuthenticated = computed(() => {
-  return Cookies.get('USER') !== undefined
-})  
-
 const logout = () => {
-  Cookies.remove('USER')
-  router.push('/')
+  userStore.logout()
 }
 
 async function checkUserAsAcceptedCookie()  {
@@ -137,8 +114,9 @@ function closeCookiePage() {
 }
 
 onMounted(() => {
-  fetchCartItems()
+  cartStore.fetchCartItemsAuth()
   shopStore.fetchShop()
+  userStore.fetchUser()
   checkUserAsAcceptedCookie()
 })
 </script>

@@ -3,7 +3,7 @@ const { Product, Category } = require("../models");
 const checkRole = require("../middlewares/checkRole");
 const router = new Router();
 
-router.get("/", async (req, res) => {
+router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
     const categories = await Category.findAll({
         where: req.query,
         include: [Product],
@@ -13,15 +13,6 @@ router.get("/", async (req, res) => {
         ]
     });
     res.json(categories);
-});
-
-router.post("/", async (req, res, next) => {
-    try {
-        const category = await Category.create(req.body);
-        res.status(201).json(category);
-    } catch (e) {
-        next(e);
-    }
 });
 
 router.get("/:id(\\d+)", async (req, res, next) => {
@@ -63,6 +54,15 @@ router.get('/:slug([a-zA-Z0-9-_]+)', async (req, res, next) => {
     }
 });
 
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
+    try {
+        const category = await Category.create(req.body);
+        res.status(201).json(category);
+    } catch (e) {
+        next(e);
+    }
+});
+
 router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { Products } = req.body;
@@ -96,20 +96,6 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
         if (nbDeleted === 1 ? res.sendStatus(204) : res.sendStatus(404));
     } catch (e) {
         next(e);
-    }
-});
-
-router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
-    try {
-        const nbDeleted = await Category.destroy({
-            where: {
-                id: parseInt(req.params.id),
-            },
-        });
-        const category = await Category.create(req.body);
-        res.status(nbDeleted ? 200 : 201).json(category);
-    } catch (e) {
-      next(e);
     }
 });
 

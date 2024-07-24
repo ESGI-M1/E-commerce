@@ -2,7 +2,7 @@
 
   <BreadCrumb v-if="false" :category="product.Categories[0]" />
 
-  <div v-if="product" class="product-page">
+  <div v-if="product && !notFound" class="product-page">
     <div v-if="selectedVariant" class="slider-container">
       <div class="slider" ref="slider">
         <div class="slide" v-for="image in selectedVariant.images" :key="image.id">
@@ -66,22 +66,28 @@
 
     </div>
   </div>
+  <NotFoundView v-else />
 </template>
 
 <script setup lang="ts">
 import BreadCrumb from './BreadCrumb.vue'
-import { ref, onMounted, inject, type UnwrapRef } from 'vue'
+import NotFoundView from './NotFoundView.vue';
+import { ref, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { z, ZodError } from 'zod'
+import { useCartStore } from '@/store/cart'
 import axios from '../tools/axios'
 import Cookies from 'js-cookie'
+import { AxiosError } from 'axios';
 
 const route = useRoute()
 const router = useRouter()
+const cartStore = useCartStore();
 const isFavorite = ref(false)
 const productId = route.params.id
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const showNotification = inject('showNotification');
+const notFound = ref(false)
 
 const slider = ref(null)
 const currentSlide = ref(0)
@@ -192,6 +198,10 @@ const fetchProduct = async () => {
       console.error(error.errors);
     }
 
+    if(error instanceof AxiosError && error.response?.status === 404) {
+      notFound.value = true;
+    }
+
     console.error(error);
   }
 };
@@ -252,7 +262,7 @@ const addToCart = async (quantity: number) => {
       productVariantId: selectedVariant.value.id,
       quantity
     });
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, cart);
+    await cartStore.addProductToCart(cart);
     showNotification('Produit ajouté au panier avec succès', 'success');
   } catch (error) {
 
@@ -297,7 +307,7 @@ async function getProductAlerts() {
   }
 }
 
-async function changeStatus(id: number, productId: UnwrapRef<Product['id']>) {
+async function changeStatus(id: number, productId: number) {
   try {
     if (!user) {
       throw new Error('User is not authenticated')

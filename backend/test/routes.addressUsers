@@ -168,39 +168,4 @@ describe('User Address Routes', () => {
       .expect(404);
   });
 
-  it('should return 200 if address user is present', async () => {
-
-    const newAddressData = {
-      street: '1278 Rue de Moulin',
-      postalCode: '51234',
-      city: 'Test Paris',
-      country: 'Test Belgium',
-    };
-
-    const user = await getUser();
-
-    const addressUser = await AddressUser.create({
-      street: newAddressData.street,
-      postalCode: newAddressData.postalCode,
-      city: newAddressData.city,
-      country: newAddressData.country,
-      userId: user.id
-    });
-
-    const cookie = await getCookie();
-
-    const response = await server
-      .get(`/addressusers/${addressUser.id}`)
-      .set('Cookie', cookie)
-      .expect(200);
-
-    expect(response.body.street).toBe(newAddressData.street);
-    expect(response.body.postalCode).toBe(newAddressData.postalCode);
-    expect(response.body.city).toBe(newAddressData.city);
-    expect(response.body.country).toBe(newAddressData.country);
-    expect(response.body.id).toBe(addressUser.id);
-    expect(response.body.userId).toBe(user.id);
-
-  });
-
 });

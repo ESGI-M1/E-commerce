@@ -32,14 +32,26 @@
             <td>{{ formatDate(order.deliveryDate) }}</td>
             <td>n°{{ order.id }}</td>
             <td>#{{ order.user.id }} {{ order.user.lastname }} {{ order.user.firstname }}</td>
-            <td :title="order.status === 'completed' ? 'Terminé' : 'En cours'">
-              <i :class="order.status === 'completed' ? 'fas fa-check-circle status-completed' : 'fas fa-hourglass-half status-pending'"></i>
-            </td>
+            <td>
+            <div class="flex" v-if="order.statusHistory.length > 0">
+              <span :title="getStatusTitle(order.statusHistory[0].orderStatus.name) + ' le ' + new Date(order.statusHistory[0].changeDate).toLocaleString()">
+                <i :class="getStatusIcon(order.statusHistory[0].orderStatus.name)"></i>
+              </span>
+              &nbsp;
+              <p v-if="order.statusHistory.length > 1">(</p>
+              <div v-for="(history, index) in order.statusHistory.slice(1)" :key="history.id">
+                  <span :title="getStatusTitle(history.orderStatus.name) + ' le ' + new Date(history.changeDate).toLocaleString()">
+                    <i :class="getStatusIcon(history.orderStatus.name)"></i>
+                  </span>
+              </div>
+              <p v-if="order.statusHistory.length > 1">)</p>
+            </div>
+          </td>
             <td>{{ order.totalAmount }} €</td>
             <td v-if="order.addressOrder">{{ order.addressOrder.street }}, {{ order.addressOrder.postalCode }} {{ order.addressOrder.city }}, {{ order.addressOrder.country }}</td>
             <td v-else></td>
             <td>
-              <fancy-confirm v-if="order.status === 'pending'"
+              <fancy-confirm v-if="order.statusHistory[0].orderStatus.name === 'pending'"
                 :buttonText="'Valider'"
                 :class="'btn btn-success'"
                 :confirmationMessage="'Etes-vous sûr de vouloir valider la commande ?'"
@@ -124,9 +136,35 @@ const formatDate = (dateStr: string) => {
 }
 
 const validate = async (id: number) => {
-  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${id}`)
+  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/admin/${id}`)
   fetchOrders()
   showNotification('Commande validée avec succès', 'success');
+}
+
+const getStatusTitle = (status: string) => {
+  switch (status) {
+    case 'completed':
+      return 'Terminé'
+    case 'pending':
+      return 'En cours'
+    case 'cancelled':
+      return 'Annulé'
+    default:
+      return ''
+  }
+}
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'completed':
+      return 'fas fa-check-circle status-completed'
+    case 'pending':
+      return 'fas fa-hourglass-half status-pending'
+    case 'cancelled':
+      return 'fas fa-times status-cancelled'
+    default:
+      return ''
+  }
 }
 
 onMounted(() => {
@@ -149,6 +187,10 @@ onMounted(() => {
 
 .status-pending {
   color: orange;
+}
+
+.status-cancelled {
+  color: red;
 }
 
 .filters {

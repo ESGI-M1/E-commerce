@@ -66,7 +66,6 @@ const usersFixtures = async () => {
             userId: user.id,
             carts: [cart.id],
             totalAmount: 40.5,
-            status: 'pending',
             deliveryDate: new Date(),
             deliveryMethod: addressOrder.id,
         }

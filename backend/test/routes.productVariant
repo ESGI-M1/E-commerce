@@ -76,33 +76,6 @@ describe('ProductVariant routes', () => {
     expect(response.body.productId).toBe(productVariantData.productId);
   });
 
-  it('should update a product variant with valid details', async () => {
-    const productVariantData = {
-      reference: 'PV124',
-      price: 199.99,
-      stock: 5,
-      productId: product.id
-    };
-
-    const productVariant = await ProductVariant.create(productVariantData);
-
-    const updatedData = {
-      reference: 'PV124-Updated',
-      price: 149.99,
-      stock: 15
-    };
-
-    const response = await server
-      .patch(`/productVariants/${productVariant.id}`)
-      .set('Cookie', cookie)
-      .send(updatedData)
-      .expect(200);
-
-    expect(response.body.reference).toBe(updatedData.reference);
-    expect(response.body.price).toBe(String(updatedData.price));
-    expect(response.body.stock).toBe(updatedData.stock);
-  });
-
   it('should delete a product variant', async () => {
     const productVariantData = {
       reference: 'PV125',

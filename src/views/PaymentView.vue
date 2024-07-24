@@ -5,7 +5,7 @@
     </header>
 
     <div class="cart-content">
-      <div class="cart-items" v-if="carts && carts.length > 0">
+      <div class="cart-items" v-if="carts">
         <h2>Options de livraison</h2>
         <div class="delivery-options">
           <button
@@ -24,6 +24,7 @@
           </button>
         </div>
 
+        <!-- Point relais form -->
         <div class="point-relais-form" v-if="deliveryOption === 'pointRelais'">
           <h3>Point relais</h3>
           <label>
@@ -32,49 +33,83 @@
           </label>
         </div>
 
+        <!-- Livraison à domicile form -->
         <div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
-    <h3>Livraison à domicile</h3>
-      <div v-if="carts[0].user && carts[0].user.deliveryAddress" v-for="(address, index) in carts[0].user.deliveryAddress" :key="address.id" class="delivery-address">
-        <label>
-          <input
-          type="radio"
-          :value="address"
-          v-model="selectedAddress"
-          name="deliveryAddress"
-          :checked="index === 0 ? true : false"
-          @click="updateLivraisonDomicileAddress(address)"
-        />
-          <div class="address-info">
-            <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
-            <p>{{ address.street }}</p>
-            <p>{{ address.postalCode }} {{ address.city }}</p>
-            <p>{{ address.country }}</p>
-          </div>
-        </label>
-      </div>
-    <div>
-            <input type="radio" value="newAddress" v-model="selectedAddress" name="deliveryAddress"/> Nouvelle adresse </input>
+          <h3>Livraison à domicile</h3>
+          <div v-if="carts.user && carts.user.deliveryAddress" v-for="(address, index) in carts.user.deliveryAddress" :key="address.id" class="delivery-address">
             <label>
-            Adresse :
-            <input type="text" v-model="livraisonDomicileAddress.street" placeholder="Rue" required>
-          </label>
-          <label>
-            Code postal :
-            <input type="text" v-model="livraisonDomicileAddress.postalCode" placeholder="Code postal" required>
-          </label>
-          <label>
-            Ville :
-            <input type="text" v-model="livraisonDomicileAddress.city" placeholder="Ville" required>
-          </label>
-          <label>
-            Pays :
-            <input type="text" v-model="livraisonDomicileAddress.country" placeholder="Pays" required>
-          </label>
+              <input
+                type="radio"
+                :value="address"
+                v-model="selectedAddress"
+                name="deliveryAddress"
+                :checked="index === 0"
+                @click="updateLivraisonDomicileAddress(address)"
+              />
+              <div class="address-info">
+                <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
+                <p>{{ address.street }}</p>
+                <p>{{ address.postalCode }} {{ address.city }}</p>
+                <p>{{ address.country }}</p>
+              </div>
+            </label>
+          </div>
+          <div>
+            <input type="radio" value="newAddress" v-model="selectedAddress" name="deliveryAddress" /> Nouvelle adresse
+            <label>
+              Adresse :
+              <input type="text" v-model="livraisonDomicileAddress.street" placeholder="Rue" required>
+            </label>
+            <label>
+              Code postal :
+              <input type="text" v-model="livraisonDomicileAddress.postalCode" placeholder="Code postal" required>
+            </label>
+            <label>
+              Ville :
+              <input type="text" v-model="livraisonDomicileAddress.city" placeholder="Ville" required>
+            </label>
+            <label>
+              Pays :
+              <input type="text" v-model="livraisonDomicileAddress.country" placeholder="Pays" required>
+            </label>
+          </div>
+          <div class="check-address">
+            <label>
+              <input type="checkbox" :checked="checked" @change="checkBilling($event.target.checked)" />
+              Utiliser la même adresse de facturation
+            </label>
+          </div>
+          <div v-if="!checked">
+            <p>Nouvelle adresse de facturation</p>
+            <label>
+              Nom :
+              <input type="text" v-model="billingAddress.lastname" placeholder="Nom" required>
+            </label>
+            <label>
+              Prénom :
+              <input type="text" v-model="billingAddress.firstname" placeholder="Prénom" required>
+            </label>
+            <label>
+              Adresse :
+              <input type="text" v-model="billingAddress.street" placeholder="Rue" required>
+            </label>
+            <label>
+              Code postal :
+              <input type="text" v-model="billingAddress.postalCode" placeholder="Code postal" required>
+            </label>
+            <label>
+              Ville :
+              <input type="text" v-model="billingAddress.city" placeholder="Ville" required>
+            </label>
+            <label>
+              Pays :
+              <input type="text" v-model="billingAddress.country" placeholder="Pays" required>
+            </label>
+          </div>
         </div>
-  </div>
-
       </div>
-      <div class="cart-summary" v-if="carts && carts.length > 0">
+
+      <div class="cart-summary" v-if="carts">
         <h2>Récapitulatif</h2>
         <div class="totals">
           <div class="subtotal">
@@ -86,9 +121,9 @@
             <p>Gratuit</p>
           </div>
           <div class="total">
-            <div v-for="(cart, index) in carts" :key="index">
-              <div v-for="(item, itemIndex) in cart.CartProducts" :key="itemIndex" class="cart-item">
-                <div class="item-details" @click="showProductDetails(item.product.id)">
+            <div v-if="carts">
+              <div v-for="(item, itemIndex) in carts.CartProducts" :key="itemIndex" class="cart-item">
+                <div class="item-details">
                   <h3 v-if="item.product">{{ item.product.name }}</h3>
                   <img
                     class="product-image"
@@ -101,7 +136,7 @@
                   <p>{{ item.quantity }}</p>
                 </div>
                 <div class="item-price">
-                  <p>{{ item.productVariant.price}} €</p>
+                  <p>{{ item.productVariant.price }} €</p>
                 </div>
               </div>
             </div>
@@ -132,12 +167,8 @@
       <div class="payment-form">
         <h2>Paiement sécurisé</h2>
         <button class="pay-button" @click="handlePayment('stripe')">
-          Paiement avec stripe
+          Paiement avec Stripe
         </button>
-        &nbsp;
-       <!-- <button @click="handlePayment('paypal')" class="paypal-button">
-          Paiement avec PayPal <i class="fab fa-paypal"></i>
-        </button> -->
       </div>
     </div>
   </div>
@@ -156,7 +187,8 @@ const promo = ref(null)
 const deliveryOption = ref('pointRelais')
 const pointRelaisPostalCode = ref('')
 const carts = ref(null)
-const imageUrl = import.meta.env.VITE_API_BASE_URL;
+const imageUrl = import.meta.env.VITE_API_BASE_URL
+const checked = ref(true)
 
 interface Address {
   street: string;
@@ -179,6 +211,15 @@ const livraisonDomicileAddress = ref<Address>({
   country: '',
 })
 
+const billingAddress = ({
+  lastname: '',
+  firstname: '',
+  street: '',
+  postalCode: '',
+  city: '',
+  country: '',
+})
+
 const fetchCartItems = async () => {
   if (authToken) {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`, {
@@ -186,21 +227,20 @@ const fetchCartItems = async () => {
 
     carts.value = response.data
 
-    if (carts.value[0].promoCodeId) {
-      const promoId = carts.value[0].promoCodeId
+    if (carts.value.promoCodeId) {
+      const promoId = carts.value.promoCodeId
       const responsePromo = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/promos/${promoId}/detail`)
       promo.value = responsePromo.data
     } else {
       promo.value = null
     }
   }
-  if (carts.value[0].user && carts.value[0].user.deliveryAddress[0]) {
-    newLivraisonDomicileAddress.value.street = carts.value[0].user.deliveryAddress[0].street
-    newLivraisonDomicileAddress.value.postalCode = carts.value[0].user.deliveryAddress[0].postalCode
-    newLivraisonDomicileAddress.value.city = carts.value[0].user.deliveryAddress[0].city
-    newLivraisonDomicileAddress.value.country = carts.value[0].user.deliveryAddress[0].country
+  if (carts.value.user && carts.value.user.deliveryAddress[0]) {
+    newLivraisonDomicileAddress.value.street = carts.value.user.deliveryAddress[0].street
+    newLivraisonDomicileAddress.value.postalCode = carts.value.user.deliveryAddress[0].postalCode
+    newLivraisonDomicileAddress.value.city = carts.value.user.deliveryAddress[0].city
+    newLivraisonDomicileAddress.value.country = carts.value.user.deliveryAddress[0].country
   }
-  console.log(carts.value)
 }
 
 const updateLivraisonDomicileAddress = (address) => {
@@ -216,8 +256,8 @@ const updateLivraisonDomicileAddress = (address) => {
 }
 
 const subtotal = computed(() => {
-  if (carts.value && carts.value[0]) {
-    return carts.value[0].CartProducts
+  if (carts.value) {
+    return carts.value.CartProducts
       .reduce((acc, item) => acc + item.productVariant.price * item.quantity, 0)
       .toFixed(2);
   }
@@ -233,10 +273,6 @@ const discountedTotal = computed(() => {
     ? (total.value - (total.value * promo.value.discountPercentage) / 100).toFixed(2)
     : total.value
 })
-
-const showProductDetails = (id: string) => {
-  router.push({ name: 'ProductDetail', params: { id } })
-}
 
 const handlePayment = async (payment: string) => {
   let newAddress = null;
@@ -264,46 +300,56 @@ const handlePayment = async (payment: string) => {
 
   }
   newAddress = response.data;
-
-
   if (newAddress) {
     try {
-      const order = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/orders`, {
+      let billing = null
+
+      if (checked.value) {
+        billing = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/billingaddress`, {
+          street: newAddress.street,
+          postalCode: newAddress.postalCode,
+          city: newAddress.city,
+          country: newAddress.country,
+        });
+      } else {
+      try {
+        billing = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/billingaddress`, {
+          firstname: billingAddress.firstname,
+          lastname: billingAddress.lastname,
+          street: billingAddress.street,
+          postalCode: billingAddress.postalCode,
+          city: billingAddress.city,
+          country: billingAddress.country,
+        });
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    const order = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/orders`, {
         total: discountedTotal.value,
         method: newAddress.id,
-        userId: authToken,
+        billingId: billing.data.id,
       });
-
+    
       if (payment == 'stripe') {
         const stripePromise = loadStripe(
           `${import.meta.env.VITE_PUBLIC_KEY_STRIPE}`
         )
       const stripe = await stripePromise;
-      console.log(carts.value[0].CartProducts)
       const stripeSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe`, {
-        cartId: carts.value[0].id,
+        cartId: carts.value.id,
         orderId: order.data.id,
-        items: carts.value[0].CartProducts,
+        items: carts.value.CartProducts,
         promo: promo.value,
       });
 
       const { sessionId } = stripeSession.data;
       await stripe.redirectToCheckout({ sessionId });
-    } else if(payment == 'paypal') {
-      const paypalSession = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/paypal`, {
-        cartId: carts.value[0].id,
-        orderId: order.data.id,
-        items: carts.value[0].CartProducts,
-        promo: promo.value,
-      });
-
-      const { sessionId } = paypalSession.data;
     }
-
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
     } catch (error) {
       if (typeof order !== 'undefined' && order) {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/orders/${order.value.id}`);
       }
     }
   }
@@ -329,6 +375,11 @@ const getCountryFromPostalCode = (postalCode) => {
 
 const selectDeliveryOption = (option: string) => {
   deliveryOption.value = option
+}
+
+const checkBilling = (option: boolean) => {
+  console.log(option)
+  checked.value = !option
 }
 
 onMounted(() => {
@@ -503,22 +554,5 @@ input[type='text'] {
 
 .new-price {
   text-align: right;
-}
-
-.paypal-button {
-  padding: 10px 20px;
-  background-color: #0070ba;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-}
-
-.paypal-button:hover {
-  background-color: #005ea6;
-}
-
-.fa-paypal {
-  margin-left: 5px;
 }
 </style>

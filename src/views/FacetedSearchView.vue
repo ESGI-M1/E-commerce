@@ -28,7 +28,11 @@ const categoryStore = useCategoryStore();
 
 const applyFilters = () => {
 
-  productsStore.fetchProducts();
+  if(categoryStore.getCategory) {
+    productsStore.fetchProductsByCategory(categoryStore.getCategory.id);
+  } else {
+    productsStore.fetchProducts();
+  }
   router.push({
     query: {
       q: productsStore.filter.q,

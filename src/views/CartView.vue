@@ -46,7 +46,8 @@
       <div v-else>
         <p>Il n'y a aucun article dans ton panier.</p>
       </div>
-      <div class="cart-summary" v-if="cartStore.getCart">
+
+      <div class="cart-summary" v-if="cartStore.getCart && cartStore.getCart.CartProducts">
         <h2>Récapitulatif</h2>
         <div class="promo-code">
           <label for="promo">As-tu un code promo ?</label>

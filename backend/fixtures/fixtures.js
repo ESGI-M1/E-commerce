@@ -1,4 +1,4 @@
-const { User, Product, AddressUser, Favorite, Category, Shop, PromoCode, ProductVariant, Attribute, AttributeValue } = require('../models');
+const { User, Product, AddressUser, Favorite, Category, Shop, PromoCode, ProductVariant, Attribute, AttributeValue, OrderStatus } = require('../models');
 
 const findOrCreate = async (model, condition, data) => {
     const existingEntry = await model.findOne({ where: condition });
@@ -197,10 +197,23 @@ const promoCodeFixtures = async () => {
     });
 };
 
+const orderStatusFixtures = async () => {
+    await findOrCreate(OrderStatus, { name: 'pending' }, {
+        name: 'pending',
+    });
+    await findOrCreate(OrderStatus, { name: 'completed' }, {
+        name: 'completed',
+    });
+    await findOrCreate(OrderStatus, { name: 'cancelled' }, {
+        name: 'cancelled',
+    });
+};
+
 (async () => {
     try {
         await usersFixtures();
         await promoCodeFixtures();
+        await orderStatusFixtures();
         console.log('Fixtures data has been added successfully.');
     } catch (error) {
         console.error('Error adding fixtures data:', error);

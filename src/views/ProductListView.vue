@@ -81,7 +81,7 @@ onMounted(() => {
 
 </script>
 
-<style>/* Container de la liste des produits */
+<style scoped>/* Container de la liste des produits */
 .product-list {
   display: flex;
   flex-wrap: wrap;

@@ -55,7 +55,7 @@
         >
         </fancy-confirm>
         <p v-else-if="statut === 'returned' && card"> Remboursement effectué sur votre carte <small>**** **** **** {{card}}</small></p>
-        <a :href="downloadCreditNoteUrl + returned.id" target="_blank">
+        <a v-if="returned.id" :href="downloadCreditNoteUrl + returned.id" target="_blank">
           Télécharger l'avoir <i class="fas fa-file-invoice"></i>
         </a>
       </div>

@@ -190,7 +190,7 @@ router.get('/creditNote/:returnId', checkAuth, async (req, res, next) => {
     }
 
     const creditNoteDirectory = path.join(__dirname, '..', 'stripe', 'invoices');
-    const creditNotePath = path.join(creditNoteDirectory, `creditNote_${returnProduct.order.id}.pdf`);
+    const creditNotePath = path.join(creditNoteDirectory, `creditnote_${returnProduct.order.id}.pdf`);
 
     if (fs.existsSync(creditNotePath)) {
       return res.sendFile(creditNotePath);

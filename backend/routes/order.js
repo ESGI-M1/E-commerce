@@ -218,8 +218,13 @@ router.post('/', checkAuth, async (req, res, next) => {
 router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
     const id = parseInt(req.params.id);
     const order = await Order.findByPk(id);
-    const addressId = order.deliveryMethod;
-    const billingAddressId = order.billingAddressId;
+    let addressId;
+    let billingAddressId;
+
+    if (order) {
+      addressId = order.deliveryMethod;
+      billingAddressId = order.billingAddressId;
+    }
 
     if (order) {
     const deletedOrder = await Order.destroy({
@@ -232,11 +237,15 @@ router.delete("/:id", checkRole({ roles: "admin" }), async (req, res) => {
       await BillingAddress.destroy({ where: { id: billingAddressId } });
     }
     deletedOrder > 0 ? res.sendStatus(204) : res.sendStatus(404);
-  }
+  } else {
+      return res.sendStatus(404);
+    }
+
 });
 
 router.patch("/:id", checkAuth, async (req, res) => {
   const order = await Order.findByPk(req.params.id);
+  if (!order) { return res.sendStatus(404);}
   if (req.user.id !== order.userId) {
     return res.sendStatus(403);
   }
@@ -247,11 +256,13 @@ router.patch("/:id", checkAuth, async (req, res) => {
     }
   });
 
-  await OrderStatusHistory.create({
-    orderId: order.id,
-    statusId: status.id,
-    changeDate: new Date(),
-  });
+  if (status) {
+    await OrderStatusHistory.create({
+      orderId: order.id,
+      statusId: status.id,
+      changeDate: new Date(),
+    });
+  }
 
   if (order) {
     res.json(order);

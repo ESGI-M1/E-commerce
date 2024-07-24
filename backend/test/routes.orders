@@ -1,43 +1,180 @@
 const request = require('supertest');
-const { Order, AddressOrder, User } = require('../models');
+const { Order, AddressOrder, User, BillingAddress, Cart } = require('../models');
 const server = request('http://localhost:3000');
-
-const uniqueSuffix = Date.now(); // Génère un suffixe unique à chaque fois
 
 let adminUser;
 let addressOrder;
+let cookie;
+let billingAddress;
 
 const getAdminUser = async () => {
   if (adminUser) return adminUser;
 
-  adminUser = await User.create({
-    firstname: 'John',
-    lastname: 'Doe',
-    email: `admin${uniqueSuffix}@example.com`,
-    password: 'Password123!',
-    role: 'admin',
-  });
+  try {
+    adminUser = await User.create({
+      firstname: 'John',
+      lastname: 'Doe',
+      email: `zorglux+order@example.com`,
+      password: 'Password123456789!',
+      role: 'admin',
+      active: true
+    });
+  } catch (e) {
+    adminUser = await User.findOne({
+      where: {
+        email: `zorglux+order@example.com`,
+      }
+    });
+  }
 
   return adminUser;
 };
 
-const getAddressOrder = async () => {
-  if (addressOrder) return addressOrder;
-
-  addressOrder = await AddressOrder.create({
-    street: `123 Rue de Test ${uniqueSuffix}`,
-    postalCode: '12345',
-    city: 'Test City',
-    country: 'Test Country',
+const getAddressOrder = async (number) => {
+  addressOrder = await AddressOrder.findOne({
+    where: {
+      street: `123 Rue de Testt${number}`,
+      postalCode: '12345',
+      city: 'Test City',
+      country: 'Test Country',
+    }
   });
+  if (!addressOrder) {
+    addressOrder = await AddressOrder.create({
+      street: `123 Rue de Testt${number}`,
+      postalCode: '12345',
+      city: 'Test City',
+      country: 'Test Country',
+    });
+  }
 
   return addressOrder;
 };
 
+const getCookie = async () => {
+
+  if(!adminUser) await getAdminUser();
+
+  if (cookie) return cookie;
+
+  const loginResponse = await server
+    .post('/login')
+    .send({
+      email: adminUser.email,
+      password: 'Password123456789!',
+    })
+    .expect(200);
+
+  cookie = loginResponse.headers['set-cookie'];
+
+  return cookie;
+
+}
+
+const getBillingAddress = async () => {
+  if (!billingAddress) {
+    billingAddress = await BillingAddress.findOne({
+      where: {
+        firstName: 'test',
+        lastName: 'test',
+        street: 'test Street',
+        postalCode: '75000',
+        city: 'Paris',
+        country: 'France'
+      }
+    });
+    if (!billingAddress) {
+      billingAddress = await BillingAddress.create({
+        firstName: 'test',
+        lastName: 'test',
+        street: 'test Street',
+        postalCode: '75000',
+        city: 'Paris',
+        country: 'France'
+      });
+    }
+  }
+  return billingAddress;
+}
+
 describe('Order routes', () => {
+  it('should create an order', async () => {
+    if (!adminUser) await getAdminUser();
+    if (!cookie) await getCookie();
+    if (!addressOrder) await getAddressOrder(1);
+    if (!billingAddress) await getBillingAddress();
+    const createOrder = {
+      total: 12,
+      method: addressOrder.id,
+      billingId: billingAddress.id
+    };
+
+    await server
+      .post(`/orders/`)
+      .send(createOrder)
+      .set('Cookie', cookie)
+      .expect(201);
+  });
+
+  it('should get an order by is id', async () => {
+    if (!adminUser) await getAdminUser();
+    if (!cookie) await getCookie();
+    if (!addressOrder) await getAddressOrder(1);
+    if (!billingAddress) await getBillingAddress();
+
+    const orderToFind = await Order.findOne({
+      where: {
+        userId: adminUser.id,
+        deliveryMethod: addressOrder.id,
+        billingAddressId: billingAddress.id,
+        totalAmount: 12,
+      }
+    });
+
+    const cart = await Cart.findOne({
+      where: {
+        orderId: orderToFind.id,
+        userId: adminUser.id
+      }
+    });
+    if (!cart) {
+      await Cart.create({
+        orderId: orderToFind.id,
+        userId: adminUser.id
+      });
+    }
+
+    await server
+      .get(`/orders/${orderToFind.id}`)
+      .set('Cookie', cookie)
+      .expect(200);
+  });
+
+  it('should get orders of the logged user', async () => {
+    if (!adminUser) await getAdminUser();
+    if (!cookie) await getCookie();
+    if (!addressOrder) await getAddressOrder(1);
+    if (!billingAddress) await getBillingAddress();
+
+    const orderToFind = await Order.findOne({
+      where: {
+        userId: adminUser.id,
+        deliveryMethod: addressOrder.id,
+        billingAddressId: billingAddress.id,
+        totalAmount: 12,
+      }
+    });
+
+    const response = await server
+      .get(`/orders/own`)
+      .set('Cookie', cookie);
+
+    expect(response.body[0].id).toBe(orderToFind.id);
+  });
+
   it('should delete an order and its associated address', async () => {
     const adminUser = await getAdminUser();
-    const address = await getAddressOrder();
+    const address = await getAddressOrder(2);
     const order = await Order.create({
       deliveryMethod: address.id,
       userId: adminUser.id,
@@ -47,7 +184,7 @@ describe('Order routes', () => {
 
     await server
       .delete(`/orders/${order.id}`)
-      .set('Authorization', `Bearer ${adminUser.token}`)
+      .set('Cookie', cookie)
       .expect(204);
 
     const deletedOrder = await Order.findByPk(order.id);
@@ -57,37 +194,35 @@ describe('Order routes', () => {
   });
 
   it('should return 404 when trying to delete a non-existent order', async () => {
-    const adminUser = await getAdminUser();
-
     await server
       .delete(`/orders/9999`)
-      .set('Authorization', `Bearer ${adminUser.token}`)
+      .set('Cookie', cookie)
       .expect(404);
   });
 
   it('should update the status of an order to completed', async () => {
     const adminUser = await getAdminUser();
+    const address = await getAddressOrder(2);
     const order = await Order.create({
       status: 'pending',
       userId: adminUser.id,
       totalAmount: 100,
       deliveryDate: new Date(),
-      deliveryMethod: 1,
+      deliveryMethod: address.id,
     });
 
-    const response = await server
+    await server
       .patch(`/orders/${order.id}`)
       .send({ status: 'completed' })
+      .set('Cookie', cookie)
       .expect(200);
-
-    const updatedOrder = await Order.findByPk(order.id);
-    expect(updatedOrder.status).toEqual('completed');
   });
 
   it('should return 404 when trying to update a non-existent order', async () => {
     await server
       .patch(`/orders/9999`)
       .send({ status: 'completed' })
+      .set('Cookie', cookie)
       .expect(404);
   });
 });

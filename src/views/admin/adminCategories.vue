@@ -330,4 +330,12 @@ form {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
+.text-success {
+  color: green;
+}
+
+.text-danger {
+  color: red;
+}
 </style>

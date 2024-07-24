@@ -306,17 +306,18 @@ const handlePayment = async (payment: string) => {
 
   if (newAddress) {
     try {
-      let billingAddress = null
+      let billing = null
 
       if (checked.value) {
-        billingAddress = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/billingaddress`, {
+        billing = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/billingaddress`, {
           street: newAddress.street,
           postalCode: newAddress.postalCode,
           city: newAddress.city,
           country: newAddress.country,
         });
       } else {
-        billingAddress = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/billingaddress`, {
+      try {
+        billing = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/billingaddress`, {
           firstname: billingAddress.firstname,
           lastname: billingAddress.lastname,
           street: billingAddress.street,
@@ -324,13 +325,16 @@ const handlePayment = async (payment: string) => {
           city: billingAddress.city,
           country: billingAddress.country,
         });
+      } catch (error) {
+        console.error(error)
       }
+    }
 
       const order = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/orders`, {
         total: discountedTotal.value,
         method: newAddress.id,
         userId: authToken,
-        billingId: billingAddress.data.id,
+        billingId: billing.data.id,
       });
 
       if (payment == 'stripe') {

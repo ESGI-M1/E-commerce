@@ -18,7 +18,7 @@
             <h2>{{ favorite.product.name }}</h2>
             <p class="product-description">{{ favorite.product.description }}</p>
             <p class="product-price">
-              {{ favorite.product.ProductVariants[0].variantOptions[0].price }} €
+              {{ favorite.product.price }} €
             </p>
           </div>
         </div>

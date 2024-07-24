@@ -66,7 +66,7 @@
       </tbody>
     </table>
 
-    <Modal v-if="showModal" @close="showModal = false" :title="isEditing ? 'Modifier ' : 'Ajouter ' + titleModal[modalName]" :onSave="() => handleSubmit(modalName)">
+    <Modal v-if="showModal" @close="showModal = false" :title="isEditing ? 'Modifier ' : 'Ajouter ' + 'une déclinaison'" :onSave="() => handleSubmit(modalName)">
       <form @submit.prevent="handleSubmit('variant')">
         <div class="form-group">
           <label for="reference">Référence</label>
@@ -215,18 +215,16 @@ const selectedImage = ref<File | null>(null);
 const imagePreview = ref<string | null>(null);
 const imageDescription = ref('');
 
-const titleModal = {
-  variant: 'une déclinaison',
-};
-
 const showVariantModal = (modal: string) => {
-  showModal.value = true
-  modalName.value = modal
+  showModal.value = true;
+  modalName.value = modal;
 
-  if(isEditing.value) {
-    console.log(currentVariant.value)
+  if (isEditing.value) {
+    currentAttributes.value = currentVariant.value.attributeValues.map((attrValue) => {
+      return attributes.value.find((attr) => attr.values.some((val) => val.id === attrValue.id));
+    }).filter(attr => attr !== undefined);
   } else {
-    currentAttributes.value = []
+    currentAttributes.value = [];
     currentVariant.value = {
       productId: productId,
       reference: '',
@@ -235,9 +233,11 @@ const showVariantModal = (modal: string) => {
       active: true,
       default: false,
       attributeValues: []
-    }
+    };
   }
-}
+};
+
+
 const fetchAttributes = async () => {
   try {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/attributes`)

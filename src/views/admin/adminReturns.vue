@@ -68,7 +68,7 @@
             </td>
           </tr>
           <tr v-else>
-          <td class="empty" colspan="8">Aucun retour de produit trouvé</td>
+          <td class="empty" colspan="9">Aucun retour de produit trouvé</td>
         </tr>
         </tbody>
       </table>

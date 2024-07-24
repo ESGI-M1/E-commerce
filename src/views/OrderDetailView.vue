@@ -1,5 +1,5 @@
 <template>
-  <div class="cart">
+  <div class="cart" v-if="!notFound">
     <header class="header">
       <h1>Ma commande n°{{ orderId }}</h1>
       <button v-if="order" @click="downloadInvoice(order.id)" class="btn-details">
@@ -63,6 +63,7 @@
       </div>
     </div>
   </div>
+  <NotFoundView v-else />
 </template>
 
 <script setup lang="ts">
@@ -71,9 +72,12 @@ import { z } from 'zod'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/store/cart'
 import axios from '../tools/axios';
+import { AxiosError } from 'axios'
 import { format, parseISO } from 'date-fns'
 import Cookies from 'js-cookie'
+import NotFoundView from './NotFoundView.vue';
 
+const notFound = ref(false)
 const cartStore = useCartStore()
 const showNotification = inject('showNotification');
 const route = useRoute()
@@ -110,6 +114,11 @@ const fetchOrder = async () => {
         }
       }
     } catch (error) {
+
+      if(error instanceof AxiosError && error.response.status === 404) {
+        notFound.value = true;
+      }
+
       console.error('Error fetching order:', error)
       showNotification('Erreur lors du chargement de la commande', 'error')
     }

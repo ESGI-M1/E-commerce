@@ -25,6 +25,7 @@ import Success from '../views/SuccessView.vue'
 import Error from '../views/ErrorView.vue'
 import Livraison from '../views/OrderLivraisonView.vue'
 import Page from '../views/PageView.vue'
+import NotFound from '../views/NotFoundView.vue';
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -232,7 +233,12 @@ const routes = [
     path: '/page/:slug',
     name: 'Page',
     component: Page
-  }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFound,
+  },
 ]
 
 const router = createRouter({

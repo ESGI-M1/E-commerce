@@ -226,6 +226,9 @@ const fetchCartItems = async () => {
     })
 
     carts.value = response.data
+    if (!carts.value) {
+      router.push('/cart')
+    }
 
     if (carts.value.promoCodeId) {
       const promoId = carts.value.promoCodeId

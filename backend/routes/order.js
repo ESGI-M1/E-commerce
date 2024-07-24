@@ -3,7 +3,7 @@ const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, Add
 const router = new Router();
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
-const { Op, where } = require("sequelize");
+const { Op, where, or } = require("sequelize");
 
 router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
@@ -57,11 +57,6 @@ router.get('/own', checkAuth, async (req, res, next) => {
             {
               model: OrderStatus,
               as: 'orderStatus',
-              where: {
-                name: {
-                  [Op.ne]: 'cancelled',
-                }
-              }
             }
           ]
         },
@@ -89,7 +84,11 @@ router.get('/own', checkAuth, async (req, res, next) => {
       ],
     });
 
-    res.json(ordersWithCarts);
+    const filteredOrders = ordersWithCarts.filter(order => {
+      return order.statusHistory.length === 0 || order.statusHistory[0].orderStatus.name !== 'cancelled';
+    });
+
+    res.json(filteredOrders);
   } catch (e) {
     console.error(e);
     next(e);

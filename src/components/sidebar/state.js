@@ -2,15 +2,6 @@ import { ref, computed, watchEffect } from 'vue'
 
 export const collapsed = ref(false)
 export const toggleSidebar = () => (collapsed.value = !collapsed.value)
-export const isMobile = ref(false)
-
-watchEffect(() => {
-  isMobile.value = window.innerWidth <= 768
-})
-
-window.addEventListener('resize', () => {
-  isMobile.value = window.innerWidth <= 768
-})
 
 export const SIDEBAR_WIDTH = 190
 export const SIDEBAR_WIDTH_COLLAPSED = 0

@@ -1,8 +1,7 @@
 <template>
   <nav class="navbar">
-    <div class="navbar-section logo">
+    <div class="navbar-section">
       <a href="/" class="nav-link">Accueil</a>
-      <!-- Logo -->
     </div>
 
     <div class="navbar-section links">
@@ -127,10 +126,6 @@ onMounted(() => {
 .navbar-section {
   display: flex;
   align-items: center;
-}
-
-.logo-img {
-  height: 40px;
 }
 
 .links {

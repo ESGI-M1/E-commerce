@@ -193,7 +193,9 @@ import { z, ZodError } from 'zod';
 import axios from '../../tools/axios';
 import Editor from '@tinymce/tinymce-vue';
 import Modal from '../../components/ModalView.vue';
+import { useShopStore } from '@/store/shop'
 
+const shopStore = useShopStore()
 const showNotification = inject('showNotification');
 const tinymceKey = import.meta.env.VITE_TINYMCE_API_KEY;
 const isOpen = ref(false);
@@ -373,9 +375,7 @@ const handleSubmit = async (type: string) => {
         showNotification('Boutique modifiée avec succès', 'success');
       }
     }
-    if (isOpen.value) {
-      showNotification('Erreur lors de la modification de la boutique', 'error');
-    }
+    shopStore.fetchShop(true)
   } catch (error) {
     if (error instanceof ZodError) {
       console.error(error.errors);

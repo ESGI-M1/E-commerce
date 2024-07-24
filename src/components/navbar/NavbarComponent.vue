@@ -150,6 +150,7 @@ onMounted(() => {
 
 .logo-img {
   height: 40px;
+  width: 40px;
 }
 
 .links {
@@ -168,10 +169,6 @@ onMounted(() => {
   color: black;
   text-decoration: none;
   position: relative;
-}
-
-.nav-link img {
-  width: 30px;
 }
 
 .nav-link:hover {

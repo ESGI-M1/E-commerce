@@ -125,6 +125,7 @@
                 <div class="item-details">
                   <h3 v-if="item.product">{{ item.product.name }}</h3>
                   <img
+                    v-if="item.productVariant.images.length > 0"
                     class="product-image"
                     :src="imageUrl + `/images/variant/${item.productVariant.images[0].id}`"
                     :alt="item.productVariant.images[0].description"

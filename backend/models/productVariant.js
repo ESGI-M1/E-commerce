@@ -44,12 +44,12 @@ module.exports = function(connection) {
                 },
             },
             price: {
-                type: DataTypes.DECIMAL,
+                type: DataTypes.DECIMAL(10, 2),
                 allowNull: false,
                 validate: {
                     notEmpty: true,
                 },
-            },
+            },            
             active: {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,

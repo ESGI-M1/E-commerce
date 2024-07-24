@@ -13,9 +13,23 @@ module.exports = function(connection) {
             });
         }
 
+        static async createImageForVariant(productVariant, models) {
+          try {
+              await models.Image.create({
+                  fileName: 'undefined.png',
+                  description: productVariant.reference,
+                  productVariantId: productVariant.id
+              });
+          } catch (error) {
+              console.error('Error creating image:', error);
+          }
+      }
+
+
         static addHooks(models) {
             ProductVariant.addHook("afterCreate", async (productVariant) => {
                 await denormalizeRelatedProducts(productVariant, models);
+                await ProductVariant.createImageForVariant(productVariant, models);
             });
 
             ProductVariant.addHook("afterUpdate", async (productVariant, { fields }) => {

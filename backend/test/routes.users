@@ -1,10 +1,57 @@
-let request = require('supertest');
+const request = require('supertest');
 const { User } = require('../models');
+const { response } = require('express')
 const server = request('http://localhost:3000');
+
+let user;
+let cookie;
+
+const getUser = async () => {
+
+  if (user) return user;
+
+  try {
+    user = await User.create({
+      firstname: 'John',
+      lastname: 'Doe',
+      email: 'zorglux+usertest@zorglux.com',
+      password: 'Password123254369!',
+      role: "admin",
+      active: true
+    });
+  } catch (e) {
+    user = await User.findOne({
+      where: {
+        firstname: 'John',
+        lastname: 'Doe',
+        email: 'zorglux+usertest@zorglux.com',
+      }
+    })
+  }
+
+  return user;
+
+};
+
+const getCookie = async () => {
+  if(!user) await getUser();
+  if (cookie) return cookie;
+
+  const loginResponse = await server
+    .post('/login')
+    .send({
+      email: user.email,
+      password: 'Password123254369!',
+    });
+  cookie = loginResponse.headers['set-cookie'];
+  return cookie;
+
+}
 
 describe('Utilisateurs routes', () => {
 
   it('should fail to register with wrong email', async () => {
+    const cookie = await getCookie();
     await server
       .post('/users')
       .send({
@@ -13,10 +60,11 @@ describe('Utilisateurs routes', () => {
         firstname: 'toto',
         lastname: 'toto'
       })
-      .expect(500);
+      .set('Cookie', cookie).expect(500);
   });
 
   it('should fail to register with empty first name', async () => {
+    const cookie = await getCookie();
     await server
       .post('/users')
       .send({
@@ -24,10 +72,12 @@ describe('Utilisateurs routes', () => {
         password: 'Toto123456!',
         lastname: 'toto'
       })
+      .set('Cookie', cookie)
       .expect(500);
   });
 
   it('should fail to register with empty last name', async () => {
+    const cookie = await getCookie();
     await server
       .post('/users')
       .send({
@@ -35,10 +85,12 @@ describe('Utilisateurs routes', () => {
         password: 'Toto123456!',
         firstname: 'toto'
       })
+      .set('Cookie', cookie)
       .expect(500);
   });
 
   it('should register with correct details', async () => {
+    const cookie = await getCookie();
     await server
       .post('/users')
       .send({
@@ -47,28 +99,41 @@ describe('Utilisateurs routes', () => {
         firstname: 'toto',
         lastname: 'toto'
       })
+      .set('Cookie', cookie)
       .expect(201);
   });
 
   it('should fail to register with already registered email', async () => {
+    const cookie = await getCookie();
 
-    const user = await User.create({
-      email: 'already@zorglux.com',
-      password: 'Toto123456!',
-      firstname: 'toto',
-      lastname: 'toto'
-    });
+    let newuser;
+    try {
+      newuser = await User.create({
+        email: 'already@zorglux.com',
+        password: 'Toto123456!',
+        firstname: 'toto',
+        lastname: 'toto'
+      });
+    } catch (e) {
+      newuser = await User.findOne({
+        where: {
+          email: 'already@zorglux.com',
+          firstname: 'toto',
+          lastname: 'toto'
+        }
+      });
+    }
 
     await server
       .post('/users')
       .send({
-        email: user.email,
+        email: newuser.email,
         password: 'Toto123456!',
         firstname: 'toto',
         lastname: 'toto'
       })
+      .set('Cookie', cookie)
       .expect(400);
-
   });
 
   it('should fail to register with role admin', async () => {
@@ -88,17 +153,29 @@ describe('Utilisateurs routes', () => {
 
   it('should login with correct credentials', async () => {
 
-    const user = await User.create({
-      email: 'zorglux+users@zorglux.com',
-      password: 'Toto123456!',
-      firstname: 'toto',
-      lastname: 'toto'
-    });
+    let newuser;
+    try {
+      newuser = await User.create({
+        email: 'zorglux+usertest2@zorglux.com',
+        password: 'Toto123456!',
+        firstname: 'toto',
+        lastname: 'toto',
+        active: true
+      });
+    } catch (e) {
+      newuser = await User.findOne({
+        where: {
+          email: 'zorglux+usertest2@zorglux.com',
+          firstname: 'toto',
+          lastname: 'toto',
+        }
+      });
+    }
 
     await server
       .post('/login')
       .send({
-        email: user.email,
+        email: newuser.email,
         password: 'Toto123456!'
       })
       .expect(200);
@@ -113,5 +190,112 @@ describe('Utilisateurs routes', () => {
         password: 'Toto123456!'
       })
       .expect(401);
+  });
+
+  it('should get user detail of the loggedUser', async () => {
+    const cookie = await getCookie();
+    const response = await server
+      .get('/users/details')
+      .set('Cookie', cookie);
+
+    expect(response.body.email).toBe('zorglux+usertest@zorglux.com');
+  });
+
+  it('should get user detail', async () => {
+    const cookie = await getCookie();
+    const userToGet = await User.findOne({
+      where: {
+        email: 'zorglux+usertest2@zorglux.com',
+      }
+    });
+    const response = await server
+      .get(`/users/${userToGet.id}`)
+      .set('Cookie', cookie);
+
+    expect(response.body.id).toBe(userToGet.id);
+  });
+
+  it('should register a new user', async () => {
+    const userToCreate = {
+      firstname: 'toto',
+      lastname: 'toto',
+      email: 'zorglux+usertest3@zorglux.com',
+      password: 'Password123456789!'
+    }
+    await server
+      .post('/users/signup')
+      .send(userToCreate)
+      .expect(201);
+  })
+
+  it('should fail to register an admin user', async () => {
+    const userToCreate = {
+      firstname: 'toto',
+      lastname: 'toto',
+      email: 'zorglux+usertest3@zorglux.com',
+      password: 'Password123456789!',
+      role: 'admin'
+    }
+    await server
+      .post('/users/signup')
+      .send(userToCreate)
+      .expect(401);
+  })
+
+  it('should update the name of the user', async () => {
+    const cookie = await getCookie();
+    const userToUpdate = await User.findOne({
+      where: {
+        email: 'zorglux+usertest2@zorglux.com',
+      }
+    });
+    const updatedData = {
+      lastname: 'totoo'
+    }
+    const response = await server
+      .patch(`/users/${userToUpdate.id}`)
+      .set('Cookie', cookie)
+      .send(updatedData);
+
+    expect(response.body.lastname).toBe(updatedData.lastname);
+  });
+
+
+  it('should add a phone number', async () => {
+    const cookie = await getCookie();
+    const userToUpdate = await User.findOne({
+      where: {
+        email: 'zorglux+usertest2@zorglux.com',
+      }
+    });
+    const updatedData = {
+      password: 'Toto123456!',
+      firstname: 'toto',
+      lastname: 'toto',
+      active: true,
+      email: 'zorglux+usertest2@zorglux.com',
+      phone: '+33612345677'
+    }
+    const response = await server
+      .put(`/users/${userToUpdate.id}`)
+      .send(updatedData)
+      .set('Cookie', cookie);
+
+    expect(response.body.phone).toBe(updatedData.phone);
+  });
+
+
+  it('should delete a user', async () => {
+    const cookie = await getCookie();
+    const userToDelete = await User.findOne({
+      where: {
+        email: 'zorglux+usertest2@zorglux.com',
+      }
+    });
+
+    await server
+      .delete(`/users/${userToDelete.id}`)
+      .set('Cookie', cookie)
+      .expect(204);
   });
 });

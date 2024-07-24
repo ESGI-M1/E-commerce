@@ -123,4 +123,10 @@
     margin-top: 20px;
     color: #666;
   }
+
+  @media (max-width: 768px) {
+    .footer-content {
+      flex-direction: column;
+    }
+  }
 </style>

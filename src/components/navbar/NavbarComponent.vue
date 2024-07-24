@@ -1,17 +1,17 @@
 <template>
   <nav class="navbar">
     <div class="navbar-section logo">
-      <RouterLink :to="{ name: 'Accueil' }" class="nav-link"><img src="../../../logo.jpg"></RouterLink>
+      <RouterLink :to="{ name: 'Accueil' }" class="nav-link"><img src="../../../logo.jpg" class="logo-img"></RouterLink>
     </div>
 
     <div class="navbar-section links">
       <!-- Navigation Links -->
       <div class="nav-item" v-for="category in shopStore.mainCategories" :key="category.id">
-        <RouterLink :to="{ name: 'Category', params: { slug : category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
-          <div v-if="category.subCategories.length > 0" class="dropdown">
-            <RouterLink v-for="subCategory in category.subCategories" :key="subCategory.id" :to="{ name: 'Category', params: { slug : subCategory.slug }}" class="dropdown-item">{{ subCategory.name }}</RouterLink>
-          </div>
+        <RouterLink :to="{ name: 'Category', params: { slug: category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
+        <div v-if="category.subCategories.length > 0" class="dropdown">
+          <RouterLink v-for="subCategory in category.subCategories" :key="subCategory.id" :to="{ name: 'Category', params: { slug: subCategory.slug }}" class="dropdown-item">{{ subCategory.name }}</RouterLink>
         </div>
+      </div>
     </div>
 
     <div class="navbar-section actions">
@@ -46,6 +46,16 @@
       <RouterLink v-else :to="{ name: 'Identifier' }" class="login-button">Connexion</RouterLink>
     </div>
   </nav>
+
+  <!-- Dropdown Menu for Mobile -->
+  <div class="mobile-menu">
+    <div class="nav-item" v-for="category in shopStore.mainCategories" :key="category.id">
+      <RouterLink :to="{ name: 'Category', params: { slug: category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
+      <div v-if="category.subCategories.length > 0" class="dropdown">
+        <RouterLink v-for="subCategory in category.subCategories" :key="subCategory.id" :to="{ name: 'Category', params: { slug: subCategory.slug }}" class="dropdown-item">{{ subCategory.name }}</RouterLink>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -218,6 +228,35 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Styles pour le menu burger */
+.burger-menu {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+  gap: 10px;
+  padding: 10px;
+  background-color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .links {
+    display: none;
+  }
+
+  .burger-menu {
+    display: block;
+  }
+
+  .mobile-menu {
+    display: flex;
+  }
 }
 
 </style>

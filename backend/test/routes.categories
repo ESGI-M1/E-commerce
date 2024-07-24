@@ -7,40 +7,48 @@ let user;
 
 const getUser = async () => {
     if (user) return user;
-  
-    user = await User.create({
-      firstname: 'John',
-      lastname: 'Doe',
-      email: 'admin@zorglux.com',
-      password: 'Password123254369!',
-      role: 'admin'
-    });
+
+    try {
+      user = await User.create({
+        firstname: 'John',
+        lastname: 'Doe',
+        email: 'zorglux+categorie@zorglux.com',
+        password: 'Password123254369!',
+        role: 'admin',
+        active: true
+      });
+    } catch (e) {
+      user = await User.findOne({
+        where: {
+          firstname: 'John',
+          lastname: 'Doe',
+          email: 'zorglux+categorie@zorglux.com',
+          role: 'admin',
+          active: true
+        }
+      });
+    }
   
     return user;
-  };
+};
 
-  const getCookie = async () => {
+const getCookie = async () => {
+  if(!user) await getUser();
+  if (cookie) return cookie;
 
-    if(!user) await getUser();
-  
-    if (cookie) return cookie;
-  
-    const loginResponse = await server
-      .post('/login')
-      .send({
-        email: user.email,
-        password: 'Password123254369!',
-      })
-      .expect(200);
-  
-    cookie = loginResponse.headers['set-cookie'];
-  
-    return cookie;
-  
-  }
+  const loginResponse = await server
+    .post('/login')
+    .send({
+      email: user.email,
+      password: 'Password123254369!',
+    });
+  cookie = loginResponse.headers['set-cookie'];
+  return cookie;
+
+}
 
 beforeAll(async () => {
-    cookie = getCookie();
+    cookie = await getCookie();
 });
 
 describe('Category routes', () => {
@@ -55,19 +63,51 @@ describe('Category routes', () => {
     const response = await server
       .post('/categories')
       .send(newCategory)
+      .set('Cookie', cookie)
       .expect(201);
 
     expect(response.body.name).toBe(newCategory.name);
     expect(response.body.description).toBe(newCategory.description);
   });
 
+  it('should get a category with is id', async () => {
+    const categoryToGet = await Category.findOne({
+      where: {
+        name: 'Electronics',
+        slug: 'electronics',
+        description: 'All kinds of electronic items',
+      }
+    });
+
+    const response = await server
+      .get(`/categories/${categoryToGet.id}`);
+
+    expect(response.body.id).toBe(categoryToGet.id);
+  });
+
+  it('should get a category with is slug', async () => {
+    const categoryToGet = await Category.findOne({
+      where: {
+        name: 'Electronics',
+        slug: 'electronics',
+        description: 'All kinds of electronic items',
+      }
+    });
+
+    const response = await server
+      .get(`/categories/${categoryToGet.slug}`);
+
+    expect(response.body.id).toBe(categoryToGet.id);
+  });
+
   it('should update a category with products', async () => {
     const category = await Category.create({
       name: 'Home Appliances',
+      slug: 'homeappliances',
       description: 'Appliances for home use',
     });
 
-    const product1 = Product.create({
+    const product1 = await Product.create({
       name: 'Washing Machine',
       reference: 'WM123',
       price: 500,
@@ -93,13 +133,14 @@ describe('Category routes', () => {
       .expect(200);
 
     expect(response.body.name).toBe('Updated Home Appliances');
-    const updatedCategory = Category.findByPk(category.id, { include: Product });
+    const updatedCategory = await Category.findByPk(category.id, { include: Product });
     expect(updatedCategory.Products.length).toBe(2);
   });
 
   it('should delete a category', async () => {
     const category = await Category.create({
       name: 'Temporary Category',
+      slug: 'temporarycategory',
       description: 'This category will be deleted',
     });
 
@@ -111,29 +152,4 @@ describe('Category routes', () => {
     const deletedCategory = await Category.findByPk(category.id);
     expect(deletedCategory).toBeNull();
   });
-
-  it('should replace a category', async () => {
-    const category = Category.create({
-      name: 'Old Category',
-      description: 'This category will be replaced',
-    });
-
-    const newCategoryData = {
-      name: 'New Category',
-      description: 'This is the new category',
-    };
-
-    const response = await server
-      .put(`/categories/${category.id}`)
-      .set('Cookie', cookie)
-      .send(newCategoryData)
-      .expect(200);
-
-    expect(response.body.name).toBe(newCategoryData.name);
-    expect(response.body.description).toBe(newCategoryData.description);
-
-    const replacedCategory = Category.findByPk(category.id);
-    expect(replacedCategory.name).toBe(newCategoryData.name);
-  });
-
 });

@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { User, AlertUser, Alert } = require("../models");
+const { User, AlertUser, Alert, AlertUserProduct } = require("../models");
 const mailer = require('../services/mailer');
 const router = new Router();
 
@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
   res.json(alerts);
 });
 
-router.get("/:userId", async (req, res, next) => {
+router.get("/user/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
     const userAlertsIds = await AlertUser.findAll({
@@ -24,25 +24,78 @@ router.get("/:userId", async (req, res, next) => {
 
     res.json(userAlerts);
   } catch (e) {
+    console.log(e);
     next(e);
   }
 });
 
-router.post("/:userId/:id", async (req, res, next) => {
+router.get("/:id/user/:userId", async (req, res, next) => {
+  try {
+    const alertUser = await AlertUser.findOne({
+      where: {
+        alert_id: req.params.id,
+        user_id: req.params.userId
+      }
+    });
+
+    if (!alertUser) {
+      return res.sendStatus(404);
+    } else {
+      const alertsUserProduct = await AlertUserProduct.findAll( {
+        where: {
+          alertUserId: alertUser.id
+        }
+      });
+
+      if (!alertsUserProduct) {
+        res.sendStatus(404);
+      } else {
+        res.json(alertsUserProduct);
+      }
+    }
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+});
+
+router.get("/:id/user/:userId/product/:productId", async (req, res, next) => {
+  try {
+    const alertUser = await AlertUser.findOne({
+      where: {
+        alert_id: req.params.id,
+        user_id: req.params.userId
+      }
+    });
+
+    if (!alertUser) { return res.sendStatus(404); }
+    else {
+      try {
+        const alertUserProduct = await AlertUserProduct.findOne({
+          where: {
+            alertUserId: alertUser.id,
+            productId: req.params.productId
+          }
+        });
+        if (!alertUserProduct) {
+          res.sendStatus(404);
+        } else {
+          res.json(alertUserProduct);
+        }
+      } catch (e) {res.sendStatus(404);}
+    }
+
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+});
+
+router.post("/:id/user/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
     const alertId = req.params.id;
 
-    const deletedAlert = await AlertUser.destroy({
-      where: {
-        user_id: userId,
-        alert_id: alertId
-      },
-    });
-
-    if (deletedAlert === 1) {
-      res.status(204);
-    } else {
       await AlertUser.create({
         user_id: userId,
         alert_id: alertId
@@ -60,12 +113,103 @@ router.post("/:userId/:id", async (req, res, next) => {
         })
         mailer.sendNewsLetterInscription(user);
       }
-      res.status(201);
-    }
+      res.sendStatus(201);
   } catch (e) {
+    console.log(e);
     next(e);
-    res.status(500);
   }
 });
 
+router.post("/:id/user/:userId/product/:productId", async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    const alertId = req.params.id;
+    const productId = req.params.productId;
+
+    let alertUser = await AlertUser.findOne({
+      where: {
+        alert_id: alertId,
+        user_id: userId
+      }
+    });
+
+    if (!alertUser) {
+      alertUser = await AlertUser.create({
+        user_id: userId,
+        alert_id: alertId
+      });
+    }
+
+    await AlertUserProduct.create({
+      alertUserId: alertUser.id,
+      productId: productId
+    });
+    res.sendStatus(201);
+
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/:id/user/:userId", async (req, res, next) => {
+  try {
+    const deletedAlert = await AlertUser.destroy({
+      where: {
+        user_id: req.params.userId,
+        alert_id: req.params.id
+      },
+    });
+
+    if (deletedAlert === 1) {
+      res.sendStatus(204);
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+});
+
+router.delete("/:id/user/:userId/product/:productId", async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    const alertId = req.params.id;
+    const productId = req.params.productId;
+
+    let alertUser = await AlertUser.findOne({
+      where: {
+        alert_id: alertId,
+        user_id: userId
+      }
+    });
+
+    const alertUserProduct = await AlertUserProduct.findOne({
+      where: {
+        alertUserId: alertUser.id,
+        productId: productId
+      }
+    });
+
+    if (alertUserProduct) {
+      const alertUserProduct = await AlertUserProduct.destroy({
+        where: {
+          alertUserId: alertUser.id,
+          productId: productId
+        }
+      });
+      if (alertUserProduct === 1) {
+        res.sendStatus(204);
+      } else {
+        res.sendStatus(404);
+      }
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+
+});
 module.exports = router;

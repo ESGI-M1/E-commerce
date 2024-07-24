@@ -4,7 +4,7 @@ const { Op } = require("sequelize");
 const { User, Cart, CartProduct, ProductVariant } = require('../models');
 
 // every 1st day of month, check if users last password modification are later than 60 days
-cron.schedule('0 0 1 * *', async () => {
+cron.schedule('0 0 * * *', async () => {
   try {
     const users = await User.findAll();
     for (let user of users) {

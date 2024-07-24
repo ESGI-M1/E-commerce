@@ -29,6 +29,7 @@ const StatsRouter = require("./routes/stats");
 const ShopRouter = require("./routes/shop");
 const handleStripeWebhook = require('./stripe/stripeWebhook');
 const AttributeRouter = require("./routes/attribute");
+const CookieUserRouter = require("./routes/cookieUser");
 
 const app = express();
 const cors = require('cors')
@@ -68,6 +69,7 @@ app.use('/addressusers', AddressUserRouter);
 app.use('/stats', StatsRouter);
 app.use('/shop', ShopRouter);
 app.use('/attributes', AttributeRouter);
+app.use('/cookie', CookieUserRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

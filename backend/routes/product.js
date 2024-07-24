@@ -1,7 +1,6 @@
 const { Router } = require("express");
-const { Category, Image, Product, ProductVariant, User, AlertUser, Alert, AttributeValue, Attribute } = require("../models");
+const { Category, Image, Product, ProductVariant, AttributeValue, Attribute } = require("../models");
 const ProductMongo = require("../mongo/product");
-const mailer = require('../services/mailer');
 const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
@@ -51,7 +50,7 @@ router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
 router.get("/:id(\\d+)", async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);
-        
+
         const product = await Product.findByPk(productId, {
             include: [
                 Category,
@@ -176,30 +175,8 @@ router.patch("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
                 const categoriesIds = Categories.map((category) => category.id);
                 await product.setCategories(categoriesIds);
             }
-            if (parseInt(product.price) !== productData.price) {
-                await product.update(productData);
-                const idAlert = await Alert.findOne({
-                    where: {
-                        name: 'change_product_price'
-                    }
-                });
-                if (idAlert) {
-                    const userToPrevent = await AlertUser.findAll({
-                        where: {
-                            alert_id: idAlert.id
-                        }
-                    });
-                    if (userToPrevent) {
-                        for (let i=0; i < userToPrevent.length; i++) {
-                            const user = await User.findByPk(userToPrevent[i].user_id);
-                            mailer.sendPriceChangeNotification(user, product);
-                        }
-                    }
 
-                }
-            } else {
-                await product.update(productData);
-            }
+            await product.update(productData);
 
             res.json(product);
         } else {

@@ -7,6 +7,10 @@ module.exports = function (connection) {
     name: {
       type: DataTypes.ENUM("news_letter", "new_product", "restock_product", "change_product_price"),
       allowNull: false,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false
     }
   }, {
     sequelize: connection,

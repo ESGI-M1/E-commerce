@@ -42,7 +42,7 @@ export const useCartStore = defineStore('cart', {
       const userStore = useUserStore();
       const userId = userStore.getUserId;
     
-      if (!userId) throw new Error('User ID not found');
+      if (!userId) return;
 
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${userId}`);
 

@@ -123,7 +123,7 @@
           <div class="total">
             <div v-if="carts">
               <div v-for="(item, itemIndex) in carts.CartProducts" :key="itemIndex" class="cart-item">
-                <div class="item-details" @click="showProductDetails(item.product.id)">
+                <div class="item-details">
                   <h3 v-if="item.product">{{ item.product.name }}</h3>
                   <img
                     class="product-image"
@@ -273,10 +273,6 @@ const discountedTotal = computed(() => {
     ? (total.value - (total.value * promo.value.discountPercentage) / 100).toFixed(2)
     : total.value
 })
-
-const showProductDetails = (id: string) => {
-  router.push({ name: 'ProductDetail', params: { id } })
-}
 
 const handlePayment = async (payment: string) => {
   let newAddress = null;

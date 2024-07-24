@@ -55,6 +55,9 @@
         >
         </fancy-confirm>
         <p v-else-if="statut === 'returned' && card"> Remboursement effectué sur votre carte <small>**** **** **** {{card}}</small></p>
+        <a :href="downloadCreditNoteUrl + returned.id" target="_blank">
+          Télécharger l'avoir <i class="fas fa-file-invoice"></i>
+        </a>
       </div>
     </form>
   </div>
@@ -72,12 +75,12 @@ const orderId = ref(route.params.orderId as string)
 const productVariantId = route.params.productVariantId
 const quantity = ref(0)
 const showNotification = inject('showNotification');
+const downloadCreditNoteUrl = import.meta.env.VITE_API_BASE_URL + '/return/creditNote/'
 
 const quantityReturned = ref(1)
 const returnReason = ref('')
 const deliveryMethod = ref('mondial-relay')
 const statut = ref('')
-const variantOption = ref<any>(null)
 const productVariant = ref<any>(null)
 const product = ref<any>(null)
 const existingReturn = ref(false)

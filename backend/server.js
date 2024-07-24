@@ -28,7 +28,6 @@ const BillingAddress = require("./routes/billingAddress");
 const StatsRouter = require("./routes/stats");
 const ShopRouter = require("./routes/shop");
 const handleStripeWebhook = require('./stripe/stripeWebhook');
-const handleStripeInvoice = require('./stripe/stripeInvoice');
 const AttributeRouter = require("./routes/attribute");
 
 const app = express();
@@ -41,6 +40,8 @@ const options = {
 };
 
 require('./migrate');
+
+app.post("/stripe/webhook", express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
@@ -58,9 +59,7 @@ app.use('/favorites', FavoriteRouter);
 app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
-app.post("/webhook", bodyParser.raw({ type: "application/json" }), handleStripeWebhook);
-app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
-app.use('/stripe', StripeRouter, handleStripeInvoice);
+app.use('/stripe', StripeRouter);
 app.use('/alerts', AlertsRouter);
 app.use('/newsletters', NewsLetterRouter);
 app.use('/billingaddress', BillingAddress);

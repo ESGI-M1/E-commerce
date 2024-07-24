@@ -19,7 +19,7 @@
       <p>Prix : {{ selectedVariant?.price }} €</p>
 
       <div class="variant-attributes">
-        <div class="product-variants">
+        <div class="product-variants" v-if="product.variants && product.variants.length">
           <select @change="changeVariant($event)" :value="selectedVariant.attributeValues[0]?.id">
             <template v-for="variant in product.variants">
               <option v-for="attribute in variant.attributeValues" :key="variant.id" :value="attribute.id">
@@ -185,7 +185,7 @@ const fetchProduct = async () => {
       selectedVariant.value = defaultVariant;
     }
     else{
-      selectedVariant.value = product.value.variants.find(variant => variant.default === true);
+      selectedVariant.value = product.value.variants[0];
     }
 
     if (user) {

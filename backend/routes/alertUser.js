@@ -24,6 +24,7 @@ router.get("/user/:userId", async (req, res, next) => {
 
     res.json(userAlerts);
   } catch (e) {
+    console.log(e);
     next(e);
   }
 });
@@ -53,6 +54,7 @@ router.get("/:id/user/:userId", async (req, res, next) => {
       }
     }
   } catch (e) {
+    console.log(e);
     next(e);
   }
 });
@@ -84,6 +86,7 @@ router.get("/:id/user/:userId/product/:productId", async (req, res, next) => {
     }
 
   } catch (e) {
+    console.log(e);
     next(e);
   }
 });
@@ -112,6 +115,7 @@ router.post("/:id/user/:userId", async (req, res, next) => {
       }
       res.sendStatus(201);
   } catch (e) {
+    console.log(e);
     next(e);
   }
 });
@@ -162,6 +166,7 @@ router.delete("/:id/user/:userId", async (req, res, next) => {
       res.sendStatus(404);
     }
   } catch (e) {
+    console.log(e);
     next(e);
   }
 });
@@ -202,6 +207,7 @@ router.delete("/:id/user/:userId/product/:productId", async (req, res, next) => 
       res.sendStatus(404);
     }
   } catch (e) {
+    console.log(e);
     next(e);
   }
 

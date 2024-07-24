@@ -26,6 +26,7 @@ router.get('/user/:userId', async (req, res, next) => {
     if (userCookies.length === 0) {return res.sendStatus(404);}
     res.json(userCookies);
   } catch (e) {
+    console.log(e);
     next(e);
   }
 });

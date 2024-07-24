@@ -35,5 +35,6 @@ jules: - dénormalisation
 Damien: - alertes
         - cookies
         - mot de passe oublié
+        - demande de renouvellement mot de passe
 
 Sohaib : - panier de réservation

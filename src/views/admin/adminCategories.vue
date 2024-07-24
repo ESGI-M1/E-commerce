@@ -192,7 +192,6 @@ const fetchProducts = async () => {
 }
 
 const addCategory = async () => {
-
   try{
     const parsedCategory = categorySchema.parse(currentCategory.value);
     axios.post(`${import.meta.env.VITE_API_BASE_URL}/categories`, parsedCategory)
@@ -330,5 +329,13 @@ form {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.text-success {
+  color: green;
+}
+
+.text-danger {
+  color: red;
 }
 </style>

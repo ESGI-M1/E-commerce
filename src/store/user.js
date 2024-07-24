@@ -5,39 +5,68 @@ import axios from '../tools/axios'
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
+    isAuthenticated: false,
   }),
   getters: {
     getUserId: (state) => {
-      if (state.user) return state.user.id
-
-      return  Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+      const cookieUser = Cookies.get('USER')
+      if (cookieUser) {
+        const userFromCookie = JSON.parse(cookieUser.substring(2))
+        if (state.user && state.user.id === userFromCookie.id) {
+          return state.user.id
+        }
+        return userFromCookie.id
+      }
+      return localStorage.getItem('temporaryId')
     },
     getUserFromCookie: () => {
-      return Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)) : null
+      const cookieUser = Cookies.get('USER')
+      return cookieUser ? JSON.parse(cookieUser.substring(2)) : null
     },
-    isAuthenticated: () => {
-      return Cookies.get('USER') !== undefined
+    getIsAuthenticated (state) {
+      return state.isAuthenticated
     },
     isAdmin (state) {
-      if(state.user) return state.user.role === 'admin'
-
-      return JSON.parse(Cookies.get('USER').slice(2)).role === 'admin'
+      const cookieUser = Cookies.get('USER')
+      const userFromCookie = cookieUser ? JSON.parse(cookieUser.slice(2)) : null
+      return (state.user && state.user.role === 'admin') || (userFromCookie && userFromCookie.role === 'admin')
     }
   },
   actions: {
+    setUser(user) {
+      this.user = user
+    },
+    setIsAuthenticated(isAuthenticated) {
+      this.isAuthenticated = isAuthenticated
+    },
     async fetchUser() {
-      if (this.user) return this.user
-      const userId = this.getUserId
-      if (!userId) throw new Error('User ID not found')
+      const cookieUser = Cookies.get('USER')
+      if (cookieUser) {
+        const userFromCookie = JSON.parse(cookieUser.substring(2))
+        const userId = userFromCookie.id
 
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
-        this.user = response.data
-        return this.user
-      } catch (e) {
-        console.error(e)
-        throw e
+        // If the user in the store matches the one in the cookie, return it directly
+        if (this.user && this.user.id === userFromCookie.id) {
+          this.setIsAuthenticated(true)
+          return this.user
+        }
+
+        try {
+          const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
+          this.setUser(response.data)
+          this.setIsAuthenticated(true)
+          return this.user
+        } catch (e) {
+          console.error(e)
+          this.setUser(null)
+          this.setIsAuthenticated(false)
+          throw e
+        }
       }
+
+      this.setUser(null)
+      this.setIsAuthenticated(false)
+      return null
     },
     async patch(user) {
       const userId = this.getUserId
@@ -45,7 +74,7 @@ export const useUserStore = defineStore('user', {
 
       try {
         const response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`, user)
-        this.user = response.data
+        this.setUser(response.data)
       } catch (e) {
         console.error(e)
         throw e
@@ -60,6 +89,33 @@ export const useUserStore = defineStore('user', {
       } catch (e) {
         console.error(e)
       }
+    },
+    async login(email, password) {
+      try {
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/login`, { email, password })
+        const temporaryId = localStorage.getItem('temporaryId')
+
+        if (temporaryId) {
+          const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
+          const cartId = cartResponse.data[0].id
+          cart = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {})
+          await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
+          localStorage.removeItem('temporaryId')
+        }
+
+        await this.fetchUser()
+        return { success: true }
+      } catch (error) {
+        if (error.response && error.response.status === 429) {
+          return { success: false, status: 429 }
+        }
+        return { success: false, status: 400 }
+      }
+    },
+    async logout() {
+      Cookies.remove('USER')
+      this.setUser(null)
+      this.setIsAuthenticated(false)
     }
   }
 })

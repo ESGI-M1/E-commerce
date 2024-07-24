@@ -13,7 +13,7 @@ const checkToken = async () => {
   try {
     let url = window.location.href.split('/')
     const token = url[url.length - 1]
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/confirm-address/${token}`)
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users/confirm-address/${token}`) //TODO il manque la route dans le router
     if (response.status === 201) {
       message.value = 'Votre adresse à bien été comfirmée'
       colorMessage.value = 'green'

@@ -7,8 +7,13 @@
         <p>
           <strong>Commande n°{{ orderId }}</strong>
         </p>
-        <p v-if="variantOption && productVariant">
-          Produit retourné : <span>{{ productVariant.product.name }} | {{ productVariant.name }} | {{ variantOption.color }} | {{ variantOption.size }}</span>
+        <p v-if="productVariant">
+          Produit retourné : <span>{{ productVariant.Product.name }} | {{ productVariant.reference }} |           
+            <span v-for="(attributeValue, index) in productVariant.attributeValues" :key="index">
+              {{ attributeValue.value }}
+              <span v-if="index < productVariant.attributeValue - 1">, </span>
+            </span>
+          </span>
         </p>
         <p v-if="statut">
           Statut : <span>{{ statut }}</span>
@@ -50,13 +55,16 @@
         >
         </fancy-confirm>
         <p v-else-if="statut === 'returned' && card"> Remboursement effectué sur votre carte <small>**** **** **** {{card}}</small></p>
+        <a :href="downloadCreditNoteUrl + returned.id" target="_blank">
+          Télécharger l'avoir <i class="fas fa-file-invoice"></i>
+        </a>
       </div>
     </form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '../tools/axios';
 import FancyConfirm from '../components/ConfirmComponent.vue'
@@ -64,14 +72,15 @@ import FancyConfirm from '../components/ConfirmComponent.vue'
 const route = useRoute()
 const router = useRouter()
 const orderId = ref(route.params.orderId as string)
-const variantOptionId = ref(route.params.variantOptionId as string)
+const productVariantId = route.params.productVariantId
 const quantity = ref(0)
+const showNotification = inject('showNotification');
+const downloadCreditNoteUrl = import.meta.env.VITE_API_BASE_URL + '/return/creditNote/'
 
 const quantityReturned = ref(1)
 const returnReason = ref('')
 const deliveryMethod = ref('mondial-relay')
 const statut = ref('')
-const variantOption = ref<any>(null)
 const productVariant = ref<any>(null)
 const product = ref<any>(null)
 const existingReturn = ref(false)
@@ -94,18 +103,17 @@ const fetchProductDetails = async () => {
     }
 
     const cartProducts = response.data.Cart.CartProducts;
-    const cartProduct = cartProducts.find(cp => cp.variantOption.id === parseInt(variantOptionId.value));
+    const cartProduct = cartProducts.find(cp => cp.productVariantId == productVariantId);
     
     if (cartProduct) {
       quantity.value = cartProduct.quantity;
-      product.value = cartProduct.variantOption.productVariant.product;
-      productVariant.value = cartProduct.variantOption.productVariant;
-      variantOption.value = cartProduct.variantOption;
+      product.value = cartProduct.productVariant.product;
+      productVariant.value = cartProduct.productVariant;
     } else {
       quantity.value = 0;
     }
 
-    const returnResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${variantOptionId.value}`, {
+    const returnResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${productVariantId}`, {
       params: { orderId: orderId.value }
     });
 
@@ -123,7 +131,8 @@ const fetchProductDetails = async () => {
       card.value = response.data.Payment.cardLast4;
     }
   } catch (error) {
-    console.error('Error fetching product details:', error);
+    showNotification('Erreur lors du chargement des détails du produit', 'error');
+    console.error(error);
   }
 }
 
@@ -133,13 +142,15 @@ const submitReturn = async () => {
   try {
     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/return`, {
       orderId: orderId.value,
-      variantOptionId: variantOptionId.value,
+      productVariantId: productVariantId,
       quantityReturned: quantityReturned.value,
       reason: returnReason.value,
       deliveryMethod: deliveryMethod.value
     });
+    showNotification('Retour soumis avec succès', 'success');
     router.push(`/order/${orderId.value}`);
   } catch (error) {
+    showNotification('Erreur lors de la soumission du retour', 'error');
     console.error('Error submitting return:', error);
   }
 }
@@ -148,13 +159,15 @@ const deleteReturn = async () => {
   try {
     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/return`, {
       params: {
-        variantOptionId: variantOptionId.value,
+        productVariantId: productVariantId,
         orderId: orderId.value
       }
     });
+    showNotification('Retour annulé avec succès', 'success');
     router.push(`/order/${orderId.value}`);
   } catch (error) {
-    console.error('Error deleting return:', error);
+    showNotification('Erreur lors de l\'annulation du retour', 'error');
+    console.error(error);
   }
 }
 </script>

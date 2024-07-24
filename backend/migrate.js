@@ -1,12 +1,14 @@
 const connection = require("./models/db");
 const { execSync } = require('child_process');
-
+const { usersFixtures, productsFixtures, shopFixtures } = require('./fixtures/fixtures');
 const options = {
   "--type": {
     value: true,
     default: "alter",
   },
-  "--force": {},
+  "--force": {
+    value: true,
+  },
   "--dir": {
     default: "up",
   },
@@ -25,15 +27,18 @@ do {
   }
 } while (args.length);
 
-connection
-  .sync({
-    alter: true,
-    //force: true
-  })
-  .then(() => console.log("Database synced"))
-  //.then(() => connection.close());
+const syncDatabaseAndLoadFixtures = async () => {
+  try {
+    await connection.sync({
+      alter: options["--type"] === "alter",
+      force: options["--force"] === true,
+    });
+    console.log("Database synced");
 
-  /*try {
+    if (options["--force"] === true) {
+      console.log("Fixtures loaded successfully.");
+    }
+
     if (options["--dir"] === "up") {
       execSync('npx sequelize-cli db:migrate', { stdio: 'inherit' });
     } else if (options["--dir"] === "down") {
@@ -42,5 +47,8 @@ connection
       console.error("Unknown direction. Use --dir up or --dir down.");
     }
   } catch (error) {
-    console.error("An error occurred while running the migration script:", error);
-  }*/
+    console.error("An error occurred:", error);
+  }
+};
+
+syncDatabaseAndLoadFixtures();

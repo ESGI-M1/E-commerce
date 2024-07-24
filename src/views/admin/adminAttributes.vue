@@ -24,10 +24,10 @@
                             <span v-if="index < attribute.values.length - 1">, </span>
                         </span>
                     </td>
-                    <td>
-                        <button @click="showAddAttributeModal('attribute'); isEditing = true; currentAttribute = attribute" class="btn btn-primary">
+                    <td class="flex">
+                        <a @click="showAddAttributeModal('attribute'); isEditing = true; currentAttribute = attribute" class="a-primary">
                             <i class="fa fa-edit"></i>
-                        </button>
+                        </a>
                         <fancy-confirm
                             :class="'a-danger'"
                             :confirmationMessage="'Etes-vous sûr de vouloir supprimer l\'attribut ?'"

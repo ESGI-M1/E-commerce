@@ -1,26 +1,25 @@
 <template>
   <nav class="navbar">
     <div class="navbar-section logo">
-      <a href="/" class="nav-link">Accueil</a>
-      <!-- Logo -->
+      <RouterLink :to="{ name: 'Accueil' }" class="nav-link"><img src="../../../logo.jpg" class="logo-img"></RouterLink>
     </div>
 
     <div class="navbar-section links">
       <!-- Navigation Links -->
       <div class="nav-item" v-for="category in shopStore.mainCategories" :key="category.id">
-        <RouterLink :to="{ name: 'Category', params: { slug : category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
-          <div v-if="category.subCategories.length > 0" class="dropdown">
-            <RouterLink v-for="subCategory in category.subCategories" :key="subCategory.id" :to="{ name: 'Category', params: { slug : subCategory.slug }}" class="dropdown-item">{{ subCategory.name }}</RouterLink>
-          </div>
+        <RouterLink :to="{ name: 'Category', params: { slug: category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
+        <div v-if="category.subCategories.length > 0" class="dropdown">
+          <RouterLink v-for="subCategory in category.subCategories" :key="subCategory.id" :to="{ name: 'Category', params: { slug: subCategory.slug }}" class="dropdown-item">{{ subCategory.name }}</RouterLink>
         </div>
+      </div>
     </div>
 
     <div class="navbar-section actions">
       <!-- Shopping Cart Icon -->
-      <a class="icon" href="/cart">
+      <RouterLink :to="{ name: 'Panier' }" class="icon">
         <i class="fas fa-shopping-cart"></i>
-        <span class="badge">{{ cartsNumber }}</span>
-      </a>
+        <span class="badge">{{ cartStore.getCartItemCount }}</span>
+      </RouterLink>
 
       &nbsp;
       <!-- Search Bar -->
@@ -33,35 +32,52 @@
       />
 
       <!-- Login Button or User Icon -->
-      <div v-if="isAuthenticated" class="user-menu">
+      <div v-if="userStore.isAuthenticated" class="user-menu">
         <i class="fas fa-user"></i>
         <div class="dropdown">
           <RouterLink :to="{ name: 'Profile' }" class="dropdown-item">Mon profil</RouterLink>
           <RouterLink :to="{ name: 'Favoris' }" class="dropdown-item">Mes favoris</RouterLink>
           <RouterLink :to="{ name: 'Ressources' }" class="dropdown-item">Gestion des ressources</RouterLink>
           <RouterLink :to="{ name: 'Historique des commandes' }" class="dropdown-item">Historique des commandes</RouterLink>
-          <RouterLink :to="{ name: 'Alertes' }" class="dropdown-item">Mes alertes</RouterLink>
+          <RouterLink :to="{ name: 'Alerts' }" class="dropdown-item">Mes alertes</RouterLink>
+          <a @click="showCookiePage" class="dropdown-item">Gestion des cookies</a>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
       </div>
       <RouterLink v-else :to="{ name: 'Identifier' }" class="login-button">Connexion</RouterLink>
     </div>
+    <CookieComponent @closePage="closeCookiePage" v-if="showCookies"/>
   </nav>
+
+  <!-- Dropdown Menu for Mobile -->
+  <div class="mobile-menu">
+    <div class="nav-item" v-for="category in shopStore.mainCategories" :key="category.id">
+      <RouterLink :to="{ name: 'Category', params: { slug: category.slug }}" class="nav-link">{{ category.name }}</RouterLink>
+      <div v-if="category.subCategories.length > 0" class="dropdown">
+        <RouterLink v-for="subCategory in category.subCategories" :key="subCategory.id" :to="{ name: 'Category', params: { slug: subCategory.slug }}" class="dropdown-item">{{ subCategory.name }}</RouterLink>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
 import { useShopStore } from '@/store/shop'
+import { useCartStore } from '@/store/cart'
+import { useUserStore } from '@/store/user'
 import Cookies from 'js-cookie'
 
 import axios from 'axios'
+import CookieComponent from '@/components/CookieComponent.vue'
 
 const router = useRouter()
 const productsStore = useProductsStore()
 const shopStore = useShopStore()
-const cartsNumber = ref(null)
+const cartStore = useCartStore()
+const userStore = useUserStore()
+const showCookies = ref(false);
 
 const applyFilters = () => {
 
@@ -73,39 +89,44 @@ router.push({
 });
 };
 
-const fetchCartItems = async () => {
-  const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
-  cartsNumber.value = null;
+const logout = () => {
+  userStore.logout()
+}
 
-  if (authToken) {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
-
-    if (response.data && response.data.length > 0) {
-      response.data[0].CartProducts.forEach(CartProduct => {
-        cartsNumber.value += CartProduct.quantity;
-      });
-    } else {
-      cartsNumber.value = null;
-    }
-    } catch (error) {
-      cartsNumber.value = null;
+async function checkUserAsAcceptedCookie()  {
+  const user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+  if (user) {
+    const asCookie = await asAnyCookie(user);
+    if (!asCookie) {
+      showCookies.value = true
     }
   }
-};
+}
 
-const isAuthenticated = computed(() => {
-  return Cookies.get('USER') !== undefined
-})  
+async function asAnyCookie(userId: number) {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/cookie/user/${userId}`);
+    if (response.data) {
+      return true;
+    }
+  } catch (e) {
+    return false;
+  }
+}
 
-const logout = () => {
-  Cookies.remove('USER')
-  router.push('/')
+function showCookiePage() {
+  showCookies.value = true;
+}
+
+function closeCookiePage() {
+  showCookies.value = false;
 }
 
 onMounted(() => {
-  fetchCartItems()
+  cartStore.fetchCartItemsAuth()
   shopStore.fetchShop()
+  userStore.fetchUser()
+  checkUserAsAcceptedCookie()
 })
 </script>
 
@@ -147,6 +168,10 @@ onMounted(() => {
   color: black;
   text-decoration: none;
   position: relative;
+}
+
+.nav-link img {
+  width: 30px;
 }
 
 .nav-link:hover {
@@ -240,6 +265,35 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Styles pour le menu burger */
+.burger-menu {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+  gap: 10px;
+  padding: 10px;
+  background-color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .links {
+    display: none;
+  }
+
+  .burger-menu {
+    display: block;
+  }
+
+  .mobile-menu {
+    display: flex;
+  }
 }
 
 </style>

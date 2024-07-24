@@ -22,14 +22,14 @@ const StripeRouter = require("./stripe/stripe");
 const rateLimiter = require('./rateLimiter');
 const AlertsRouter = require("./routes/alertUser")
 const NewsLetterRouter = require("./routes/newLetter");
-const PaypalRouter = require("./paypal/paypal");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
+const BillingAddress = require("./routes/billingAddress");
 const StatsRouter = require("./routes/stats");
 const ShopRouter = require("./routes/shop");
 const handleStripeWebhook = require('./stripe/stripeWebhook');
-const handleStripeInvoice = require('./stripe/stripeInvoice');
 const AttributeRouter = require("./routes/attribute");
+const CookieUserRouter = require("./routes/cookieUser");
 
 const app = express();
 const cors = require('cors')
@@ -41,6 +41,8 @@ const options = {
 };
 
 require('./migrate');
+
+app.post("/stripe/webhook", express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
@@ -58,17 +60,16 @@ app.use('/favorites', FavoriteRouter);
 app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
-app.post("/webhook", bodyParser.raw({ type: "application/json" }), handleStripeWebhook);
-app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
-app.use('/stripe', StripeRouter, handleStripeInvoice);
+app.use('/stripe', StripeRouter);
 app.use('/alerts', AlertsRouter);
 app.use('/newsletters', NewsLetterRouter);
-app.use('/paypal', PaypalRouter);
+app.use('/billingaddress', BillingAddress);
 app.use('/addressorders', AddressOrderRouter);
 app.use('/addressusers', AddressUserRouter);
 app.use('/stats', StatsRouter);
 app.use('/shop', ShopRouter);
 app.use('/attributes', AttributeRouter);
+app.use('/cookie', CookieUserRouter);
 app.use(SecurityRouter, rateLimiter);
 
 app.listen(process.env.PORT, () => {

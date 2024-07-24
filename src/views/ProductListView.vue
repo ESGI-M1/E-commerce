@@ -1,11 +1,12 @@
 <template>
-  <div>
+  <div class="flex">
     <FacetedSearchView />
-    <div class="product-list">
+    <div class="product-list" v-if="filteredProducts.length">
       <div
         v-for="product in filteredProducts"
         :key="product.id"
         class="product-card"
+        :class="{ calc: filteredProducts.length > 2 }"
       >
         <RouterLink :to="{ name: 'ProductDetail', params: { id: product._id } }">
           <div v-if="product.variants && product.variants.length">
@@ -31,6 +32,9 @@
           </div>
         </RouterLink>
       </div>
+    </div>
+    <div class="no-products" v-else>
+      <p>Aucun produit disponible.</p>
     </div>
   </div>
 </template>
@@ -77,64 +81,111 @@ onMounted(() => {
 
 </script>
 
-<style>
+<style>/* Container de la liste des produits */
 .product-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 30px; /* Espace entre les cartes */
+  padding: 20px; /* Padding autour de la liste */
 }
 
+/* Carte du produit avec styles modernes */
 .product-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background: #fff;
+  border-radius: 12px;
   overflow: hidden;
-  width: calc(33.333% - 20px);
-  margin: 10px;
-  box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
   cursor: pointer;
-  transition: transform 0.2s;
+  position: relative;
 }
 
 .product-card:hover {
-  transform: scale(1.05);
+  transform: translateY(-10px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
+/* Image du produit avec effet */
 .product-image {
   width: 100%;
-  height: 150px;
+  height: 300px; /* Hauteur augmentée pour un impact visuel plus fort */
   object-fit: cover;
+  transition: opacity 0.3s;
 }
 
+.product-card:hover .product-image {
+  opacity: 0.8;
+}
+
+/* Informations sur le produit avec mise en forme */
 .product-info {
-  padding: 15px;
+  padding: 20px;
+  background: #fff;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  height: 100%;
 }
 
 .product-name {
-  font-size: 1.5em;
+  font-size: 1.8em;
   margin-bottom: 10px;
+  font-weight: bold;
+  color: #333;
 }
 
 .product-description {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  color: #666;
 }
 
 .product-variant-name {
-  color: grey;
+  color: #888;
   margin-bottom: 10px;
+  font-size: 0.9em;
 }
 
 .product-price {
   font-weight: bold;
-  color: #2c3e50;
+  color: #e94e77;
+  margin-bottom: 15px;
+  font-size: 1.2em;
 }
 
 .product-variants-count {
-  margin-top: 10px;
-  color: #555;
-  font-size: 0.875em;
+  color: #777;
+  font-size: 0.9em;
+}
+
+/* Styles pour quand aucun produit n'est disponible */
+.no-products {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.5em;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #f4f4f4;
+  margin: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calc {
+  flex: 1 1 calc(33.333% - 30px); /* Flexibilité avec ajustement de la largeur */
+  max-width: calc(33.333% - 30px); /* Assure la largeur maximale */
+}
+
+/* Media queries pour responsive design */
+@media (max-width: 1200px) {
+  .calc {
+    flex: 1 1 calc(50% - 30px); /* 2 colonnes pour écrans moyens */
+    max-width: calc(50% - 30px); /* Assure la largeur maximale */
+  }
+}
+
+@media (max-width: 768px) {
+  .calc {
+    flex: 1 1 calc(100% - 30px); /* 1 colonne pour écrans petits */
+    max-width: calc(100% - 30px); /* Assure la largeur maximale */
+  }
 }
 </style>

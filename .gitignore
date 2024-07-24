@@ -36,5 +36,6 @@ coverage
 /serv/fail2ban/fail2ban
 
 /backend/uploads
+/backend/stripe/invoices
 
 /backend/.env

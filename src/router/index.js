@@ -25,6 +25,7 @@ import Success from '../views/SuccessView.vue'
 import Error from '../views/ErrorView.vue'
 import Livraison from '../views/OrderLivraisonView.vue'
 import Page from '../views/PageView.vue'
+import NotFound from '../views/NotFoundView.vue';
 
 //Admin
 import Users from '../views/admin/adminUsers.vue'
@@ -145,7 +146,7 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/order/:orderId/returnProduct/:variantOptionId',
+    path: '/order/:orderId/returnProduct/:productVariantId',
     name: 'ReturnProducts',
     component: ReturnProduct,
     meta: { requiresAuth: true },
@@ -208,13 +209,13 @@ const routes = [
   },
   {
     path: '/alerts',
-    name: 'Alertes',
+    name: 'Alerts',
     component: Alerts
   },
   {
     path: '/newsletters',
     name: 'NewsLetters',
-    component: NewsLetter
+    component: NewsLetter,
   },
   {
     path: '/admin/shop',

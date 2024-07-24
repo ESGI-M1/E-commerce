@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, inject } from 'vue'
 import { z } from 'zod'
-import axios from '../tools/axios';
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 
-const showNotification = inject('showNotification');
 const userStore = useUserStore()
 const email = ref('')
 const password = ref('')
@@ -21,25 +19,21 @@ const closeErrorPopup = () => { errorPopupShow.value = false; }
 
 const emailError = computed(() => {
   const parsedEmail = emailSchema.safeParse(email.value)
-
   if (parsedEmail.success) {
     return ''
   }
-
   return parsedEmail.error.issues[0].message
 })
 
 const passwordError = computed(() => {
   const parsedPassword = passwordSchema.safeParse(password.value)
-
   if (parsedPassword.success) {
     return ''
   }
-
   return parsedPassword.error.issues[0].message
 })
 
-const login = () => {
+const login = async () => {
   if (
     !emailSchema.safeParse(email.value).success ||
     !passwordSchema.safeParse(password.value).success
@@ -47,42 +41,19 @@ const login = () => {
     return
   }
 
-  axios
-    .post(`${import.meta.env.VITE_API_BASE_URL}/login`, {
-      email: email.value,
-      password: password.value
-    })
-    .then(async () => {
-      const temporaryId = localStorage.getItem('temporaryId')
-      let cart = null
-      try {
-        if (temporaryId) {
-          const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
-          const cartId = cartResponse.data[0].id;
-          cart =  await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {
-            })
-          
-          await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
-          localStorage.removeItem('temporaryId')
-        }
-        router.push('/')
-        if (cart) {
-          showNotification('Panier mis à jour !', 'success')
-        }
-      } catch (error) {
-        console.error('Error updating carts:', error)
-        showNotification('Échec de la mise à jour des paniers.', 'error')
-      }
-    })
-    .catch((error) => {
-      if (error.response.status === 429) {
-        errorPopupContent.value = "Vous avez essayé de vous connecter de trop nombreuses fois, veuillez réessayer 15 min après votre dernière tentative";
-        errorPopupShow.value = true;
-      } else {
-        errorPopupContent.value = "Addresse ou mot de passe incorrect";
-        errorPopupShow.value = true;
-      }
-    })
+  const result = await userStore.login(email.value, password.value)
+
+  if (result.success) {
+    router.push('/')
+  } else {
+    if (result.status === 429) {
+      errorPopupContent.value = "Vous avez essayé de vous connecter de trop nombreuses fois, veuillez réessayer 15 min après votre dernière tentative";
+      errorPopupShow.value = true;
+    } else {
+      errorPopupContent.value = "Adresse ou mot de passe incorrect";
+      errorPopupShow.value = true;
+    }
+  }
 }
 
 </script>

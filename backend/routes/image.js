@@ -4,6 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const { ProductVariant, Image } = require("../models");
 const router = new Router();
+const checkRole = require("../middlewares/checkRole");
 
 // Configuration de Multer pour gérer le téléchargement de fichiers
 const storage = multer.diskStorage({
@@ -22,30 +23,29 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Route pour obtenir toutes les images
-router.get("/", async (req, res, next) => {
+// Route pour accéder au fichier image
+router.get("/variant/:id", async (req, res, next) => {
     try {
-        const images = await Image.findAll({
-            where: req.query,
-        });
-        res.json(images);
-    } catch (e) {
-        next(e);
-    }
-});
+        const id = parseInt(req.params.id);
+        const image = await Image.findByPk(id);
 
-// Route pour obtenir une image par ID
-router.get("/:id", async (req, res, next) => {
-    try {
-        const image = await Image.findByPk(req.params.id);
-        image ? res.json(image) : res.sendStatus(404);
+        if (!image) return res.sendStatus(404);
+
+        const productVariant = await ProductVariant.findByPk(image.productVariantId);
+
+        if (!productVariant) return res.sendStatus(404);
+
+        if (!productVariant.active) return res.sendStatus(403);
+
+        const filePath = path.join(__dirname, '../uploads/images', image.fileName);
+        fs.existsSync(filePath) ? res.sendFile(filePath) : res.sendStatus(404);
     } catch (e) {
         next(e);
     }
 });
 
 // Route pour uploader une nouvelle image
-router.post("/", upload.single('image'), async (req, res, next) => {
+router.post("/", upload.single('image'), checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const { description, productVariantId } = req.body;
         const file = req.file;
@@ -69,7 +69,7 @@ router.post("/", upload.single('image'), async (req, res, next) => {
 });
 
 // Route pour mettre à jour une image
-router.patch("/:id", upload.single('image'), async (req, res, next) => {
+router.patch("/:id", upload.single('image'), checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const image = await Image.findByPk(req.params.id);
         if (!image) return res.status(404).send('Image not found.');
@@ -111,7 +111,7 @@ router.patch("/:id", upload.single('image'), async (req, res, next) => {
 });
 
 // Route pour supprimer une image
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const image = await Image.findByPk(req.params.id);
         if (!image) return res.sendStatus(404);
@@ -130,7 +130,7 @@ router.delete("/:id", async (req, res, next) => {
 });
 
 // Route pour mettre à jour une image (avec nouvelle image)
-router.put("/:id", upload.single('image'), async (req, res, next) => {
+router.put("/:id", upload.single('image'), checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const image = await Image.findByPk(req.params.id);
         if (!image) return res.status(404).send('Image not found.');
@@ -156,27 +156,6 @@ router.put("/:id", upload.single('image'), async (req, res, next) => {
         });
 
         nbUpdated === 1 ? res.json(images[0]) : res.sendStatus(404);
-    } catch (e) {
-        next(e);
-    }
-});
-
-// Route pour accéder au fichier image
-router.get("/variant/:id", async (req, res, next) => {
-    try {
-        const id = parseInt(req.params.id);
-        const image = await Image.findByPk(id);
-
-        if (!image) return res.sendStatus(404);
-
-        const productVariant = await ProductVariant.findByPk(image.productVariantId);
-
-        if (!productVariant) return res.sendStatus(404);
-
-        if (!productVariant.active) return res.sendStatus(403);
-
-        const filePath = path.join(__dirname, '../uploads/images', image.fileName);
-        fs.existsSync(filePath) ? res.sendFile(filePath) : res.sendStatus(404);
     } catch (e) {
         next(e);
     }

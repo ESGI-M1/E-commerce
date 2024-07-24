@@ -12,7 +12,7 @@
           @click="showOrderDetails(order.id)"
         >
           <h2>Commande n°{{ order.id }}</h2>
-          <div :class="['order-status', order.status]">{{ order.status }}</div>
+          <div :class="['order-status', order.statusHistory[0].orderStatus.name]">{{ order.statusHistory[0].orderStatus.name }}</div>
           <div class="order-total">Total: {{ order.totalAmount }} €</div>
           <button v-if="order.status === 'pending'" @click.stop="showLivraisonOrder(order.id)" class="btn-details">
             Voir ma Livraison

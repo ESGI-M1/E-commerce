@@ -6,8 +6,7 @@ const checkAuth = require("../middlewares/checkAuth");
 const { Op } = require('sequelize');
 const mailer = require('../services/mailer');
 
-router.get("/", checkAuth, checkRole({ roles: "admin" }), async (req, res) => {
-
+router.get("/", checkRole({ roles: "admin" }), async (req, res) => {
     const users = await User.findAll({
       where: {
         ...req.query,
@@ -62,7 +61,7 @@ router.get("/:id", checkAuth, async (req, res, next) => {
 
 });
 
-router.post("/", checkAuth, checkRole({ roles: "admin" }), async (req, res, next) => {
+router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
     const user = await User.create(req.body);
     mailer.sendValidateInscriptionByAdmin(user, req.body.password);
@@ -81,6 +80,8 @@ router.post("/signup", async (req, res, next) => {
 
     if(req.body.role && req.body.role === 'admin') return res.status(401).send('Unauthorized');
 
+    if(req.body.cgu !== true) return res.status(400).send('CGU not accepted');
+
     const user = await User.create(req.body);
     mailer.sendNewsLetterInscription(user);
     res.status(201).json(user);
@@ -96,22 +97,32 @@ router.post("/signup", async (req, res, next) => {
 router.patch("/:id", checkAuth, async (req, res, next) => {
   try {
     const userId = parseInt(req.params.id);
-    
-    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
+
+    if (!userId || (userId !== req.user.id && req.user.role !== 'admin')) {
+      return res.sendStatus(403);
+    }
+
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ message: 'Invalid request body' });
+    }
 
     const [nbUpdated, users] = await User.update(req.body, {
-      where: {
-        id: userId,
-      },
+      where: { id: userId },
       individualHooks: true,
       returning: true,
     });
 
-    nbUpdated === 1 ? res.json(users[0]) : res.sendStatus(404);
+    if (nbUpdated === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(users[0]);
   } catch (e) {
+    console.error('Error updating user:', e);
     next(e);
   }
 });
+
 
 router.delete("/:id", checkAuth, async (req, res, next) => {
   try {
@@ -180,29 +191,6 @@ router.delete("/:id", checkAuth, async (req, res, next) => {
 
     res.sendStatus(nbUpdated[0] === 1 ? 200 : 404);
   }
-  } catch (e) {
-    next(e);
-  }
-});
-
-router.put("/:id", checkAuth, async (req, res, next) => {
-  try {
-    const userId = parseInt(req.params.id);
-    
-    if(!userId || ( userId !== req.user.id && req.user.role !== 'admin')) return res.sendStatus(403);
-
-    const nbDeleted = await User.destroy({
-      where: {
-        id: userId,
-      },
-    });
-    
-    const user = await User.create({
-      ...req.body,
-      id: userId,
-    });
-
-    res.status(nbDeleted ? 200 : 201).json(user);
   } catch (e) {
     next(e);
   }

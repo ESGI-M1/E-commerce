@@ -2,7 +2,7 @@
 
   <BreadCrumb v-if="false" :category="product.Categories[0]" />
 
-  <div v-if="product" class="product-page">
+  <div v-if="product && !notFound" class="product-page">
     <div v-if="selectedVariant" class="slider-container">
       <div class="slider" ref="slider">
         <div class="slide" v-for="image in selectedVariant.images" :key="image.id">
@@ -44,24 +44,50 @@
       <button v-else @click.stop="addToFavorites(product.id)" class="favorite-actions">
         <i class="far fa-heart"></i> Ajouter aux favoris
       </button>
+
+      <div v-if="alerts && alerts.length > 0">
+        <h2>Alertes</h2>
+        <ul>
+          <li class="alertItem" v-for="alert in alerts" :key="alert.id">
+            <div class="alertContainer">
+              <div class="alertName">
+                {{ alert.description }}
+              </div>
+              <div class="alertStatus">
+                <label class="switch">
+                  <input :id="'alert' + alert.id" type="checkbox" :checked="alert.subscribe" @click="changeStatus(alert.id, product.id)">
+                  <span></span>
+                </label>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
     </div>
   </div>
+  <NotFoundView v-else />
 </template>
 
 <script setup lang="ts">
 import BreadCrumb from './BreadCrumb.vue'
+import NotFoundView from './NotFoundView.vue';
 import { ref, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { z, ZodError } from 'zod'
+import { useCartStore } from '@/store/cart'
 import axios from '../tools/axios'
 import Cookies from 'js-cookie'
+import { AxiosError } from 'axios';
 
 const route = useRoute()
 const router = useRouter()
+const cartStore = useCartStore();
 const isFavorite = ref(false)
 const productId = route.params.id
 let user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
 const showNotification = inject('showNotification');
+const notFound = ref(false)
 
 const slider = ref(null)
 const currentSlide = ref(0)
@@ -122,12 +148,27 @@ const cartSchema = z.object({
 type Product = z.infer<typeof productSchema>
 type ProductVariant = z.infer<typeof productVariantSchema>
 
+const alerts = ref<AlertSubscribe>([] as AlertSubscribe);
+
+interface AlertSubscribe {
+  id: number
+  name: string,
+  description: string
+  subscribe: boolean
+}
+
+interface Alert {
+  id: number
+  name: string,
+  description: string
+}
+
 const product = ref<Product>()
 const selectedVariant = ref<ProductVariant>()
 
 const changeVariant = (event: Event) => {
   const target = event.target as HTMLSelectElement;
-  selectedVariant.value = product.value.variants.find(variant => 
+  selectedVariant.value = product.value.variants.find(variant =>
     variant.attributeValues.some(av => av.id === parseInt(target.value))
   );
 }
@@ -157,9 +198,22 @@ const fetchProduct = async () => {
       console.error(error.errors);
     }
 
+    if(error instanceof AxiosError && error.response?.status === 404) {
+      notFound.value = true;
+    }
+
     console.error(error);
   }
 };
+
+async function fetchAlertUserProduct(alertId: string, userId: string, productId: string) {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/alerts/${alertId}/user/${userId}/product/${productId}`);
+    return response.data;
+  } catch (e) {
+    return undefined;
+  }
+}
 
 const addToFavorites = async (productId: string) => {
   try {
@@ -208,7 +262,7 @@ const addToCart = async (quantity: number) => {
       productVariantId: selectedVariant.value.id,
       quantity
     });
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, cart);
+    await cartStore.addProductToCart(cart);
     showNotification('Produit ajouté au panier avec succès', 'success');
   } catch (error) {
 
@@ -235,8 +289,71 @@ const prevSlide = () => {
   }
 };
 
+async function getProductAlerts() {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/alerts/`)
+    const alerts: Alert[] = response.data;
+    const productAlert = []
+    if (alerts) {
+      for (let i = 0; i < alerts.length; i++) {
+        if (alerts[i].name === "restock_product" || alerts[i].name == "change_product_price") {
+          productAlert.push(alerts[i]);
+        }
+      }
+    }
+    return productAlert;
+  } catch (e) {
+    console.error('Error fetching alerts:', e);
+  }
+}
+
+async function changeStatus(id: number, productId: number) {
+  try {
+    if (!user) {
+      throw new Error('User is not authenticated')
+    }
+    const alertCheck = document.getElementById(`alert${id}`);
+    if (alertCheck) {
+      if (alertCheck.checked === true) {
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/alerts/${id}/user/${user}/product/${productId}`);
+      } else {
+        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/alerts/${id}/user/${user}/product/${productId}`);
+      }
+    }
+  } catch (e) {
+    console.error('Error update alerts:', e);
+  }
+}
+
+async function initAlerts() {
+  if (user) {
+    const alertsProduct = await getProductAlerts();
+    if (alertsProduct) {
+      for (let i = 0; i < alertsProduct.length; i++) {
+        let userSubscribe = await fetchAlertUserProduct(String(alertsProduct[i].id), user, String(productId));
+        if (userSubscribe) {
+          alerts.value.push({
+            id: alertsProduct[i].id,
+            name: alertsProduct[i].name,
+            description: alertsProduct[i].description,
+            subscribe: true
+          });
+        } else {
+          alerts.value.push({
+            id: alertsProduct[i].id,
+            name: alertsProduct[i].name,
+            description: alertsProduct[i].description,
+            subscribe: false
+          });
+        }
+      }
+    }
+  }
+}
+
 onMounted(() => {
   fetchProduct();
+  initAlerts();
 });
 </script>
 
@@ -369,4 +486,66 @@ onMounted(() => {
   right: 10px;
 }
 
+.alertItem {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+}
+
+.alertContainer {
+  width: 300px;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.switch {
+  display: inline-block;
+  position: relative;
+  width: 55px;
+  height: 30px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.switch input {
+  position: absolute;
+  top: -30px;
+  left: -30px;
+  width: 0;
+  height: 0;
+}
+
+.switch input + span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #99b4df;
+  border-radius: 20px;
+}
+
+.switch input + span:before {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  transition: all .5s;
+}
+
+.switch input:checked + span:before {
+  left: 30px;
+}
+
+.switch input:checked + span {
+  background: #007bff;
+}
 </style>

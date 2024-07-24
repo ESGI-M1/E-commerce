@@ -25,7 +25,7 @@
             <th>Statut</th>
             <th>Raison</th>
             <th>Méthode de retour</th>
-            <th></th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -40,15 +40,16 @@
             <td v-else>
               Utilisateur non trouvé
             </td>
-            <td class="product-info" v-if="returnProduct.variantOption">
+            <td class="product-info" v-if="returnProduct.ProductVariants">
               <span class="product-name">
-                #{{ returnProduct.variantOption.productVariant.product.id }} {{ returnProduct.variantOption.productVariant.product.name }}
+                #{{ returnProduct.ProductVariants.Product.id }} {{ returnProduct.ProductVariants.Product.name }}
               </span>
               <span class="product-variant">
-                | {{ returnProduct.variantOption.productVariant.name }}
-              </span>
-              <span class="product-option">
-                | {{ returnProduct.variantOption.color }} | {{ returnProduct.variantOption.size }}
+                {{ returnProduct.ProductVariants.reference }} :
+                <span v-for="(attributeValue, index) in returnProduct.ProductVariants.attributeValues" :key="index">
+                  {{ attributeValue.value }}
+                  <span v-if="index < returnProduct.ProductVariants.attributeValue - 1">, </span>
+                </span>
               </span>
               <span class="product-quantity">x{{ returnProduct.quantity }}</span>
             </td>
@@ -65,6 +66,9 @@
                 @confirmed="validate(returnProduct.id)"
               >
               </fancy-confirm>
+              <a v-else :href="downloadCreditNoteUrl(returnProduct.id)" target="_blank">
+                Télécharger l'avoir' <i class="fas fa-file-invoice"></i>
+              </a>
             </td>
           </tr>
           <tr v-else>
@@ -80,6 +84,9 @@
 import axios from '../../tools/axios';
 import { ref, onMounted, inject, computed } from 'vue'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+const downloadCreditNoteUrl = (returnId: number) => {
+  return import.meta.env.VITE_API_BASE_URL + '/return/creditNote/' + returnId
+}
 
 const showNotification = inject('showNotification');
 
@@ -100,19 +107,12 @@ interface ProductVariant {
   product: Product
 }
 
-interface VariantOption {
-  id: number
-  color: string
-  size: string
-  productVariant: ProductVariant
-}
-
 interface ReturnProduct {
   id: number
   orderId: number | null
   createdAt: string
   user: User | null
-  variantOption: VariantOption
+  productVariant: ProductVariant
   quantity: number
   status: string
   reason: string

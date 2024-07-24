@@ -113,35 +113,6 @@ function closeCookiePage() {
   showCookies.value = false;
 }
 
-async function checkUserAsAcceptedCookie()  {
-  const user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
-  if (user) {
-    const asCookie = await asAnyCookie(user);
-    if (!asCookie) {
-      showCookies.value = true
-    }
-  }
-}
-
-async function asAnyCookie(userId: number) {
-  try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/cookie/user/${userId}`);
-    if (response.data) {
-      return true;
-    }
-  } catch (e) {
-    return false;
-  }
-}
-
-function showCookiePage() {
-  showCookies.value = true;
-}
-
-function closeCookiePage() {
-  showCookies.value = false;
-}
-
 onMounted(() => {
   cartStore.fetchCartItemsAuth()
   shopStore.fetchShop()

@@ -121,7 +121,8 @@
 </template>
 
 
-<script setup lang="ts">import axios from '../../tools/axios';
+<script setup lang="ts">
+import axios from '../../tools/axios';
 import { ref, onMounted, computed, inject } from 'vue';
 import { z } from 'zod';
 import FancyConfirm from '../../components/ConfirmComponent.vue';

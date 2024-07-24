@@ -103,17 +103,25 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from '../tools/axios';
-import FancyConfirm from '../components/ConfirmComponent.vue';
-import Cookies from 'js-cookie';
-import { load } from '../components/loading/loading'; 
+import { z } from 'zod'
+import axios from '../tools/axios'
+import FancyConfirm from '../components/ConfirmComponent.vue'
+import Cookies from 'js-cookie'
+import { load } from '../components/loading/loading'
 
+// Regex pour la validation du téléphone
+const phoneRegex = /^(\+33[1-9]\d{8}|0\d{9})$/;
+
+// Initialisation du loader
 const { loading, startLoading, stopLoading } = load();
+
+// Injection de la fonction de notification
 const showNotification = inject('showNotification');
+
+// Références et variables
 const user = ref(null)
 const router = useRouter()
 const isOpen = ref(false)
@@ -124,7 +132,28 @@ const form = ref({
   postalCode: '',
   city: '',
   country: '',
+  email: '',
+  firstname: '',
+  lastname: '',
+  phone: '',
 });
+
+// Définition des schémas Zod pour la validation
+const userSchema = z.object({
+  id: z.number().optional(),
+  firstname: z.string().min(1, 'Le prénom est requis'),
+  lastname: z.string().min(1, 'Le nom est requis'),
+  email: z.string().email('Adresse email invalide'),
+  phone: z.string().optional().nullable().refine(value => value === null || value === '' || phoneRegex.test(value), {
+    message: "Le numéro de téléphone doit être au format +33xxxxxxxxx ou 0xxxxxxxx",
+  }),
+  role: z.string(),
+  active: z.boolean().optional(),
+  password: z.string().optional()
+});
+
+type User = z.infer<typeof userSchema>;
+
 let modeLabel = ref('');
 let editingAddress = null;
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
@@ -138,6 +167,7 @@ const fetchUserProfile = async () => {
   user.value = response.data;
 };
 
+// Fonction pour ouvrir les modaux d'édition
 const openeditFirstnameModal = (firstname: string) => {
   isOpen.value = true;
   modeLabel.value = 'le prénom'
@@ -186,6 +216,7 @@ const openEditAddressModal = (address) => {
   form.value.country = address.country;
 };
 
+// Fonction pour supprimer une adresse
 const deleteAddress = async (id) => {
   try {
     startLoading();
@@ -200,50 +231,85 @@ const deleteAddress = async (id) => {
   }
 }
 
+// Fonction pour supprimer un utilisateur
 const deleteUser = async (userId: number) => {
   try {
     startLoading();
-  await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
-  router.push('/')
-} finally {
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`)
+    router.push('/')
+  } finally {
     stopLoading();
   }
 }
 
+// Fonction pour gérer l'envoi du formulaire
 const handleSubmit = async () => {
   if (!authToken) {
     return router.push('/')
   }
+
+  try {
     let response;
+
     if (mode.value === 'addAddress') {
+      // Validation des données du formulaire pour l'ajout d'adresse
+      const addressSchema = z.object({
+        street: z.string().min(1, 'La rue est requise'),
+        postalCode: z.string().min(1, 'Le code postal est requis'),
+        city: z.string().min(1, 'La ville est requise'),
+        country: z.string().min(1, 'Le pays est requis'),
+      });
+
+      addressSchema.parse(form.value);
+
       response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addressusers`, form.value);
       user.value.deliveryAddress.push(response.data);
       showNotification('Adresse de livraison ajoutée avec succès', 'success');
     } else if (mode.value === 'editAddress' && editingAddress) {
+      // Validation des données du formulaire pour la modification d'adresse
+      const addressSchema = z.object({
+        street: z.string().min(1, 'La rue est requise'),
+        postalCode: z.string().min(1, 'Le code postal est requis'),
+        city: z.string().min(1, 'La ville est requise'),
+        country: z.string().min(1, 'Le pays est requis'),
+      });
+
+      addressSchema.parse(form.value);
+
       response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/addressusers/` + form.value.id, form.value);
       Object.assign(editingAddress, response.data);
       showNotification('Adresse de livraison modifiée avec succès', 'success');
     } else {
-      try {
+      // Validation des données utilisateur pour l'édition des informations personnelles
       const field = mode.value;
+      userSchema.pick({ [field]: true }).parse({ [field]: form.value[field] });
+
       response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/users/${authToken}`, { [field]: form.value[field] });
       user.value[field] = response.data[field];
       showNotification('Informations enregistrées avec succès', 'success');
-      } catch (error) {
-        showNotification('Erreur lors de la modification des informations', 'error');
-      }
     }
-    closeModal();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // Afficher les erreurs de validation Zod
+      error.errors.forEach(e => showNotification(e.message, 'error'));
+    } else {
+      showNotification('Erreur lors de la modification des informations', 'error');
+    }
+  }
+  closeModal();
 };
 
+// Fonction pour fermer le modal
 const closeModal = () => {
   isOpen.value = false;
 }
 
+// Récupérer les informations utilisateur au montage
 onMounted(async () => {
   await fetchUserProfile()
 })
 </script>
+
 
 <style scoped>
 

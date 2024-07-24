@@ -3,7 +3,7 @@ import { ref, inject } from 'vue';
 import Navbar from './components/navbar/NavbarComponent.vue';
 import Footer from './components/navbar/FooterComponent.vue';
 import Sidebar from './components/sidebar/SidebarComponent.vue';
-import { sidebarWidth, isMobile } from './components/sidebar/state';
+import { collapsed, sidebarWidth, isMobile } from './components/sidebar/state';
 import NotificationComponent from './components/notification/NotificationComponent.vue';
 import LoadingComponent from './components/loading/LoadingComponent.vue';
 import { load } from './components/loading/loading';
@@ -11,14 +11,27 @@ import { load } from './components/loading/loading';
 const { loading } = load();
 const notificationMessage = inject('notificationMessage', ref(''));
 const notificationType = inject('notificationType', ref(''));
+
+const handleClick = () => {
+  collapsed.value ||= true;
+};
 </script>
 
 <template>
   <div>
     <Sidebar v-if="$route.meta.requiresAdmin" />
     <Navbar />
-    <div id="page-content" :style="{ marginLeft: $route.meta.requiresAdmin && !isMobile ? sidebarWidth : 0 }">
-      <router-view />
+    <div id="page-content-wrapper">
+      <div v-if="isMobile" id="overlay" :class="{ active: !collapsed }"></div>
+      <div
+        @click="handleClick"
+        id="page-content"
+        :style="{
+          marginLeft: $route.meta.requiresAdmin && !isMobile ? sidebarWidth : 0,
+        }"
+      >
+        <router-view />
+      </div>
     </div>
   </div>
   <Footer v-if="!$route.meta.requiresAdmin" />
@@ -27,14 +40,6 @@ const notificationType = inject('notificationType', ref(''));
 </template>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  overflow-x: auto;
-}
-
 #nav {
   padding: 30px;
 }
@@ -46,6 +51,26 @@ const notificationType = inject('notificationType', ref(''));
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+#page-content-wrapper {
+  position: relative;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+#overlay.active {
+  background: rgba(0, 0, 0, 0.5);
+  transition: background 0.3s ease;
 }
 
 #page-content {

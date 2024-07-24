@@ -121,6 +121,7 @@ onMounted(() => {
   border-bottom: 1px solid #ddd;
   position: fixed;
   top: 0;
+  z-index: 2;
 }
 
 .navbar-section {
@@ -157,11 +158,10 @@ onMounted(() => {
   right: -20px;
   background-color: white;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  z-index: 1;
   min-width: 160px;
   border-radius: 4px;
   overflow: hidden;
-  z-index: 10000;
+  z-index: 3;
 }
 
 .dropdown-item {

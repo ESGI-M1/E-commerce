@@ -40,7 +40,7 @@ import { collapsed, toggleSidebar, sidebarWidth } from './state'
   background-color: var(--sidebar-bg-color);
   float: left;
   position: fixed;
-  z-index: 1;
+  z-index: 2;
   top: 48px;
   left: 0;
   bottom: 0;
@@ -53,7 +53,7 @@ import { collapsed, toggleSidebar, sidebarWidth } from './state'
 
 .sidebar.collapsed {
   width: 0;
-  padding: 0;
+  padding: 0.5em 0;
 }
 
 .sidebar a {
@@ -73,7 +73,7 @@ import { collapsed, toggleSidebar, sidebarWidth } from './state'
   padding: 0.75em;
   color: black;
   transition: 0.2s linear;
-  z-index: 9999;
+  z-index: 3;
 }
 
 .rotate-180 {

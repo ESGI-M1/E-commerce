@@ -31,7 +31,7 @@ const syncDatabaseAndLoadFixtures = async () => {
   try {
     await connection.sync({
       alter: true,
-     // force: options["--force"],
+      //force: options["--force"],
     });
     console.log("Database synced");
 

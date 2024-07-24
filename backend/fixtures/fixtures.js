@@ -1,5 +1,6 @@
-const { User, Product, AddressUser, AddressOrder, Favorite, Category, Order, Cart, Shop, CartProduct, PromoCode, ProductVariant, Attribute, AttributeValue } = require('../models');
+const { User, Product, AddressUser, Favorite, Category, Shop, PromoCode, ProductVariant, Attribute, AttributeValue } = require('../models');
 
+// Fonction utilitaire pour trouver ou créer une entrée
 const findOrCreate = async (model, condition, data) => {
     const existingEntry = await model.findOne({ where: condition });
     if (existingEntry) {
@@ -10,6 +11,7 @@ const findOrCreate = async (model, condition, data) => {
     return newEntry;
 };
 
+// Fonction utilitaire pour trouver ou créer un attribut
 const findOrCreateAttribute = async (name) => {
     const existingAttribute = await Attribute.findOne({ where: { name } });
     if (existingAttribute) {
@@ -19,6 +21,7 @@ const findOrCreateAttribute = async (name) => {
     return Attribute.create({ name });
 };
 
+// Fonction utilitaire pour trouver ou créer une valeur d'attribut
 const findOrCreateAttributeValue = async (value, attributeId) => {
     const existingAttributeValue = await AttributeValue.findOne({ where: { value, attributeId } });
     if (existingAttributeValue) {
@@ -28,6 +31,7 @@ const findOrCreateAttributeValue = async (value, attributeId) => {
     return AttributeValue.create({ value, attributeId });
 };
 
+// Fonction pour créer les utilisateurs
 const usersFixtures = async () => {
     const admin = await findOrCreate(User, { email: 'admin@zorglux.com' }, {
         firstname: 'admin',
@@ -61,13 +65,6 @@ const usersFixtures = async () => {
         userId: admin.id,
     });
 
-    const addressOrder = await findOrCreate(AddressOrder, { street: '123 Rue du moulin', postalCode: '60000', city: 'Beauvais', country: 'France' }, {
-        street: '123 Rue du moulin',
-        postalCode: '60000',
-        city: 'Beauvais',
-        country: 'France',
-    });
-
     await productsFixtures();
 
     await findOrCreate(Favorite, { userId: user.id, productId: 1 }, {
@@ -78,10 +75,6 @@ const usersFixtures = async () => {
     await findOrCreate(Favorite, { userId: user.id, productId: 2 }, {
         userId: user.id,
         productId: 2,
-    });
-
-    const cart = await findOrCreate(Cart, { userId: user.id }, {
-        userId: user.id,
     });
 
     const productVariant = await findOrCreate(ProductVariant, { reference: 'variant-1' }, {
@@ -95,21 +88,9 @@ const usersFixtures = async () => {
     const attributeSize = await findOrCreateAttribute('Size');
     const attributeValueL = await findOrCreateAttributeValue('L', attributeSize.id);
     await productVariant.addAttributeValues([attributeValueL]);
-
-    await findOrCreate(CartProduct, { cartId: cart.id, productVariantId: productVariant.id }, {
-        cartId: cart.id,
-        productVariantId: productVariant.id,
-        quantity: 2,
-    });
-
-    await findOrCreate(Order, { userId: user.id, totalAmount: 40.5 }, {
-        userId: user.id,
-        totalAmount: 40.5,
-        deliveryDate: new Date(),
-        deliveryMethod: addressOrder.id,
-    });
 };
 
+// Fonction pour créer les produits et variantes
 const productsFixtures = async () => {
     const category_Action = await findOrCreate(Category, { slug: 'action' }, {
         name: 'Action',
@@ -186,7 +167,7 @@ const productsFixtures = async () => {
     await shopFixtures();
 };
 
-
+// Fonction pour créer la boutique
 const shopFixtures = async () => {
     const shop = await findOrCreate(Shop, { name: 'Zorglux' }, {
         name: 'Zorglux',
@@ -212,14 +193,18 @@ const shopFixtures = async () => {
     await shop.addMainCategories(categories);
 };
 
+// Fonction pour créer les codes promo
 const promoCodeFixtures = async () => {
     await findOrCreate(PromoCode, { code: 'PROMO10' }, {
         code: 'PROMO10',
-        discount: 10,
+        discountPercentage: 10, // Assurez-vous que la clé correspond à la colonne dans votre modèle
+        startDate: new Date(),  // Ajouter une date de début
+        endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)), // Ajouter une date de fin (un mois après)
         active: true,
     });
 };
 
+// Exécution des fixtures
 (async () => {
     try {
         await usersFixtures();

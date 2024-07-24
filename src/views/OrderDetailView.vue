@@ -25,7 +25,7 @@
       </small>
       <div>
         Statut:
-        <p :class="['order-status', order.status]">{{ order.status }}</p>
+        <p :class="['order-status', order.statusHistory[0].orderStatus.name]">{{ order.statusHistory[0].orderStatus.name }}</p>
       </div>
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
       <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
@@ -57,7 +57,7 @@
           </div>
           <p v-else class="new-price">{{ cartProduct.productVariant.price }} €</p>
           <button @click="addToCart(cartProduct.productVariant.id, 1)" class="btn-details">Commander à nouveau</button>
-          <button v-if="!cartProduct.productVariant.returned && order.status == 'completed'" @click="returnItem(order.id, cartProduct.productVariant.id, cartProduct.quantity)" class="btn-details">Retourner l'article</button>
+          <button v-if="!cartProduct.productVariant.returned && order.statusHistory[0].orderStatus.name == 'completed'" @click="returnItem(order.id, cartProduct.productVariant.id, cartProduct.quantity)" class="btn-details">Retourner l'article</button>
           <button v-else-if="cartProduct.productVariant.returned" @click="returnItem(order.id, cartProduct.productVariant.id, cartProduct.quantity)" class="btn-details">Voir les détails ({{ cartProduct.productVariant.returned.status }})</button>
         </div>
       </div>

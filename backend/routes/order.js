@@ -1,9 +1,9 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, ProductVariant, AttributeValue, Attribute, BillingAddress } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, ProductVariant, AttributeValue, Attribute, BillingAddress, OrderStatus, OrderStatusHistory } = require("../models");
 const router = new Router();
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
@@ -17,9 +17,23 @@ router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
         {
           model: AddressOrder,
           as: 'addressOrder',
+        },
+        {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          include: [
+            {
+              model: OrderStatus,
+              as: 'orderStatus',
+            }
+          ]
         }
       ],
-      order: [['createdAt', 'DESC']],
+      order: [
+        ['createdAt', 'DESC'],
+        [{ model: OrderStatusHistory, as: 'statusHistory' }, 'changeDate', 'DESC']
+      ],
+      
     });
     res.json(orders);
   } catch (e) {
@@ -34,11 +48,23 @@ router.get('/own', checkAuth, async (req, res, next) => {
     const ordersWithCarts = await Order.findAll({
       where: { 
         userId,
-        status: {
-          [Op.ne]: 'cancelled',
-        }
       },
       include: [
+        {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          include: [
+            {
+              model: OrderStatus,
+              as: 'orderStatus',
+              where: {
+                name: {
+                  [Op.ne]: 'cancelled',
+                }
+              }
+            }
+          ]
+        },
         {
           model: Cart,
           as: 'carts',
@@ -58,6 +84,9 @@ router.get('/own', checkAuth, async (req, res, next) => {
           required: false,
         },
       ],
+      order: [
+        [{ model: OrderStatusHistory, as: 'statusHistory' }, 'changeDate', 'DESC']
+      ],
     });
 
     res.json(ordersWithCarts);
@@ -66,7 +95,6 @@ router.get('/own', checkAuth, async (req, res, next) => {
     next(e);
   }
 });
-
 
 router.get('/:id', checkAuth, async (req, res, next) => {
   try {
@@ -118,6 +146,21 @@ router.get('/:id', checkAuth, async (req, res, next) => {
       },
       include: [
         {
+          model: OrderStatusHistory,
+          as: 'statusHistory',
+          include: [
+            {
+              model: OrderStatus,
+              as: 'orderStatus',
+              where: {
+                name: {
+                  [Op.ne]: 'cancelled',
+                }
+              }
+            }
+          ]
+        },
+        {
           model: User,
           as: 'user',
         },
@@ -126,7 +169,10 @@ router.get('/:id', checkAuth, async (req, res, next) => {
           as: 'addressOrder',
         }
       ],
-      order: [['createdAt', 'DESC']],
+      order: [
+        ['createdAt', 'DESC'],
+        [{ model: OrderStatusHistory, as: 'statusHistory' }, 'changeDate', 'DESC']
+      ],
     });
 
     if (!order || !cart) return res.status(404).json({ error: 'Commande ou panier non trouvé' });
@@ -155,7 +201,6 @@ router.post('/', checkAuth, async (req, res, next) => {
     const { total, method, billingId } = req.body;
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + 3);
-
     const newOrder = await Order.create({
         userId: req.user.id,
         totalAmount: parseFloat(total),
@@ -196,24 +241,43 @@ router.patch("/:id", checkAuth, async (req, res) => {
   if (req.user.id !== order.userId) {
     return res.sendStatus(403);
   }
+
+  const status = await OrderStatus.findOne({
+    where: {
+      name: 'cancelled',
+    }
+  });
+
+  await OrderStatusHistory.create({
+    orderId: order.id,
+    statusId: status.id,
+    changeDate: new Date(),
+  });
+
   if (order) {
-    order.status = 'cancelled';
-    await order.save();
-      res.json(order);
+    res.json(order);
   } else {
-      res.sendStatus(404);
+    res.sendStatus(404);
   }
 });
 
 router.patch("/admin/:id", checkRole({ roles: "admin" }), async (req, res) => {
   const order = await Order.findByPk(req.params.id);
+  const status = await OrderStatus.findOne({
+    where: {
+      name: 'completed',
+    }
+  });
 
+  await OrderStatusHistory.create({
+    orderId: order.id,
+    statusId: status.id,
+    changeDate: new Date(),
+  });
   if (order) {
-    order.status = 'completed';
-    await order.save();
-      res.json(order);
+    res.json(order);
   } else {
-      res.sendStatus(404);
+    res.sendStatus(404);
   }
 });
 

@@ -304,7 +304,6 @@ const handlePayment = async (payment: string) => {
 
   }
   newAddress = response.data;
-
   if (newAddress) {
     try {
       let billing = null
@@ -330,14 +329,12 @@ const handlePayment = async (payment: string) => {
         console.error(error)
       }
     }
-
-      const order = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/orders`, {
+    const order = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/orders`, {
         total: discountedTotal.value,
         method: newAddress.id,
-        userId: authToken,
         billingId: billing.data.id,
       });
-
+    
       if (payment == 'stripe') {
         const stripePromise = loadStripe(
           `${import.meta.env.VITE_PUBLIC_KEY_STRIPE}`

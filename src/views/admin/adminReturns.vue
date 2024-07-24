@@ -66,7 +66,9 @@
                 @confirmed="validate(returnProduct.id)"
               >
               </fancy-confirm>
-              <span v-else>Aucune action</span>
+              <a v-else :href="downloadCreditNoteUrl(returnProduct.id)" target="_blank">
+                Télécharger l'avoir' <i class="fas fa-file-invoice"></i>
+              </a>
             </td>
           </tr>
           <tr v-else>
@@ -82,6 +84,9 @@
 import axios from '../../tools/axios';
 import { ref, onMounted, inject, computed } from 'vue'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
+const downloadCreditNoteUrl = (returnId: number) => {
+  return import.meta.env.VITE_API_BASE_URL + '/return/creditNote/' + returnId
+}
 
 const showNotification = inject('showNotification');
 

@@ -16,6 +16,10 @@ module.exports = function (connection) {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      paymentIntentId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       amount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,

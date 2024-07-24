@@ -59,7 +59,6 @@ app.use('/favorites', FavoriteRouter);
 app.use('/orders', OrderRouter);
 app.use('/return', ReturnRouter);
 app.use('/cartproducts', CartProductsRouter);
-app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
 app.use('/stripe', StripeRouter);
 app.use('/alerts', AlertsRouter);
 app.use('/newsletters', NewsLetterRouter);

@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar">
     <div class="navbar-section logo">
-      <a href="/" class="nav-link">Accueil</a>
+      <RouterLink :to="{ name: 'Accueil' }" class="nav-link">Accueil</RouterLink>
       <!-- Logo -->
     </div>
 
@@ -17,10 +17,10 @@
 
     <div class="navbar-section actions">
       <!-- Shopping Cart Icon -->
-      <a class="icon" href="/cart">
+      <RouterLink :to="{ name: 'Panier' }" class="icon">
         <i class="fas fa-shopping-cart"></i>
         <span class="badge">{{ cartStore.getCartItemCount }}</span>
-      </a>
+      </RouterLink>
 
       &nbsp;
       <!-- Search Bar -->
@@ -33,7 +33,7 @@
       />
 
       <!-- Login Button or User Icon -->
-      <div v-if="isAuthenticated" class="user-menu">
+      <div v-if="userStore.isAuthenticated" class="user-menu">
         <i class="fas fa-user"></i>
         <div class="dropdown">
           <RouterLink :to="{ name: 'Profile' }" class="dropdown-item">Mon profil</RouterLink>
@@ -50,17 +50,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
 import { useShopStore } from '@/store/shop'
 import { useCartStore } from '@/store/cart'
-import Cookies from 'js-cookie'
+import { useUserStore } from '@/store/user'
 
 const router = useRouter()
 const productsStore = useProductsStore()
 const shopStore = useShopStore()
 const cartStore = useCartStore()
+const userStore = useUserStore()
 
 const applyFilters = () => {
 
@@ -72,18 +73,14 @@ router.push({
 });
 };
 
-const isAuthenticated = computed(() => {
-  return Cookies.get('USER') !== undefined
-})  
-
 const logout = () => {
-  Cookies.remove('USER')
-  router.push('/')
+  userStore.logout()
 }
 
 onMounted(() => {
   cartStore.fetchCartItemsAuth()
   shopStore.fetchShop()
+  userStore.fetchUser()
 })
 </script>
 

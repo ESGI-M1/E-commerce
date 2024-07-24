@@ -5,6 +5,34 @@ const checkRole = require("../middlewares/checkRole");
 
 const router = new Router();
 
+router.get("/", checkRole({ roles: "admin" }), async (req, res, next) => {
+
+    try{
+        const productVariants = await ProductVariant.findAll({
+            where: req.query,
+            include: [
+                {
+                    model: Image,
+                    as: "images",
+                },
+                {
+                    model: AttributeValue,
+                    as: "attributeValues",
+                    include: {
+                        model: Attribute,
+                        as: "attribute",
+                    },
+                },
+            ],
+        });
+        res.json(productVariants);
+    }
+    catch (e) {
+        next(e);
+    }
+
+});
+
 router.get("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const productId = parseInt(req.params.id);

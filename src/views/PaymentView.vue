@@ -24,7 +24,6 @@
           </button>
         </div>
 
-        <!-- Point relais form -->
         <div class="point-relais-form" v-if="deliveryOption === 'pointRelais'">
           <h3>Point relais</h3>
           <label>
@@ -33,7 +32,6 @@
           </label>
         </div>
 
-        <!-- Livraison à domicile form -->
         <div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
           <h3>Livraison à domicile</h3>
           <div v-if="carts.user && carts.user.deliveryAddress" v-for="(address, index) in carts.user.deliveryAddress" :key="address.id" class="delivery-address">
@@ -75,7 +73,7 @@
           </div>
           <div class="check-address">
             <label>
-              <input type="checkbox" :checked="checked" @change="checkBilling($event.target.checked)" />
+              <input type="checkbox" :checked="checked" @change="checkBilling(checked)" />
               Utiliser la même adresse de facturation
             </label>
           </div>
@@ -105,6 +103,7 @@
               Pays :
               <input type="text" v-model="billingAddress.country" placeholder="Pays" required>
             </label>
+            <p v-if="emptyBilling" class="error-message">{{ emptyBilling }}</p>
           </div>
         </div>
       </div>
@@ -189,6 +188,7 @@ const pointRelaisPostalCode = ref('')
 const carts = ref(null)
 const imageUrl = import.meta.env.VITE_API_BASE_URL
 const checked = ref(true)
+const emptyBilling = ref('')
 
 interface Address {
   street: string;
@@ -277,7 +277,11 @@ const discountedTotal = computed(() => {
 const handlePayment = async (payment: string) => {
   let newAddress = null;
   let response = null;
-  
+  if (!checked.value && (billingAddress.firstname === '' || billingAddress.lastname === '' || billingAddress.street === '' || billingAddress.postalCode === '' || billingAddress.city === '' || billingAddress.country === '')) {
+  emptyBilling.value = 'Veuillez renseigner tous les champs';
+  return;
+  }
+
   if (deliveryOption.value === 'pointRelais') {
       const randomStreet = Math.random().toString(36).substring(7);
       response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/addressorders`, {
@@ -378,7 +382,6 @@ const selectDeliveryOption = (option: string) => {
 }
 
 const checkBilling = (option: boolean) => {
-  console.log(option)
   checked.value = !option
 }
 
@@ -447,7 +450,7 @@ header {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background-color: #fff; /* Background color set to white */
+  background-color: #fff;
   margin-top: 10px;
 }
 
@@ -554,5 +557,9 @@ input[type='text'] {
 
 .new-price {
   text-align: right;
+}
+
+.error-message {
+  color: red;
 }
 </style>

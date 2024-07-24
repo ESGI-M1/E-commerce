@@ -275,7 +275,6 @@ router.post("/hold", async (req, res, next) => {
 
     for (const cartProduct of cart.CartProducts) {
       const productVariant = cartProduct.productVariant;  
-      console.log("dbzadbza",cartProduct) 
       if (productVariant.stock < 1) return res.status(400).json({ error: 'Not enough stock' });
 
       productVariant.stock -= 1;

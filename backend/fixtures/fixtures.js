@@ -1,4 +1,4 @@
-const { User, Product, AddressUser, AddressOrder, Favorite, Category, Shop, PromoCode, ProductVariant, Attribute, AttributeValue, OrderStatus, Order, Cart,  Shop, Alert, Cookie } = require('../models');
+const { User, Product, AddressUser, Favorite, Category, Shop, PromoCode, ProductVariant, Attribute, AttributeValue, OrderStatus, Alert, Cookie } = require('../models');
 
 const findOrCreate = async (model, condition, data) => {
     const existingEntry = await model.findOne({ where: condition });
@@ -26,6 +26,15 @@ const findOrCreateAttributeValue = async (value, attributeId) => {
         return existingAttributeValue;
     }
     return AttributeValue.create({ value, attributeId });
+};
+
+const findOrCreateCookie = async () => {
+    const cookie = await Cookie.findOne();
+    if (cookie) {
+        console.log('Cookie already exists');
+        return cookie;
+    }
+    cookieFixtures();
 };
 
 const usersFixtures = async () => {
@@ -214,32 +223,13 @@ const orderStatusFixtures = async () => {
         await usersFixtures();
         await promoCodeFixtures();
         await orderStatusFixtures();
+        await alertsFixtures();
+        await findOrCreateCookie();
         console.log('Fixtures data has been added successfully.');
     } catch (error) {
         console.error('Error adding fixtures data:', error);
     }
 })();
-
-const alertsFixtures = async () => {
-    const alertsName = ["news_letter", "new_product", "restock_product", "change_product_price"]
-    const alertsDescriptions = ["Vous inscrit à la newsletter et vous envoi les dernière news", "Vous informe de la sortie d'un nouveau produit", "Vous informe du restock du produit", "Vous informe du changement de prix du produit"];
-
-    for (let i= 0; i < alertsName.length; i++) {
-        let existAlert = await Alert.findOne({
-            where: {
-                name: alertsName[i]
-            }
-        });
-        if (!existAlert) {
-            await Alert.create({
-                name: alertsName[i],
-                description: alertsDescriptions[i]
-            });
-        }
-    }
-}
-
-alertsFixtures();
 
 const cookieFixtures = async () => {
     const types = ["essentiels"];
@@ -262,4 +252,25 @@ const cookieFixtures = async () => {
     }
 }
 
-cookieFixtures();
+
+const alertsFixtures = async () => {
+    const alertsName = ["news_letter", "new_product", "restock_product", "change_product_price"]
+    const alertsDescriptions = ["Vous inscrit à la newsletter et vous envoi les dernière news", "Vous informe de la sortie d'un nouveau produit", "Vous informe du restock du produit", "Vous informe du changement de prix du produit"];
+
+    for (let i= 0; i < alertsName.length; i++) {
+        let existAlert = await Alert.findOne({
+            where: {
+                name: alertsName[i]
+            }
+        });
+        if (!existAlert) {
+            await Alert.create({
+                name: alertsName[i],
+                description: alertsDescriptions[i]
+            });
+        }
+    }
+}
+
+
+

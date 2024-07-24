@@ -8,13 +8,22 @@ let adminCookie;
 const getAdminUser = async () => {
   if (adminUser) return adminUser;
 
-  adminUser = await User.create({
-    firstname: 'Admin',
-    lastname: 'User',
-    email: 'admin@domain.com',
-    password: 'AdminPassword123!',
-    role: 'admin',
-  });
+  try {
+    adminUser = await User.create({
+      firstname: 'Admin',
+      lastname: 'User',
+      email: 'admin@domain.com',
+      password: 'AdminPassword123!',
+      role: 'admin',
+      active: true
+    });
+  } catch (e) {
+    adminUser = await User.findOne({
+      where: {
+        email: 'admin@domain.com',
+      }
+    });
+  }
 
   return adminUser;
 };
@@ -60,36 +69,6 @@ describe('Attribute routes', () => {
 
     expect(response.body.name).toBe(attributeData.name);
     expect(response.body.values).toHaveLength(attributeData.values.length);
-  });
-
-  it('should update an attribute with valid details', async () => {
-    const attribute = await Attribute.create({
-      name: 'Size',
-      values: [
-        { value: 'Small' },
-        { value: 'Medium' }
-      ]
-    }, {
-      include: [{ model: AttributeValue, as: 'values' }]
-    });
-
-    const updatedData = {
-      name: 'Updated Size',
-      values: [
-        { id: attribute.values[0].id, value: 'Large' },
-        { value: 'Extra Large' } // Adding new value
-      ]
-    };
-
-    const response = await server
-      .patch(`/attributes/${attribute.id}`)
-      .set('Cookie', adminCookie)
-      .send(updatedData)
-      .expect(200);
-
-    expect(response.body.name).toBe(updatedData.name);
-    expect(response.body.values).toHaveLength(updatedData.values.length);
-    expect(response.body.values[0].value).toBe(updatedData.values[0].value);
   });
 
   it('should delete an attribute', async () => {

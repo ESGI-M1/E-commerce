@@ -1,5 +1,5 @@
 <template>
-  <div class="cart">
+  <div class="cart" v-if="!notFound">
     <header class="header">
       <h1>Ma commande n°{{ orderId }}</h1>
       <button v-if="order" @click="downloadInvoice(order.id)" class="btn-details">
@@ -29,16 +29,19 @@
       </div>
       <div class="order-total">Total: {{ order.totalAmount }} €</div>
       <div v-for="cartProduct in order.Cart.CartProducts" :key="cartProduct.id" class="cart-item">
-        <div v-if="cartProduct.variantOption.productVariant.images && cartProduct.variantOption.productVariant.images.length > 0" class="product-image-container">
-          <img :src="cartProduct.variantOption.productVariant.images[0].url ? cartProduct.variantOption.productVariant.images[0].url : '../../produit_avatar.jpg'"
-               :alt="cartProduct.variantOption.productVariant.images[0].description ? cartProduct.variantOption.productVariant.images[0].description : cartProduct.variantOption.productVariant.name"
+        <div v-if="cartProduct.productVariant.images && cartProduct.productVariant.images.length > 0" class="product-image-container">
+          <img :src="imageUrl + cartProduct.productVariant.images[0].id"
+               :alt="cartProduct.productVariant.images[0].description"
                class="product-image" />
         </div>
-        <div class="item-details" @click="showProductDetails(cartProduct.variantOption.productVariant.product.id)">
-          <h3>{{ cartProduct.variantOption.productVariant.product.name }} | {{ cartProduct.variantOption.productVariant.name }}</h3>
+        <div class="item-details" @click="showProductDetails(cartProduct.productVariant.Product.id)">
+          <h3>{{ cartProduct.productVariant.Product.name }}</h3>
+          <p v-for="attributeValue in cartProduct.productVariant.attributeValues" :key="attributeValue.id">
+            {{ attributeValue.attribute.name }} - {{ attributeValue.value }}
+          </p>
           <p>
             Catégorie:
-            <span v-if="cartProduct.variantOption.productVariant.product.Categories" v-for="category in cartProduct.variantOption.productVariant.product.Categories" :key="category.id">
+            <span v-if="cartProduct.productVariant.Product.Categories" v-for="category in cartProduct.productVariant.Product.Categories" :key="category.id">
               {{ category.name }}
             </span>
           </p>
@@ -47,56 +50,75 @@
         <div class="order-actions">
           <div v-if="order.Cart.promoCode">
             <div class="first-price">
-              <p class="old-price">{{ cartProduct.variantOption.price }} €</p>
+              <p class="old-price">{{ cartProduct.productVariant.price }} €</p>
               <span class="discount">(-{{ order.Cart.promoCode.discountPercentage }}%)</span>
             </div>
-            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.variantOption.price, order.Cart.promoCode.discountPercentage) }} €</p>
+            <p class="new-price text-left">{{ calculateDiscountedPrice(cartProduct.productVariant.price, order.Cart.promoCode.discountPercentage) }} €</p>
           </div>
-          <p v-else class="new-price">{{ cartProduct.variantOption.price }} €</p>
-          <button @click="addToCart(cartProduct.variantOption.id, 1)" class="btn-details">Commander à nouveau</button>
-          <button v-if="!cartProduct.variantOption.returned && order.status == 'completed'" @click="returnItem(order.id, cartProduct.variantOption.id, cartProduct.quantity)" class="btn-details">Retourner l'article</button>
-          <button v-else-if="cartProduct.variantOption.returned" @click="returnItem(order.id, cartProduct.variantOption.id, cartProduct.quantity)" class="btn-details">Voir les détails ({{ cartProduct.variantOption.returned.status }})</button>
+          <p v-else class="new-price">{{ cartProduct.productVariant.price }} €</p>
+          <button @click="addToCart(cartProduct.productVariant.id, 1)" class="btn-details">Commander à nouveau</button>
+          <button v-if="!cartProduct.productVariant.returned && order.status == 'completed'" @click="returnItem(order.id, cartProduct.productVariant.id, cartProduct.quantity)" class="btn-details">Retourner l'article</button>
+          <button v-else-if="cartProduct.productVariant.returned" @click="returnItem(order.id, cartProduct.productVariant.id, cartProduct.quantity)" class="btn-details">Voir les détails ({{ cartProduct.productVariant.returned.status }})</button>
         </div>
       </div>
     </div>
   </div>
+  <NotFoundView v-else />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, inject } from 'vue'
+import { z } from 'zod'
 import { useRoute, useRouter } from 'vue-router'
+import { useCartStore } from '@/store/cart'
 import axios from '../tools/axios';
+import { AxiosError } from 'axios'
 import { format, parseISO } from 'date-fns'
 import Cookies from 'js-cookie'
+import NotFoundView from './NotFoundView.vue';
 
+const notFound = ref(false)
+const cartStore = useCartStore()
 const showNotification = inject('showNotification');
 const route = useRoute()
 const router = useRouter()
-const orderId = ref(route.params.id as string)
+const orderId = route.params.id
 const order = ref<any>(null)
+const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+
+const cartSchema = z.object({
+  userId: z.number(),
+  productVariantId: z.number().positive('L\'identifiant de la variante du produit doit être supérieur à 0'),
+  quantity: z.number().positive('La quantité doit être supérieure à 0')
+})
 
 const fetchOrder = async () => {
   if (authToken) {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId.value}`)
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/orders/${orderId}`)
       order.value = response.data
 
       if (order.value.Cart) {
         for (const cart of order.value.Cart.CartProducts) {
-          const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.variantOption.id}`, {
+          const returnProduct = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/return/${cart.productVariant.id}`, {
             params: {
-              orderId: orderId.value,
+              orderId: orderId,
             }
           })
 
           if (returnProduct.data && typeof returnProduct.data === 'object') {
-            cart.variantOption.returned = returnProduct.data
+            cart.productVariant.returned = returnProduct.data
           }
         }
       }
     } catch (error) {
+
+      if(error instanceof AxiosError && error.response.status === 404) {
+        notFound.value = true;
+      }
+
       console.error('Error fetching order:', error)
       showNotification('Erreur lors du chargement de la commande', 'error')
     }
@@ -117,7 +139,7 @@ const isFutureDate = (dateStr: string) => {
   return date.getTime() > today.getTime();
 }
 
-const downloadInvoice = async (orderId) => {
+const downloadInvoice = async () => {
   try {
     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe/invoice/${orderId}`);
     const invoicePdfUrl = response.data.invoicePdfUrl;
@@ -134,8 +156,8 @@ const downloadInvoice = async (orderId) => {
   }
 };
 
-const returnItem = (orderId: number, variantOptionId: number) => {
-  router.push({ name: 'ReturnProducts', params: { orderId: orderId, variantOptionId: variantOptionId } })
+const returnItem = (orderId: number, productVariantId: number) => {
+  router.push({ name: 'ReturnProducts', params: { orderId: orderId, productVariantId: productVariantId } })
 }
 
 const formatDate = (dateStr: string) => {
@@ -149,12 +171,13 @@ const formatHeure = (dateStr: string) => {
 }
 
 const addToCart = async (id: number, quantity: number) => {
-  console.log(id)
-  await axios.post(`${import.meta.env.VITE_API_BASE_URL}/carts`, {
+
+  const cart = cartSchema.parse({
     userId: authToken,
-    variantOptionId: id,
+    productVariantId: id,
     quantity: quantity
-  })
+  });
+  await cartStore.addProductToCart(cart);
   showNotification('Produit ajouté au panier avec succès', 'success')
 }
 

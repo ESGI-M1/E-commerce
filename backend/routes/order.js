@@ -1,9 +1,8 @@
 const { Router } = require("express");
-const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, VariantOption, ProductVariant } = require("../models");
+const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, AddressOrder, PaymentMethod, ProductVariant, AttributeValue } = require("../models");
 const router = new Router();
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
-const { Op } = require('sequelize');
 
 router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
@@ -29,55 +28,39 @@ router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
 
 router.get('/own', checkAuth, async (req, res, next) => {
   const userId = req.user.id;
-
+  
   try {
-      const carts = await Cart.findAll({
-          where: { userId },
-      });
+    const ordersWithCarts = await Order.findAll({
+      where: { userId },
+      include: [
+        {
+          model: Cart,
+          as: 'carts',
+          include: [
+            {
+              model: CartProduct,
+              as: 'CartProducts',
+            },
+          ],
+        },
+        {
+          model: PaymentMethod,
+          as: 'paymentMethod',
+          where: {
+            userId,
+          },
+          required: false,
+        },
+      ],
+    });
 
-      const orderMap = {};
-
-      for (const cart of carts) {
-          const orderId = cart.orderId;
-
-          if (!orderMap[orderId]) {
-              const order = await Order.findAll({
-                  where: { 
-                    userId: userId, 
-                    id: orderId,
-                    status: { [Op.ne]: 'cancelled' }
-                   }
-              }
-              );
-              const payment = await PaymentMethod.findOne({
-                where: {
-                  orderId: orderId,
-                  userId: userId,
-                },
-              });
-              if (order && payment) {
-                  orderMap[orderId] = {
-                      id: order.id,
-                      userId: order.userId,
-                      totalAmount: order.totalAmount,
-                      status: order.status,
-                      createdAt: order.createdAt,
-                      updatedAt: order.updatedAt,
-                      carts: []
-                  };
-              } else {
-                res.sendStatus(404);
-              }
-          }
-      }
-
-      const ordersWithCarts = Object.values(orderMap);
-
-      res.json(ordersWithCarts);
+    res.json(ordersWithCarts);
   } catch (e) {
+    console.error(e);
     next(e);
   }
 });
+
 
 router.get('/:id', checkAuth, async (req, res, next) => {
   try {
@@ -90,26 +73,26 @@ router.get('/:id', checkAuth, async (req, res, next) => {
         {
           model: CartProduct,
           as: 'CartProducts',
-          include: [{ 
-            model: VariantOption, 
-            as: 'variantOption',
-            include: [
-              {
-                model: ProductVariant,
-                as: 'productVariant',
-                include: [ 
-                  {
-                    model: Image,
-                    as: 'images',
-                  },
-                  {
-                    model: Product,
-                    as: 'product',
-                  }
-                ]
-              }
-            ],
-          }]
+          include: [
+            {
+              model: ProductVariant,
+              as: 'productVariant',
+              include: [ 
+                {
+                  model: Image,
+                  as: 'images',
+                },
+                {
+                  model: AttributeValue,
+                  as: 'attributeValues',
+                },
+                {
+                  model: Product,
+                  include: [Category],
+                }
+              ]
+            }
+          ]
         },
         {
           model: PromoCode,

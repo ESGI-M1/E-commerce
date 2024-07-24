@@ -1,7 +1,7 @@
 <template>
   <div>
     <FacetedSearchView />
-    <div class="product-list">
+    <div class="product-list" v-if="filteredProducts.length">
       <div
         v-for="product in filteredProducts"
         :key="product.id"
@@ -31,6 +31,9 @@
           </div>
         </RouterLink>
       </div>
+    </div>
+    <div class="no-products" v-else>
+      <p>Aucun produit disponible.</p>
     </div>
   </div>
 </template>
@@ -137,4 +140,16 @@ onMounted(() => {
   color: #555;
   font-size: 0.875em;
 }
+
+.no-products {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.5em;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+  margin: 20px;
+}
+
 </style>

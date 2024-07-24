@@ -10,7 +10,7 @@ const checkAuth = require("../middlewares/checkAuth");
 router.get("/:userId", async (req, res, next) => {
   try {
     const userId = parseInt(req.params.userId);
-    const cartItems = await Cart.findAll({
+    const cartItems = await Cart.findOne({
       where: { userId, orderId: null },
       include: [
         {
@@ -46,8 +46,8 @@ router.get("/:userId", async (req, res, next) => {
       ]
     });
 
-    if (cartItems.length > 0) {
-         const user = cartItems[0].user;
+    if (cartItems) {
+      const user = cartItems.user;
 
       const addresses = await AddressUser.findAll({
         where: { userId: user.id },
@@ -248,7 +248,6 @@ router.post('/remove-promo', async (req, res, next) => {
 
   try {
     await Cart.update({ promoCodeId: null }, { where: { userId : parseInt(userId), id: parseInt(cartIds) } });
-
     res.sendStatus(200);
   } catch (e) {
     next(e);
@@ -276,7 +275,8 @@ router.post("/hold", async (req, res, next) => {
     await cart.save();
 
     for (const cartProduct of cart.CartProducts) {
-      const productVariant = cartProduct.productVariant;
+      const productVariant = cartProduct.productVariant;  
+      console.log("dbzadbza",cartProduct) 
       if (productVariant.stock < 1) return res.status(400).json({ error: 'Not enough stock' });
 
       productVariant.stock -= 1;

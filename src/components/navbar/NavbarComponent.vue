@@ -19,7 +19,7 @@
       <!-- Shopping Cart Icon -->
       <a class="icon" href="/cart">
         <i class="fas fa-shopping-cart"></i>
-        <span class="badge">{{ cartsNumber }}</span>
+        <span class="badge">{{ cartStore.getCartItemCount }}</span>
       </a>
 
       &nbsp;
@@ -50,18 +50,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
 import { useShopStore } from '@/store/shop'
+import { useCartStore } from '@/store/cart'
 import Cookies from 'js-cookie'
-
-import axios from 'axios'
 
 const router = useRouter()
 const productsStore = useProductsStore()
 const shopStore = useShopStore()
-const cartsNumber = ref(null)
+const cartStore = useCartStore()
 
 const applyFilters = () => {
 
@@ -71,27 +70,6 @@ router.push({
     q: productsStore.filter.q,
   }
 });
-};
-
-const fetchCartItems = async () => {
-  const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : localStorage.getItem('temporaryId')
-  cartsNumber.value = null;
-
-  if (authToken) {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${authToken}`);
-
-    if (response.data && response.data.length > 0) {
-      response.data[0].CartProducts.forEach(CartProduct => {
-        cartsNumber.value += CartProduct.quantity;
-      });
-    } else {
-      cartsNumber.value = null;
-    }
-    } catch (error) {
-      cartsNumber.value = null;
-    }
-  }
 };
 
 const isAuthenticated = computed(() => {
@@ -104,7 +82,7 @@ const logout = () => {
 }
 
 onMounted(() => {
-  fetchCartItems()
+  cartStore.fetchCartItemsAuth()
   shopStore.fetchShop()
 })
 </script>

@@ -17,12 +17,8 @@ export const useCategoryStore = defineStore('category', {
   },
   actions: {
     async fetchCategory(slug) {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories/${slug}`);
-        this.category = response.data;
-      } catch (error) {
-        console.error('Failed to fetch category:', error);
-      }
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories/${slug}`);
+      this.category = response.data;
     }
   }
 });

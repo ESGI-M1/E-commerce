@@ -170,10 +170,6 @@ onMounted(() => {
   position: relative;
 }
 
-.nav-link img {
-  width: 30px;
-}
-
 .nav-link:hover {
   color: #42b983;
 }

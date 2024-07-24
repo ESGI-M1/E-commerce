@@ -209,13 +209,13 @@ const routes = [
   },
   {
     path: '/alerts',
-    name: 'Alertes',
+    name: 'Alerts',
     component: Alerts
   },
   {
     path: '/newsletters',
     name: 'NewsLetters',
-    component: NewsLetter
+    component: NewsLetter,
   },
   {
     path: '/admin/shop',
@@ -233,12 +233,7 @@ const routes = [
     path: '/page/:slug',
     name: 'Page',
     component: Page
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    name: 'NotFound',
-    component: NotFound,
-  },
+  }
 ]
 
 const router = createRouter({

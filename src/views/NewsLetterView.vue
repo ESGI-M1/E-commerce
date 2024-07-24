@@ -1,7 +1,13 @@
 <script setup lang="ts">
-  import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
   import axios from 'axios'
   import { z } from 'zod'
+import Cookies from 'js-cookie'
+
+  const isAdmin = computed(() => {
+    const user = JSON.parse(Cookies.get('USER').slice(2))
+    return user.role === 'admin'
+  })
 
   const showModal = ref(false);
   const isEditing = ref(false);
@@ -40,7 +46,7 @@
   const addNewsLetter = async () => {
     try {
       const parsedNewsLetter = newsletterSchema.parse({ ...actualNewsLetter.value });
-      const response = await axios.post('http://localhost:3000/newsletters', parsedNewsLetter);
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/newsletters`, parsedNewsLetter, { withCredentials: true });
       newsletters.value.push(response.data);
       closeModal();
     } catch (error) {
@@ -51,7 +57,7 @@
   const updateNewsLetter = async () => {
     try {
       const parsedNewsLetter = newsletterSchema.parse({ ...actualNewsLetter.value });
-      await axios.patch(`http://localhost:3000/newsletters/${actualNewsLetter.value.id}`, parsedNewsLetter);
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/newsletters/${actualNewsLetter.value.id}`, parsedNewsLetter, { withCredentials: true });
       const index = newsletters.value.findIndex((p) => p.id === actualNewsLetter.value.id);
       if (index !== -1) {
         newsletters.value[index] = actualNewsLetter.value;
@@ -68,7 +74,7 @@
 
   const deleteNewsLetter = async (newsletter) => {
     try {
-      await axios.delete(`http://localhost:3000/newsletters/${newsletter.id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/newsletters/${newsletter.id}`, { withCredentials: true });
       newsletters.value = newsletters.value.filter((p) => p.id !== newsletter.id);
     } catch (error) {
       console.error('Erreur lors de la suppression de la newsletter :', error);
@@ -77,7 +83,7 @@
 
   const fetchNewsLetters = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/newsletters');
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/newsletters`);
       newsletters.value = response.data;
     } catch (e) {
       console.error('Erreur lors de la récupération des newsletters :', e);
@@ -99,7 +105,7 @@
       </h1>
 
       <div class="text-right">
-        <button @click="showAddNewsletterModal" class="btn btn-success">
+        <button @click="showAddNewsletterModal" class="btn btn-success" v-if="isAdmin">
           <i class="fa fa-plus"></i> Créer un nouvel article
         </button>
       </div>
@@ -108,10 +114,10 @@
         <div class="newsletter-header">
           <h2>{{ newsletter.title }}</h2>
           <div class="action-container">
-            <button @click="showEditNewsLetterModal(newsletter)" class="btn btn-primary">
+            <button @click="showEditNewsLetterModal(newsletter)" class="btn btn-primary" v-if="isAdmin">
               <i class="fa fa-edit"></i>
             </button>
-            <button @click="deleteNewsLetter(newsletter)" class="btn btn-danger">
+            <button @click="deleteNewsLetter(newsletter)" class="btn btn-danger" v-if="isAdmin">
               <i class="fa fa-trash"></i>
             </button>
           </div>

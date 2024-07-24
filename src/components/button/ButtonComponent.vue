@@ -33,6 +33,10 @@ const handleClick = () => {
   color: white;
 }
 
+.primary:hover {
+  background-color: #005dc2;
+}
+
 .secondary {
   background-color: #6c757d;
   color: white;
@@ -41,6 +45,10 @@ const handleClick = () => {
 .danger {
   background-color: #dc3545;
   color: white;
+}
+
+.danger:hover {
+  background-color: #c62e3c
 }
 
 .warning {

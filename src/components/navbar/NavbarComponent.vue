@@ -40,28 +40,35 @@
           <RouterLink :to="{ name: 'Favoris' }" class="dropdown-item">Mes favoris</RouterLink>
           <RouterLink :to="{ name: 'Ressources' }" class="dropdown-item">Gestion des ressources</RouterLink>
           <RouterLink :to="{ name: 'Historique des commandes' }" class="dropdown-item">Historique des commandes</RouterLink>
-          <RouterLink :to="{ name: 'Alertes' }" class="dropdown-item">Mes alertes</RouterLink>
+          <RouterLink :to="{ name: 'Alerts' }" class="dropdown-item">Mes alertes</RouterLink>
+          <a @click="showCookiePage" class="dropdown-item">Gestion des cookies</a>
           <a href="#" @click="logout" class="dropdown-item">Déconnexion</a>
         </div>
       </div>
       <RouterLink v-else :to="{ name: 'Identifier' }" class="login-button">Connexion</RouterLink>
     </div>
+    <CookieComponent @closePage="closeCookiePage" v-if="showCookies"/>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '@/store/products'
 import { useShopStore } from '@/store/shop'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
+import Cookies from 'js-cookie'
+
+import axios from 'axios'
+import CookieComponent from '@/components/CookieComponent.vue'
 
 const router = useRouter()
 const productsStore = useProductsStore()
 const shopStore = useShopStore()
 const cartStore = useCartStore()
 const userStore = useUserStore()
+const showCookies = ref(false);
 
 const applyFilters = () => {
 
@@ -77,10 +84,40 @@ const logout = () => {
   userStore.logout()
 }
 
+async function checkUserAsAcceptedCookie()  {
+  const user = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+  if (user) {
+    const asCookie = await asAnyCookie(user);
+    if (!asCookie) {
+      showCookies.value = true
+    }
+  }
+}
+
+async function asAnyCookie(userId: number) {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/cookie/user/${userId}`);
+    if (response.data) {
+      return true;
+    }
+  } catch (e) {
+    return false;
+  }
+}
+
+function showCookiePage() {
+  showCookies.value = true;
+}
+
+function closeCookiePage() {
+  showCookies.value = false;
+}
+
 onMounted(() => {
   cartStore.fetchCartItemsAuth()
   shopStore.fetchShop()
   userStore.fetchUser()
+  checkUserAsAcceptedCookie()
 })
 </script>
 

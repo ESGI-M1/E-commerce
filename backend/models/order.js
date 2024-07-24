@@ -68,14 +68,6 @@ module.exports = function (connection) {
 
       Order.addHook('afterUpdate', async (order, { fields }) => {
         try {
-          if (fields.includes('status')) {
-            const statusId = await Order.getStatusIdByName(order.status, models);
-            await models.OrderStatusHistory.create({
-              orderId: order.id,
-              statusId: statusId,
-              changeDate: new Date(),
-            });
-          }
           if (fields.includes('totalAmount') || fields.includes('deliveryDate') || fields.includes('deliveryMethod')) {
             denormalizeOrder(order, models);
           }

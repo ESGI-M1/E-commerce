@@ -58,6 +58,9 @@
                 @confirmed="validate(order.id)"
               >
               </fancy-confirm>
+              <a v-else :href="downloadInvoiceUrl(order.id)" target="_blank">
+                Télécharger la facture <i class="fas fa-file-invoice"></i>
+              </a>
             </td>
           </tr>
           <tr v-else>
@@ -76,6 +79,9 @@ import { format, parseISO } from 'date-fns'
 import FancyConfirm from '../../components/ConfirmComponent.vue'
 
 const showNotification = inject('showNotification');
+const downloadInvoiceUrl = (orderId: number) => {
+  return import.meta.env.VITE_API_BASE_URL + '/orders/invoice/' + orderId
+}
 
 interface User {
   id: number

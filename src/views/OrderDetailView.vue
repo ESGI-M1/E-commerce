@@ -2,9 +2,7 @@
   <div class="cart" v-if="!notFound">
     <header class="header">
       <h1>Ma commande n°{{ orderId }}</h1>
-      <button v-if="order" @click="downloadInvoice(order.id)" class="btn-details">
-        Télécharger ma facture
-      </button>
+      <a :href="downloadInvoiceUrl" target="_blank" >Télécharger la facture</a>
       <p v-if="order">Date de la commande: {{ formatDate(order.createdAt) }} à {{formatHeure(order.createdAt)}}</p>
       <p class="payment-details" v-if="order && order.Payment">
         Paiement effectué via <span>{{ order.Payment.method }}</span>,
@@ -87,6 +85,7 @@ const order = ref<any>(null)
 const imageUrl = import.meta.env.VITE_API_BASE_URL + '/images/variant/';
 
 const authToken = Cookies.get('USER') ? JSON.parse(Cookies.get('USER').substring(2)).id : null
+const downloadInvoiceUrl = import.meta.env.VITE_API_BASE_URL + '/orders/invoice/' + orderId
 
 const cartSchema = z.object({
   userId: z.number(),
@@ -138,23 +137,6 @@ const isFutureDate = (dateStr: string) => {
   const today = new Date();
   return date.getTime() > today.getTime();
 }
-
-const downloadInvoice = async () => {
-  try {
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/stripe/invoice/${orderId}`);
-    const invoicePdfUrl = response.data.invoicePdfUrl;
-
-    const link = document.createElement('a');
-    link.href = invoicePdfUrl;
-    link.setAttribute('download', `Commande_n°${orderId}.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (error) {
-    console.error('Erreur lors du téléchargement de la facture :', error);
-    showNotification('Échec du téléchargement de la facture', 'error');
-  }
-};
 
 const returnItem = (orderId: number, productVariantId: number) => {
   router.push({ name: 'ReturnProducts', params: { orderId: orderId, productVariantId: productVariantId } })

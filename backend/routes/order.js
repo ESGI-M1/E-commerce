@@ -3,7 +3,9 @@ const { Order, Cart, Product, Image, Category, PromoCode, User, CartProduct, Add
 const router = new Router();
 const checkAuth = require("../middlewares/checkAuth");
 const checkRole = require("../middlewares/checkRole");
-const { Op, where, or } = require("sequelize");
+const { Op } = require("sequelize");
+const fs = require('fs');
+const path = require('path');
 
 router.get('/', checkRole({ roles: "admin" }), async (req, res, next) => {
   try {
@@ -92,6 +94,34 @@ router.get('/own', checkAuth, async (req, res, next) => {
   } catch (e) {
     console.error(e);
     next(e);
+  }
+});
+
+router.get('/invoice/:orderId', checkAuth, async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findOne({
+      where: {
+        id: orderId,
+        userId: req.user.id,
+      },
+    });
+
+    if (!order && req.user.role !== 'admin') return res.sendStatus(403);
+
+    const invoiceDirectory = path.join(__dirname, '..', 'stripe', 'invoices');
+    const invoicePath = path.join(invoiceDirectory, `invoice_${orderId}.pdf`);
+
+    if (fs.existsSync(invoicePath)) {
+      return res.sendFile(invoicePath);
+    } else {
+      return res.status(404).json({ error: 'Facture non trouvée' });
+    }
+
+  } catch (error) {
+    console.error(error);
+    next(error);
   }
 });
 

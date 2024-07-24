@@ -103,6 +103,7 @@
     background-color: rgba(200, 200, 200, 0.8);
     top: 0;
     left: 0;
+    z-index: 10;
   }
   .cookie-container {
     width: fit-content;

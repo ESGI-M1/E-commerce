@@ -1,0 +1,96 @@
+const request = require('supertest');
+const { User, NewsLetter } = require('../models');
+const server = request('http://localhost:3000');
+
+let user;
+let cookie;
+
+const getUser = async () => {
+
+  if (user) return user;
+
+  try {
+    user = await User.create({
+      firstname: 'John',
+      lastname: 'Doe',
+      email: 'zorglux+newsletter@zorglux.com',
+      password: 'Password123254369!',
+      active: true
+    });
+  } catch (e) {
+    user = await User.findOne({
+      where: {
+        email: 'zorglux+newsletter@zorglux.com',
+      }
+    });
+  }
+
+  return user;
+
+};
+
+const getCookie = async () => {
+
+  if(!user) await getUser();
+
+  if (cookie) return cookie;
+
+  const loginResponse = await server
+    .post('/login')
+    .send({
+      email: user.email,
+      password: 'Password123254369!',
+    })
+    .expect(200);
+
+  cookie = loginResponse.headers['set-cookie'];
+
+  return cookie;
+
+}
+
+describe('Newsletter Routes', () => {
+  it('should create a newsletter', async () => {
+    if (!cookie) await getCookie();
+    const newsletterarticle = {
+      title: 'title newsletter test',
+      content: 'content newsletter test'
+    };
+    await server
+      .post('/newsletters')
+      .send(newsletterarticle)
+      .set('Cookie', cookie)
+      .expect(201);
+  });
+
+  it('should update a newsletter', async () => {
+    if (!cookie) await getCookie();
+    const newsletterarticle = await NewsLetter.findOne({
+      where: {
+        title: 'title newsletter test',
+        content: 'content newsletter test'
+      }
+    });
+    const response = await server
+      .patch(`/newsletters/${newsletterarticle.id}`)
+      .send({
+        title: 'title updated newsletter test',
+      })
+      .set('Cookie', cookie);
+    expect(response.body.title).toBe('title updated newsletter test');
+  });
+
+  it('should delete a newsletter', async () => {
+    if (!cookie) await getCookie();
+    const newsletterarticle = await NewsLetter.findOne({
+      where: {
+        title: 'title updated newsletter test',
+        content: 'content newsletter test'
+      }
+    });
+    await server
+      .delete(`/newsletters/${newsletterarticle.id}`)
+      .set('Cookie', cookie)
+      .expect(204);
+  });
+});

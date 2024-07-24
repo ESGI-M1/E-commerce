@@ -83,6 +83,7 @@ router.post("/signup", async (req, res, next) => {
     if(req.body.cgu !== true) return res.status(400).send('CGU not accepted');
 
     const user = await User.create(req.body);
+    mailer.sendValidateInscription(user);
     mailer.sendNewsLetterInscription(user);
     res.status(201).json(user);
   } catch (e) {

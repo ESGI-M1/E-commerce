@@ -215,7 +215,7 @@ const addUser = async () => {
   try {
     errors.value = {};
     const parsedUser = userSchema.parse(currentUser.value);
-    parsedUser.password = generateRandomPassword(15);
+    parsedUser.password = generateRandomPassword(18);
     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users`, parsedUser);
     users.value.push(response.data);
     closeModal();

@@ -27,8 +27,6 @@ module.exports = function (connection) {
       });
 
       User.addHook("afterCreate", async (user) => {
-        mailer.sendValidateInscription(user);
-        await denormalizeUser(user, models);
       });
 
       User.addHook("afterUpdate", async (user, { fields }) => {

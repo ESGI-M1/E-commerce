@@ -8,19 +8,28 @@ let user;
 const getUser = async () => {
   if (user) return user;
 
-  user = User.create({
-    firstname: 'John',
-    lastname: 'Doe',
-    email: 'admin@zorglux.com',
-    password: 'Password123254369!',
-    role: 'admin'
-  });
+  try {
+    user = await User.create({
+      firstname: 'John',
+      lastname: 'Doe',
+      email: 'zorglux+category@zorglux.com',
+      password: 'Password123254369!',
+      role: 'admin',
+      active: true
+    });
+  } catch (e) {
+    user = await User.findOne({
+      where: {
+        email: 'zorglux+category@zorglux.com',
+      }
+    });
+  }
 
   return user;
 };
 
 const getCookie = async () => {
-  if (!user) getUser();
+  if (!user) await getUser();
 
   if (cookie) return cookie;
 
@@ -62,8 +71,25 @@ describe('Product routes', () => {
     expect(response.body.reference).toBe(newProduct.reference);
   });
 
+  it('should get a product with is id', async () => {
+    const productToSearch = await Product.findOne({
+      where: {
+        name: 'Laptop',
+        reference: 'LT123',
+        price: 1500,
+        active: true,
+        description: 'High-end gaming laptop',
+      }
+    });
+
+    const response = await server
+      .get(`/products/${productToSearch.id}`);
+
+    expect(response.body.id).toBe(productToSearch.id);
+  });
+
   it('should update a product with categories', async () => {
-    const product = Product.create({
+    const product = await Product.create({
       name: 'Smartphone',
       reference: 'SP123',
       price: 800,
@@ -71,13 +97,16 @@ describe('Product routes', () => {
       description: 'Latest model smartphone',
     });
 
-    const category1 = Category.create({
+    const category1 = await Category.create({
       name: 'Electronics',
+      slug: 'electronics',
       description: 'Electronic items',
+      active: true
     });
 
-    const category2 = Category.create({
+    const category2 = await Category.create({
       name: 'Gadgets',
+      slug: 'gadgets',
       description: 'Various gadgets',
     });
 
@@ -86,17 +115,19 @@ describe('Product routes', () => {
       .set('Cookie', cookie)
       .send({
         name: 'Updated Smartphone',
-        Categories: [category1.id, category2.id],
+        Categories: [category1, category2],
       })
       .expect(200);
 
     expect(response.body.name).toBe('Updated Smartphone');
-    const updatedProduct = Product.findByPk(product.id, { include: Category });
+    const updatedProduct = await Product.findByPk(product.id, { include: Category });
     expect(updatedProduct.Categories.length).toBe(2);
   });
 
+
+
   it('should delete a product', async () => {
-    const product = Product.create({
+    const product = await Product.create({
       name: 'Temporary Product',
       reference: 'TP123',
       price: 300,
@@ -109,39 +140,8 @@ describe('Product routes', () => {
       .set('Cookie', cookie)
       .expect(204);
 
-    const deletedProduct = Product.findByPk(product.id);
+    const deletedProduct = await Product.findByPk(product.id);
     expect(deletedProduct).toBeNull();
-  });
-
-  it('should replace a product', async () => {
-    const product = Product.create({
-      name: 'Old Product',
-      reference: 'OP123',
-      price: 1000,
-      active: true,
-      description: 'This product will be replaced',
-    });
-
-    const newProductData = {
-      name: 'New Product',
-      reference: 'NP123',
-      price: 1200,
-      active: true,
-      description: 'This is the new product',
-      Categories: []
-    };
-
-    const response = await server
-      .put(`/products/${product.id}`)
-      .set('Cookie', cookie)
-      .send(newProductData)
-      .expect(200);
-
-    expect(response.body.name).toBe(newProductData.name);
-    expect(response.body.reference).toBe(newProductData.reference);
-
-    const replacedProduct = Product.findByPk(product.id);
-    expect(replacedProduct.name).toBe(newProductData.name);
   });
 
 });

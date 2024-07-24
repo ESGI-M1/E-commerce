@@ -1,6 +1,5 @@
 const { User, Product, AddressUser, Favorite, Category, Shop, PromoCode, ProductVariant, Attribute, AttributeValue } = require('../models');
 
-// Fonction utilitaire pour trouver ou créer une entrée
 const findOrCreate = async (model, condition, data) => {
     const existingEntry = await model.findOne({ where: condition });
     if (existingEntry) {
@@ -11,7 +10,6 @@ const findOrCreate = async (model, condition, data) => {
     return newEntry;
 };
 
-// Fonction utilitaire pour trouver ou créer un attribut
 const findOrCreateAttribute = async (name) => {
     const existingAttribute = await Attribute.findOne({ where: { name } });
     if (existingAttribute) {
@@ -21,7 +19,6 @@ const findOrCreateAttribute = async (name) => {
     return Attribute.create({ name });
 };
 
-// Fonction utilitaire pour trouver ou créer une valeur d'attribut
 const findOrCreateAttributeValue = async (value, attributeId) => {
     const existingAttributeValue = await AttributeValue.findOne({ where: { value, attributeId } });
     if (existingAttributeValue) {
@@ -31,7 +28,6 @@ const findOrCreateAttributeValue = async (value, attributeId) => {
     return AttributeValue.create({ value, attributeId });
 };
 
-// Fonction pour créer les utilisateurs
 const usersFixtures = async () => {
     const admin = await findOrCreate(User, { email: 'admin@zorglux.com' }, {
         firstname: 'admin',
@@ -90,7 +86,6 @@ const usersFixtures = async () => {
     await productVariant.addAttributeValues([attributeValueL]);
 };
 
-// Fonction pour créer les produits et variantes
 const productsFixtures = async () => {
     const category_Action = await findOrCreate(Category, { slug: 'action' }, {
         name: 'Action',
@@ -167,7 +162,6 @@ const productsFixtures = async () => {
     await shopFixtures();
 };
 
-// Fonction pour créer la boutique
 const shopFixtures = async () => {
     const shop = await findOrCreate(Shop, { name: 'Zorglux' }, {
         name: 'Zorglux',
@@ -193,18 +187,16 @@ const shopFixtures = async () => {
     await shop.addMainCategories(categories);
 };
 
-// Fonction pour créer les codes promo
 const promoCodeFixtures = async () => {
     await findOrCreate(PromoCode, { code: 'PROMO10' }, {
         code: 'PROMO10',
-        discountPercentage: 10, // Assurez-vous que la clé correspond à la colonne dans votre modèle
-        startDate: new Date(),  // Ajouter une date de début
-        endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)), // Ajouter une date de fin (un mois après)
+        discountPercentage: 10,
+        startDate: new Date(),
+        endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
         active: true,
     });
 };
 
-// Exécution des fixtures
 (async () => {
     try {
         await usersFixtures();

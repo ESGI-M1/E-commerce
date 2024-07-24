@@ -24,6 +24,7 @@
           </button>
         </div>
 
+        <!-- Point relais form -->
         <div class="point-relais-form" v-if="deliveryOption === 'pointRelais'">
           <h3>Point relais</h3>
           <label>
@@ -32,82 +33,82 @@
           </label>
         </div>
 
+        <!-- Livraison à domicile form -->
         <div class="livraison-domicile-form" v-else-if="deliveryOption === 'livraisonDomicile'">
-    <h3>Livraison à domicile</h3>
-      <div v-if="carts.user && carts.user.deliveryAddress" v-for="(address, index) in carts.user.deliveryAddress" :key="address.id" class="delivery-address">
-        <label>
-          <input
-          type="radio"
-          :value="address"
-          v-model="selectedAddress"
-          name="deliveryAddress"
-          :checked="index === 0 ? true : false"
-          @click="updateLivraisonDomicileAddress(address)"
-        />
-          <div class="address-info">
-            <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
-            <p>{{ address.street }}</p>
-            <p>{{ address.postalCode }} {{ address.city }}</p>
-            <p>{{ address.country }}</p>
+          <h3>Livraison à domicile</h3>
+          <div v-if="carts.user && carts.user.deliveryAddress" v-for="(address, index) in carts.user.deliveryAddress" :key="address.id" class="delivery-address">
+            <label>
+              <input
+                type="radio"
+                :value="address"
+                v-model="selectedAddress"
+                name="deliveryAddress"
+                :checked="index === 0"
+                @click="updateLivraisonDomicileAddress(address)"
+              />
+              <div class="address-info">
+                <p><strong>Adresse de livraison {{ index + 1 }} :</strong></p>
+                <p>{{ address.street }}</p>
+                <p>{{ address.postalCode }} {{ address.city }}</p>
+                <p>{{ address.country }}</p>
+              </div>
+            </label>
           </div>
-        </label>
+          <div>
+            <input type="radio" value="newAddress" v-model="selectedAddress" name="deliveryAddress" /> Nouvelle adresse
+            <label>
+              Adresse :
+              <input type="text" v-model="livraisonDomicileAddress.street" placeholder="Rue" required>
+            </label>
+            <label>
+              Code postal :
+              <input type="text" v-model="livraisonDomicileAddress.postalCode" placeholder="Code postal" required>
+            </label>
+            <label>
+              Ville :
+              <input type="text" v-model="livraisonDomicileAddress.city" placeholder="Ville" required>
+            </label>
+            <label>
+              Pays :
+              <input type="text" v-model="livraisonDomicileAddress.country" placeholder="Pays" required>
+            </label>
+          </div>
+          <div class="check-address">
+            <label>
+              <input type="checkbox" :checked="checked" @change="checkBilling($event.target.checked)" />
+              Utiliser la même adresse de facturation
+            </label>
+          </div>
+          <div v-if="!checked">
+            <p>Nouvelle adresse de facturation</p>
+            <label>
+              Nom :
+              <input type="text" v-model="billingAddress.lastname" placeholder="Nom" required>
+            </label>
+            <label>
+              Prénom :
+              <input type="text" v-model="billingAddress.firstname" placeholder="Prénom" required>
+            </label>
+            <label>
+              Adresse :
+              <input type="text" v-model="billingAddress.street" placeholder="Rue" required>
+            </label>
+            <label>
+              Code postal :
+              <input type="text" v-model="billingAddress.postalCode" placeholder="Code postal" required>
+            </label>
+            <label>
+              Ville :
+              <input type="text" v-model="billingAddress.city" placeholder="Ville" required>
+            </label>
+            <label>
+              Pays :
+              <input type="text" v-model="billingAddress.country" placeholder="Pays" required>
+            </label>
+          </div>
+        </div>
       </div>
-    <div>
-            <input type="radio" value="newAddress" v-model="selectedAddress" name="deliveryAddress"/> Nouvelle adresse </input>
-            <label>
-            Adresse :
-            <input type="text" v-model="livraisonDomicileAddress.street" placeholder="Rue" required>
-          </label>
-          <label>
-            Code postal :
-            <input type="text" v-model="livraisonDomicileAddress.postalCode" placeholder="Code postal" required>
-          </label>
-          <label>
-            Ville :
-            <input type="text" v-model="livraisonDomicileAddress.city" placeholder="Ville" required>
-          </label>
-          <label>
-            Pays :
-            <input type="text" v-model="livraisonDomicileAddress.country" placeholder="Pays" required>
-          </label>
-        </div>
-        <div class="check-address">
-          <label>
-            <input type="checkbox" :checked="checked" @change="checkBilling(checked)" />
-            Utiliser la même adresse de facturation
-          </label>
-        </div>
-        <div v-if="!checked">
-            Nouvelle adresse de facturation</input>
-            <label>
-            Nom :
-            <input type="text" v-model="billingAddress.lastname" placeholder="Nom" required>
-          </label>
-          <label>
-            Prénom :
-            <input type="text" v-model="billingAddress.firstname" placeholder="Prénom" required>
-          </label>
-            <label>
-            Adresse :
-            <input type="text" v-model="billingAddress.street" placeholder="Rue" required>
-          </label>
-          <label>
-            Code postal :
-            <input type="text" v-model="billingAddress.postalCode" placeholder="Code postal" required>
-          </label>
-          <label>
-            Ville :
-            <input type="text" v-model="billingAddress.city" placeholder="Ville" required>
-          </label>
-          <label>
-            Pays :
-            <input type="text" v-model="billingAddress.country" placeholder="Pays" required>
-          </label>
-        </div>
-        </div>
-  </div>
 
-      </div>
       <div class="cart-summary" v-if="carts">
         <h2>Récapitulatif</h2>
         <div class="totals">
@@ -135,7 +136,7 @@
                   <p>{{ item.quantity }}</p>
                 </div>
                 <div class="item-price">
-                  <p>{{ item.productVariant.price}} €</p>
+                  <p>{{ item.productVariant.price }} €</p>
                 </div>
               </div>
             </div>
@@ -166,7 +167,7 @@
       <div class="payment-form">
         <h2>Paiement sécurisé</h2>
         <button class="pay-button" @click="handlePayment('stripe')">
-          Paiement avec stripe
+          Paiement avec Stripe
         </button>
       </div>
     </div>

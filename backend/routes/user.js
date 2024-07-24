@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { User, AddressUser, Favorite, ReturnProduct, Cart, PaymentMethod, Order, AddressOrder } = require("../models");
+const { User, AddressUser, Favorite, ReturnProduct, Cart, PaymentMethod, Order, AddressOrder, BillingAddress } = require("../models");
 const router = new Router();
 const checkRole = require("../middlewares/checkRole");
 const checkAuth = require("../middlewares/checkAuth");
@@ -83,6 +83,7 @@ router.post("/signup", async (req, res, next) => {
     if(req.body.cgu !== true) return res.status(400).send('CGU not accepted');
 
     const user = await User.create(req.body);
+    mailer.sendValidateInscription(user);
     mailer.sendNewsLetterInscription(user);
     res.status(201).json(user);
   } catch (e) {
@@ -123,7 +124,6 @@ router.patch("/:id", checkAuth, async (req, res, next) => {
   }
 });
 
-
 router.delete("/:id", checkAuth, async (req, res, next) => {
   try {
     const user = parseInt(req.params.id);
@@ -162,6 +162,8 @@ router.delete("/:id", checkAuth, async (req, res, next) => {
       res.sendStatus(deleted === 1 ? 204 : 404);
     } else {
       const deliveryMethodIds = orders.map(order => order.deliveryMethod).filter(id => id !== null);
+      const billingIds = orders.map(order => order.billingAddressId).filter(id => id !== null);
+
       if (deliveryMethodIds.length > 0) {
         await Order.update(
           { deliveryMethod: null },
@@ -169,6 +171,9 @@ router.delete("/:id", checkAuth, async (req, res, next) => {
         );
         await AddressOrder.destroy({
           where: { id: deliveryMethodIds }
+        });
+        await BillingAddress.destroy({
+          where: { id: billingIds }
         });
       }
     

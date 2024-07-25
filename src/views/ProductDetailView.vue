@@ -1,6 +1,6 @@
 <template>
 
-  <BreadCrumb :category="product.defaultCategoryId" />
+  <BreadCrumb :category="product.defaultCategoryId" v-if="product.defaultCategoryId" />
 
   <div v-if="product && !notFound" class="product-page">
     <div v-if="selectedVariant" class="slider-container">

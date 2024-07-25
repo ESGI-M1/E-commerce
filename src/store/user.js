@@ -97,16 +97,20 @@ export const useUserStore = defineStore('user', {
 
         if (temporaryId) {
           const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
+          
           const cartId = cartResponse.data.id
-          await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {})
+          if(cartId){
+            await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {})
+          }
 
-          await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
           localStorage.removeItem('temporaryId')
+          await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
         }
 
         await this.fetchUser()
         return { success: true }
       } catch (error) {
+        console.log(error)
         if (error.response && error.response.status === 429) {
           return { success: false, status: 429 }
         }

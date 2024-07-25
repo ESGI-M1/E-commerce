@@ -107,6 +107,8 @@ router.patch("/:id", checkAuth, async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid request body' });
     }
 
+    if(userId === req.user.id && req.user.role !== 'admin' && req.body.role == 'admin') return res.sendStatus(403);
+
     const [nbUpdated, users] = await User.update(req.body, {
       where: { id: userId },
       individualHooks: true,

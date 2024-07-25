@@ -37,7 +37,7 @@
         <div class="dropdown">
           <RouterLink :to="{ name: 'Profile' }" class="dropdown-item">Mon profil</RouterLink>
           <RouterLink :to="{ name: 'Favoris' }" class="dropdown-item">Mes favoris</RouterLink>
-          <RouterLink :to="{ name: 'Ressources' }" class="dropdown-item">Gestion des ressources</RouterLink>
+          <RouterLink v-if="userStore.isAdmin" :to="{ name: 'Ressources' }" class="dropdown-item">Gestion des ressources</RouterLink>
           <RouterLink :to="{ name: 'Historique des commandes' }" class="dropdown-item">Historique des commandes</RouterLink>
           <RouterLink :to="{ name: 'Alerts' }" class="dropdown-item">Mes alertes</RouterLink>
           <a @click="showCookiePage" class="dropdown-item">Gestion des cookies</a>
@@ -100,7 +100,7 @@ async function checkUserAsAcceptedCookie()  {
     if (!asCookie) {
       showCookies.value = true
     }
-  }
+  }F
 }
 
 async function asAnyCookie(userId: number) {

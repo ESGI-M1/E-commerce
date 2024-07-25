@@ -280,6 +280,9 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    zoom: 0.8;
+  }
   .links {
     display: none;
   }

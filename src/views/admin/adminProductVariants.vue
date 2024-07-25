@@ -359,7 +359,6 @@ const handleSubmit = async (modalName: string) => {
 
     let data;
     if(modalName === 'variant'){
-      console.log(currentVariant.value)
       data = productVariantSchema.parse(currentVariant.value)
     }
 

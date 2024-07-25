@@ -1,6 +1,5 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const path = require('path');
 require('dotenv').config();
 
 const checkAuth = require("./middlewares/checkAuth");
@@ -19,8 +18,8 @@ const FavoriteRouter = require("./routes/favorite");
 const OrderRouter = require("./routes/order");
 const ReturnRouter = require("./routes/return");
 const StripeRouter = require("./stripe/stripe");
-const rateLimiter = require('./rateLimiter');
-const AlertsRouter = require("./routes/alertUser")
+const { limiter, limiterSecurity } = require('./rateLimiter');
+const AlertsRouter = require("./routes/alertUser");
 const NewsLetterRouter = require("./routes/newLetter");
 const AddressOrderRouter = require("./routes/addressOrder");
 const AddressUserRouter = require("./routes/addressUser");
@@ -32,7 +31,7 @@ const AttributeRouter = require("./routes/attribute");
 const CookieUserRouter = require("./routes/cookieUser");
 
 const app = express();
-const cors = require('cors')
+const cors = require('cors');
 require('./services/cron');
 
 const options = {
@@ -40,13 +39,14 @@ const options = {
   credentials: true,
 };
 
-require('./migrate');
+//require('./migrate');
 
 app.post("/stripe/webhook", express.raw({ type: 'application/json' }), handleStripeWebhook);
 
+app.use(limiter); // Apply the rate limiter to all requests
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
-app.use(cors(options))
+app.use(cors(options));
 app.use(bodyParser.json());
 
 app.use("/users", UserRouter, checkAuth);
@@ -70,7 +70,7 @@ app.use('/stats', StatsRouter);
 app.use('/shop', ShopRouter);
 app.use('/attributes', AttributeRouter);
 app.use('/cookie', CookieUserRouter);
-app.use(SecurityRouter, rateLimiter);
+app.use(SecurityRouter, limiterSecurity);
 
 app.listen(process.env.PORT, () => {
   console.log("Server running on port " + process.env.PORT);

@@ -247,9 +247,10 @@ const addToCart = async (quantity: number) => {
       localStorage.setItem('temporaryId', user);
     }
   }
+
   try {
     const cart = cartSchema.parse({
-      userId: user,
+      userId: parseInt(user),
       productVariantId: selectedVariant.value.id,
       quantity
     });

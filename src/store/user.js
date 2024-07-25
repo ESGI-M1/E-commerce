@@ -97,8 +97,9 @@ export const useUserStore = defineStore('user', {
 
         if (temporaryId) {
           const cartResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/carts/${temporaryId}`)
-          const cartId = cartResponse.data[0].id
-          cart = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {})
+          const cartId = cartResponse.data.id
+          await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/carts/update-user/${cartId}`, {})
+
           await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/users/${temporaryId}`)
           localStorage.removeItem('temporaryId')
         }

@@ -350,9 +350,7 @@ const handleSubmit = async (type: string) => {
       data = modalLogoSchema.parse(shop.value);
     }
     else if(modalName.value === 'mainCategories') {
-      console.log(shop.value);
       data = modalMainCategoriesSchema.parse(shop.value);
-      console.log(data);
     }
     else if(modalName.value === 'legalNotice' || modalName.value === 'cgu' || modalName.value === 'cgv' || modalName.value === 'rgpd') {
       data = tinymceSchema.parse(shop.value);

@@ -39,6 +39,7 @@ router.post('/', checkAuth, async (req, res, next) => {
         metadata: {
           orderId: orderId,
           userId: req.user.id,
+          cartId: cartId,
         }
       }
     });

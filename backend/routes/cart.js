@@ -176,21 +176,23 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.patch("/update-order/:cartId", async (req, res, next) => {
+/*router.patch("/update-order/:cartId", checkAuth, async (req, res, next) => {
   const cartId = parseInt(req.params.cartId);
   const orderId = parseInt(req.body.orderId);
+  const userId = req.user.id;
 
   try {
     const cart = await Cart.findByPk(cartId);
     if (!cart) return res.status(404).json({ error: 'Cart not found' });
     
-    const [nbUpdated, updatedCart] = await Cart.update({ orderId }, { where: { id: cartId }, returning: true });
+    const [nbUpdated, updatedCart] = await Cart.update({ orderId }, { where: { id: cartId, userId}, returning: true });
 
     nbUpdated ? res.json(updatedCart) : res.sendStatus(404);
   } catch (e) {
     next(e);
   }
 });
+*/
 
 router.patch("/update-user/:cartId", checkAuth, async (req, res, next) => {
   const cartId = parseInt(req.params.cartId);

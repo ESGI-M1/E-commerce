@@ -19,12 +19,64 @@ const handleStripeWebhook = async (req, res, next) => {
     switch (event.type) {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object;
-        const { orderId, userId } = paymentIntent.metadata;
+        const { orderId, userId, cartId } = paymentIntent.metadata;
 
         if (!orderId || !userId) {
           console.error('OrderId or UserId is missing in metadata.');
           return res.status(400).send('OrderId or UserId is missing in metadata.');
         }
+
+        await Cart.update({ orderId }, { where: { id: cartId, userId}});
+
+        const order = await Order.findOne({
+          where: { id: orderId },
+          include: [
+            {
+              model: BillingAddress,
+              as: 'billingAddress',
+            },
+            {
+              model: Cart,
+              as: 'carts',
+              include: [
+                {
+                  model: CartProduct,
+                  as: 'CartProducts',
+                  include: [{
+                    model: ProductVariant,
+                    as: 'productVariant',
+                    include: [
+                      Product, 
+                      { 
+                        model: AttributeValue, 
+                        as: 'attributeValues',
+                        include: [
+                          {
+                            model: Attribute,
+                            as: 'attribute',
+                          }
+                        ]
+                      },
+                    ]
+                  }]
+                },
+              ]
+            }
+          ],
+        });
+
+        const updatePromises = order.carts.flatMap(cart => 
+          cart.CartProducts.map(async (cartProduct) => {
+            const productVariant = cartProduct.productVariant;  
+
+            if (productVariant) {
+              productVariant.stock -= cartProduct.quantity;
+              await productVariant.save();
+            }
+          })
+        );
+
+        await Promise.all(updatePromises);
 
         const payment = await PaymentMethod.findOne({ where: { orderId, userId } });
         if (payment) {
@@ -60,7 +112,6 @@ const handleStripeWebhook = async (req, res, next) => {
 
 const generateInvoice = async (orderId) => {
   try {
-    // Trouver la commande
     const order = await Order.findOne({
       where: { id: orderId },
       include: [

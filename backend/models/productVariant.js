@@ -16,7 +16,7 @@ module.exports = function(connection) {
         static async createImageForVariant(productVariant, models) {
           try {
               await models.Image.create({
-                  fileName: 'undefined.png',
+                  fileName: productVariant.id + '-undefined.png',
                   description: productVariant.reference,
                   productVariantId: productVariant.id
               });

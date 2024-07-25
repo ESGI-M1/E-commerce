@@ -174,46 +174,46 @@ onMounted(() => {
 @media (max-width: 768px) {
   .faceted-search {
       float: left;
-  position: fixed;
-  z-index: 1;
-  top: 120px;
-  left: 0;
-  bottom: 0;
-  padding: 0.5em;
-  transition: 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+      position: fixed;
+      z-index: 1;
+      top: 120px;
+      left: 0;
+      bottom: 0;
+      padding: 0.5em;
+      transition: 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
 }
-.collapse-icon {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  padding: 0.75em;
-  color: black;
-  transition: 0.2s linear;
-  z-index: 9999;
-  display: block;
-}
+  .collapse-icon {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 0.75em;
+    color: black;
+    transition: 0.2s linear;
+    z-index: 9999;
+    display: block;
+  }
 
-.rotate-180 {
-  transform: rotate(180deg);
-  transition: 0.2s linear;
-}
+  .rotate-180 {
+    transform: rotate(180deg);
+    transition: 0.2s linear;
+  }
 
-.faceted-search.collapsed {
-  width: 0;
-  padding: 0;
-}
+  .faceted-search.collapsed {
+    width: 0;
+    padding: 0;
+  }
 
-.faceted-search h1 {
-  height: 2.5em;
-}
+  .faceted-search h1 {
+    height: 2.5em;
+  }
 
-.faceted-search hr {
-  border: 0;
-  border-top: 1px solid #ccc;
-  margin: 1em 0.5em;
-}
+  .faceted-search hr {
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0.5em;
+  }
 }
 </style>

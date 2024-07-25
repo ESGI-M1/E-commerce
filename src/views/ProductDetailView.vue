@@ -20,12 +20,10 @@
 
       <div class="variant-attributes">
         <div class="product-variants" v-if="product.variants && product.variants.length">
-          <select @change="changeVariant($event)" :value="selectedVariant.attributeValues[0]?.id">
-            <template v-for="variant in product.variants">
-              <option v-for="attribute in variant.attributeValues" :key="variant.id" :value="attribute.id">
-                {{ attribute.attribute.name }} : {{ attribute.value }}
-              </option>
-            </template>
+          <select v-model="selectedVariant">
+            <option v-for="variant in product.variants" :key="variant.id" :value="variant">
+              {{ variant.attributeValues.map(attr => attr.attribute.name + ' : ' + attr.value).join(', ') }}
+            </option>
           </select>
         </div>
       </div>
@@ -165,13 +163,6 @@ interface Alert {
 
 const product = ref<Product>()
 const selectedVariant = ref<ProductVariant>()
-
-const changeVariant = (event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  selectedVariant.value = product.value.variants.find(variant =>
-    variant.attributeValues.some(av => av.id === parseInt(target.value))
-  );
-}
 
 const fetchProduct = async () => {
 

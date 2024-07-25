@@ -121,8 +121,6 @@ router.get('/search', async (req, res, next) => {
 
         filter['variants'] = variantFilter;
 
-        console.log('Filter:', filter);
-
         const products = await ProductMongo.find(filter).lean().exec();
         res.json(products);
     } catch (error) {

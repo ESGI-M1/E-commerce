@@ -20,7 +20,7 @@
     <table>
       <thead>
         <tr>
-          <th>Images</th>
+          <th>ID</th>
           <th>Nom</th>
           <th>Référence</th>
           <th>Description</th>
@@ -33,20 +33,7 @@
       </thead>
       <tbody>
         <tr v-if="filteredProducts.length > 0"v-for="product in filteredProducts" :key="product.id">
-          <td>
-            <label class="image-upload">
-              <input
-                type="file"
-                @change="handleImageChange($event, product)"
-                accept="image/*"
-                style="display: none"
-              />
-              <img :src="product.Images && product.Images.length > 0 ? product.Images[0].url : '../../produit_avatar.jpg'" 
-              :alt="product.Images && product.Images.length > 0 ? product.Images[0].description : product.name" 
-              class="product-image" 
-              />
-            </label>
-          </td>
+          <td>{{ product.id }}</td>
           <td>{{ product.name }}</td>
           <td>{{ product.reference }}</td>
           <td>{{ truncateString(product.description, 200) }}</td>

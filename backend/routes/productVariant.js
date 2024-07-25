@@ -142,9 +142,12 @@ router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
         const productVariant = await ProductVariant.create(productVariantData);
 
         if (attributeValues && attributeValues.length) {
-            const attributeValuesIds = attributeValues.map((attributeValue) => attributeValue.id);
+            const attributeValuesIds = attributeValues
+                .map(attributeValue => attributeValue.id)
+                .filter((id, index, self) => self.indexOf(id) === index);
             await productVariant.setAttributeValues(attributeValuesIds);
         }
+        
 
         await productVariant.reload({
             include: [
@@ -165,6 +168,7 @@ router.put("/:id", checkRole({ roles: "admin" }), async (req, res, next) => {
 
         res.status(200).json(productVariant);
     } catch (e) {
+        console.log(e)
         next(e);
     }
 });

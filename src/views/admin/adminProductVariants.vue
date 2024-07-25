@@ -82,9 +82,9 @@
         </div>
         <div class="form-group">
           <label for="attributeValues">Attributs</label>
-            <select v-model="currentAttributes" multiple id="attributeValues">
-              <option v-for="(attribute, index) in attributes" :key="index" :value="attribute">{{ attribute.name }}</option>
-            </select>
+          <select v-model="currentAttributes" multiple id="attributeValues" @change="handleAttributeChange">
+            <option v-for="(attribute, index) in attributes" :key="index" :value="attribute">{{ attribute.name }}</option>
+          </select>
         </div>
         <div class="form-group" v-for="(attribute, index) in currentAttributes" :key="index">
           <label :for="'attributeValue' + index">{{ attribute.name }}</label>
@@ -228,15 +228,23 @@ const showVariantModal = (modal: string) => {
     currentVariant.value = {
       productId: productId,
       reference: '',
-      price: 0,
+      price: product.value.price,
       stock: 0,
       active: true,
-      default: false,
+      default: productVariants.length ? false : true,
       attributeValues: []
     };
   }
 };
 
+const handleAttributeChange = () => {
+  const selectedAttributes = currentAttributes.value;
+
+  currentVariant.value.attributeValues = currentVariant.value.attributeValues.filter(attrValue => {
+    return selectedAttributes.some(attr => attr.values.some(val => val.id === attrValue.id));
+  });
+
+};
 
 const fetchAttributes = async () => {
   try {

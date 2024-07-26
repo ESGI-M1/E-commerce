@@ -1,0 +1,113 @@
+const request = require('supertest');
+const { User, Shop } = require('../models');
+const server = request('http://localhost:3000');
+
+let user;
+let cookie;
+let shop;
+
+const getUser = async () => {
+
+  if (user) return user;
+
+  try {
+    user = await User.create({
+      firstname: 'John',
+      lastname: 'Doe',
+      email: 'zorglux+shop@zorglux.com',
+      password: 'Password123254369!',
+      active: true
+    });
+  } catch (e) {
+    user = await User.findOne({
+      where: {
+        email: 'zorglux+addressusers@zorglux.com',
+      }
+    });
+  }
+
+  return user;
+
+};
+
+const getCookie = async () => {
+
+  if(!user) await getUser();
+
+  if (cookie) return cookie;
+
+  const loginResponse = await server
+    .post('/login')
+    .send({
+      email: user.email,
+      password: 'Password123254369!',
+    })
+    .expect(200);
+
+  cookie = loginResponse.headers['set-cookie'];
+
+  return cookie;
+
+}
+
+const getShop = async () => {
+  try {
+    shop = await Shop.findOne({
+      where: {
+        email: "dabh45@gmail.com"
+      }
+    });
+  } catch (e) {}
+}
+
+describe('Shop routes', () => {
+  it('Should be able to create a shop', async () => {
+    const cookie = await getCookie();
+
+    const shopToCreate = {
+      name: "ShopTest",
+      favicon: "favicon",
+      logo: "logo",
+      street: "Rue du test",
+      postalCode: "75000",
+      city: "Paris",
+      country: "France",
+      legalNotice: "legalNotice",
+      cgv: "cgv",
+      cgu: "cgu",
+      rgpd: "rgpd",
+      siret: "123456789",
+      tva: "123",
+      active: true,
+      email: "dabh45@gmail.com"
+    };
+
+    await server
+      .post(`/shop`)
+      .set('Cookie', cookie)
+      .send(shopToCreate)
+      .expect(201);
+  });
+
+
+
+  it('Should be able to get a shop', async () => {
+    if (!shop) await getShop();
+    const response = await server
+      .get(`/shop`)
+      .set('Cookie', cookie);
+    expect(response.body.id).toBe(shop.id);
+  });
+
+
+
+  it('Should be able to patch a shop', async () => {
+    if (!shop) await getShop();
+    const response = await server
+      .patch(`/shop/${shop.id}`)
+      .set('Cookie', cookie)
+      .send({ name: "ShopTest2"});
+
+    expect(response.body.name).toBe("ShopTest2");
+  });
+})

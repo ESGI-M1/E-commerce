@@ -33,7 +33,7 @@ router.get("/", async (req, res, next) => {
 router.post("/", checkRole({ roles: "admin" }), async (req, res, next) => {
     try {
         const shop = await Shop.create(req.body);
-        res.statut(201).json(shop);
+        res.sendStatus(201).json(shop);
     } catch (e) {
         next(e);
     }
